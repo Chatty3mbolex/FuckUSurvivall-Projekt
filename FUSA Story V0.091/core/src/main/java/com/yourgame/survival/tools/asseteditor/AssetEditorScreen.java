@@ -153,7 +153,7 @@ public final class AssetEditorScreen extends ScreenAdapter {
   // Preview animation state (editor-only)
   private boolean previewAutoPlay = true;
   private float previewAnimAcc = 0f;
-  private float previewAnimFrameSec = 0.10f; // 10 FPS default
+  private final float previewAnimFrameSec = 0.10f; // 10 FPS default
   // Frame-strip UI (built once; content rebuilt per selection)
   private TextButton btnPreviewPlay;
   private Table frameStrip;
@@ -161,7 +161,7 @@ public final class AssetEditorScreen extends ScreenAdapter {
   private CollisionMeta actual;
   private CollisionMeta draft;
 
-  private Color bgColor = new Color(0, 0, 0, 0);
+  private final Color bgColor = new Color(0, 0, 0, 0);
   private int bgTol = 12;
   private int alphaTh = 16;
 
@@ -176,8 +176,8 @@ public final class AssetEditorScreen extends ScreenAdapter {
     // UI scale: make everything ~50% larger while keeping layout stable.
     // ScreenViewport supports units-per-pixel scaling, which uniformly scales all Scene2D UI.
     try {
-      if (stage.getViewport() instanceof ScreenViewport) {
-        ((ScreenViewport) stage.getViewport()).setUnitsPerPixel(1f / 1.5f);
+      if (stage.getViewport() instanceof ScreenViewport sv) {
+        sv.setUnitsPerPixel(1f / 1.5f);
         stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
       }
     } catch (Throwable ignored) {
@@ -750,10 +750,10 @@ batchReplacePrefixBtn.addListener(new ChangeListener() {
     new Thread(() -> {
       try {
         onRepackAtlasInternal();
-      } catch (Throwable t) {
+      } catch (Exception e) {
         Gdx.app.postRunnable(() -> {
           setStatus("ERROR: Repack exception");
-          appendLog("Repack ERROR: " + t);
+          appendLog("Repack ERROR: " + e);
         });
       }
     }, "asset-repack").start();
@@ -764,10 +764,13 @@ batchReplacePrefixBtn.addListener(new ChangeListener() {
     setStatus("INFO: Use folder path + Set Folder, then pick a candidate from the list.");
   }
 
+  // Nicht fertiges Feature: unused helper (we do not open FileDialogs on Windows)
+  /*
   private void onChooseCandidateFolder() {
     // Deprecated: we intentionally do NOT open java.awt.FileDialog here because it can hard-crash LWJGL3 on Windows.
     setStatus("INFO: paste folder path and press Set Folder");
   }
+  */
 
   private void onSetCandidateFolder() {
     try {
@@ -884,10 +887,10 @@ private void onBatchReplacePrefixAsync() {
   new Thread(() -> {
     try {
       onBatchReplacePrefixInternal();
-    } catch (Throwable t) {
+    } catch (Exception e) {
       Gdx.app.postRunnable(() -> {
         setStatus("ERROR: Batch replace failed");
-        appendLog("Batch replace ERROR: " + t);
+        appendLog("Batch replace ERROR: " + e);
       });
     }
   }, "asseteditor-batch-replace").start();
@@ -950,8 +953,8 @@ private void onBatchReplacePrefixInternal() throws Exception {
       java.util.regex.Matcher mm = srcPat.matcher(low);
       if (!mm.matches()) return;
       String d = mm.group(1).toUpperCase(Locale.ROOT);
-      java.util.List<File> list = newByDir.get(d);
-      if (list != null) list.add(pp.toFile());
+      java.util.List<File> filesForDir = newByDir.get(d);
+      if (filesForDir != null) filesForDir.add(pp.toFile());
     });
   }
 
@@ -1082,8 +1085,8 @@ private void onBatchReplacePrefixInternal() throws Exception {
       java.util.regex.Matcher mm = oldPat.matcher(f.getName().toLowerCase(Locale.ROOT));
       if (!mm.matches()) continue;
       String d = mm.group(1).toUpperCase(Locale.ROOT);
-      java.util.List<File> list = oldByDir.get(d);
-      if (list != null) list.add(f);
+      java.util.List<File> filesForDir = oldByDir.get(d);
+      if (filesForDir != null) filesForDir.add(f);
     }
     for (String d : new String[]{"N","E","S","W"}) oldByDir.get(d).sort(frameSort);
 
@@ -1243,7 +1246,7 @@ private static int inferDigitPadding(String filenameLower) {
         java.nio.file.Files.move(tmpPath, dstPath,
             StandardCopyOption.REPLACE_EXISTING,
             StandardCopyOption.ATOMIC_MOVE);
-      } catch (Exception ignoreAtomic) {
+      } catch (java.nio.file.AtomicMoveNotSupportedException ignoreAtomic) {
         // ATOMIC_MOVE may not be supported on some filesystems. Fallback to non-atomic move.
         java.nio.file.Files.move(tmpPath, dstPath, StandardCopyOption.REPLACE_EXISTING);
       }
@@ -1254,9 +1257,9 @@ private static int inferDigitPadding(String filenameLower) {
       // Refresh preview/collision for the currently selected frame without resetting selection.
       setSelectedFrameIndex(selectedFrameIndex, false);
       recomputeDraft();
-    } catch (Throwable t) {
+    } catch (Exception e) {
       setStatus("ERROR: Replace failed");
-      appendLog("Replace ERROR: " + t);
+      appendLog("Replace ERROR: " + e);
     }
   }
 
@@ -1351,14 +1354,14 @@ private static int inferDigitPadding(String filenameLower) {
     crashDir.mkdirs();
     File repackLog = new File(crashDir, "repack.log");
 
-    java.io.PrintWriter logOut = null;
+    java.io.PrintWriter logOut;
     try {
       logOut = new java.io.PrintWriter(new java.io.FileWriter(repackLog, true));
       logOut.println("---- REPACK " + new java.util.Date() + " ----");
       logOut.println("cwd=" + relPath(root));
       logOut.println("cmd=" + cmd);
       logOut.flush();
-    } catch (Throwable ignored) {
+    } catch (java.io.IOException ignored) {
       logOut = null;
     }
 
@@ -1449,9 +1452,9 @@ try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStr
       writePackerJson(j);
       setStatus("OK: settings saved");
       appendLog("Saved: assets/atlas/packer-settings.json (packAtlas uses it)");
-    } catch (Throwable t) {
+    } catch (Exception e) {
       setStatus("ERROR: save settings");
-      appendLog("Save settings ERROR: " + t);
+      appendLog("Save settings ERROR: " + e);
     }
   }
 
@@ -1546,10 +1549,10 @@ try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStr
       // rotate in SOURCE space
       int rx, ry;
       switch (rot90 & 3) {
-        case 1: rx = ih - 1 - sy; ry = sx; break;       // 90
-        case 2: rx = iw - 1 - sx; ry = ih - 1 - sy; break; // 180
-        case 3: rx = sy; ry = iw - 1 - sx; break;       // 270
-        default: rx = sx; ry = sy; break;
+        case 1 -> { rx = ih - 1 - sy; ry = sx; }            // 90
+        case 2 -> { rx = iw - 1 - sx; ry = ih - 1 - sy; }   // 180
+        case 3 -> { rx = sy; ry = iw - 1 - sx; }            // 270
+        default -> { rx = sx; ry = sy; }
       }
 
       // flips in OUTPUT space
@@ -1764,7 +1767,8 @@ try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStr
       return;
     }
     selectedFrameIndex = 0;
-    TextureAtlas.AtlasRegion r = currentFrames.get(0);
+    // Nicht fertiges Feature: unused local
+    // TextureAtlas.AtlasRegion r = currentFrames.get(0);
     boolean exists = true;
     lblInfo.setText(e.kind + " : " + e.name + (exists ? "" : "  (missing in atlas)"));
 
@@ -1925,7 +1929,7 @@ try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStr
           pendingDropFile = null;
           if (lblStaged != null) lblStaged.setText("Staged: none");
           onRepackAtlasAsync();
-        } catch (Exception ex) {
+        } catch (java.io.IOException | RuntimeException ex) {
           setStatus("ERROR: apply drop failed");
           appendLog("Apply drop ERROR: " + ex);
         }

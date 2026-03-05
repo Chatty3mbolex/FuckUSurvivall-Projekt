@@ -104,12 +104,15 @@ public final class EntityRegions {
     return r;
   }
 
+  // Nicht fertiges Feature: unused overload (kept for later sprite packs with indexed static regions)
+  /*
   private TextureRegion reqStatic(String name, int index) {
     TextureAtlas.AtlasRegion r = staticAtlas.findRegion(name, index);
     if (r == null) r = staticAtlas.findRegion(name);
     if (r == null) throw new IllegalStateException("Missing static atlas region: " + name + " (idx=" + index + ")");
     return r;
   }
+  */
 
   public TextureRegion forEntity(EntityType t, float stateTime, int itemId, float vx, float vy, byte lastDir) {
     boolean moving = (vx * vx + vy * vy) > (5f * 5f);

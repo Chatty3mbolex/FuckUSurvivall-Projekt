@@ -827,7 +827,8 @@ public final class WorldEditorScreen extends ScreenAdapter {
   private SpawnTypeId activeSpawnType = SpawnTypeId.ANIMAL_DEER;
 
   private static final class PlacedObject {
-    String biomeName;
+    // Nicht fertiges Feature: unused (kept for later if we want per-object biome stamping)
+    // String biomeName;
     String zoneName;
     SpawnTypeId type;
     float lx;
@@ -1113,7 +1114,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
 
     // Place new object
     PlacedObject o = new PlacedObject();
-    o.biomeName = bk;
+    // Nicht fertiges Feature: o.biomeName = bk; // (unused)
     o.zoneName = zoneName;
     o.type = activeSpawnType;
 

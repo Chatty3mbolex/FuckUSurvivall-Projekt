@@ -16,7 +16,8 @@ import com.yourgame.survival.render.UiRegions;
 public final class TutorialScreen extends ScreenAdapter {
   public interface BackAction { void goBack(); }
 
-  private final SurvivalGame game;
+  // Nicht fertiges Feature: unused
+  // private final SurvivalGame game;
   private final BackAction back;
 
   private static final float UI_SCALE = 1.65f;
@@ -29,7 +30,7 @@ public final class TutorialScreen extends ScreenAdapter {
   private String[] lines = new String[0];
 
   public TutorialScreen(SurvivalGame game, BackAction back) {
-    this.game = game;
+    // Nicht fertiges Feature: this.game = game; // (unused)
     this.back = back;
   }
 

@@ -343,7 +343,7 @@ public final class BiomeSystem {
           defs[b.ordinal()] = BiomeDef.fromJson(b, bj);
         }
       }
-    } catch (Throwable t) {
+    } catch (RuntimeException e) {
       // Fail-safe: do not crash game; revert to defaults and rewrite.
       for (Biome b : Biome.values()) defs[b.ordinal()] = BiomeDef.defaultsFor(b);
       save();

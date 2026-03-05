@@ -311,9 +311,12 @@ public final class SaveLoadScreen extends ScreenAdapter {
     batch.end();
   }
 
+  // Nicht fertiges Feature: unused helper overload
+  /*
   private void drawButton(String text, float x, float y) {
     drawButton(text, x, y, 1f, 1f, 1f);
   }
+  */
 
   private void drawButton(String text, float x, float y, float r, float g, float b) {
     drawButton(text, x, y, r, g, b, w, h);

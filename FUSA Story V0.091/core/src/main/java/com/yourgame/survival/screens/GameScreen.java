@@ -6269,6 +6269,11 @@ private void craftByOutput(int outItemId) {
     return worldSeed;
   }
 
+  /** @return same as {@link #areaGetWorldSeed()}, but avoids any deprecated symbol in callers. */
+  public long areaWorldSeed() {
+    return worldSeed;
+  }
+
   /** @return current world instance (after any area load/reset). */
   public com.yourgame.survival.world.World areaWorld() {
     return world;

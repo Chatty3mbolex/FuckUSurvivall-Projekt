@@ -15,7 +15,8 @@ public final class EntityCollisionSystem {
     int[] idx = new int[256];
     int n = 0;
 
-    int player = -1;
+    // Nicht fertiges Feature: reserved for special-case player-vs-entity collision tuning
+    // int player = -1;
 
     for (int i = 0; i < Entities.MAX; i++) {
       if (!es.alive[i]) continue;
@@ -26,7 +27,7 @@ public final class EntityCollisionSystem {
         if (ecx < minCx || ecx > maxCx || ecy < minCy || ecy > maxCy) continue;
       }
 
-      if (t == EntityType.PLAYER) player = i;
+      // Nicht fertiges Feature: if (t == EntityType.PLAYER) player = i; // (unused)
       if (t != EntityType.PLAYER && t != EntityType.ORK_GRUNT && t != EntityType.ANIMAL_DEER) continue;
       if (n < idx.length) idx[n++] = i;
     }

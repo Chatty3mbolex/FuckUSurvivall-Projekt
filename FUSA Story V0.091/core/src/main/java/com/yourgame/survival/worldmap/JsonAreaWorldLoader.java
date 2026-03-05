@@ -93,7 +93,7 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
 
   /** Deterministic area seed derived from worldSeed + templateId. */
   private static long areaSeed(GameScreen gs, String templateId) {
-    long s = gs.areaGetWorldSeed();
+    long s = gs.areaWorldSeed();
     long h = templateId.hashCode();
     return s ^ (h * 0x9E3779B97F4A7C15L);
   }
@@ -500,7 +500,7 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
   }
 
   private static void fillCircleWater(World world, int areaW, int areaH, int x0, int y0, int r, long seed) {
-    int r2 = r * r;
+    // int r2 = r * r; // unused
     for (int ty = y0 - r - 2; ty <= y0 + r + 2; ty++) {
       for (int tx = x0 - r - 2; tx <= x0 + r + 2; tx++) {
         int dx = tx - x0;

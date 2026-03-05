@@ -27,8 +27,9 @@ public final class OptionsScreen extends ScreenAdapter {
   private GlyphLayout layout;
   private UiRegions ui;
 
-  private float x0;
-  private float y0;
+  // Nicht fertiges Feature: unused layout cache (can be re-enabled if we reuse absolute anchors)
+  // private float x0;
+  // private float y0;
   private float w;
   private float h;
 
@@ -93,8 +94,9 @@ public final class OptionsScreen extends ScreenAdapter {
   }
 
   private void recalcLayout(int wScreen, int hScreen) {
-    x0 = (wScreen - w) * 0.5f;
-    y0 = hScreen * 0.5f + 140;
+    // Nicht fertiges Feature: unused layout cache
+    // x0 = (wScreen - w) * 0.5f;
+    // y0 = hScreen * 0.5f + 140;
   }
 
   @Override

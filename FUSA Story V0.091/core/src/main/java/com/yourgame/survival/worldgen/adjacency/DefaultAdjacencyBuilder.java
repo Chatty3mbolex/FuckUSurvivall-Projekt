@@ -1,12 +1,12 @@
 package com.yourgame.survival.worldgen.adjacency;
 
 import com.yourgame.survival.world.Biome;
-import com.yourgame.survival.world.TileIds;
+// Nicht fertiges Feature: import com.yourgame.survival.world.TileIds; // unused
 import com.yourgame.survival.world.TileLayers;
 import com.yourgame.survival.worldgen.WorldGenContext;
 import com.yourgame.survival.worldgen.biome.BiomeClassifier;
 import com.yourgame.survival.worldgen.noise.NoiseSampler;
-import com.yourgame.survival.worldgen.util.GenMath;
+// Nicht fertiges Feature: import com.yourgame.survival.worldgen.util.GenMath; // unused
 
 /** Default adjacency builder extracted from the legacy adjacency mask builder. */
 public final class DefaultAdjacencyBuilder implements AdjacencyBuilder {
