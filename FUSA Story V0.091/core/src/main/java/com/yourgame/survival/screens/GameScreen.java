@@ -54,17 +54,6 @@ import java.util.ArrayList;
 /** Block-3 target: endless chunk stream, visible biomes, basic collision constraints. */
 public final class GameScreen extends ScreenAdapter {
   private final SurvivalGame game;
-  // Multiplayer: send periodic snapshots so the server can persist fast-leave state.
-  private float mpPosSendT = 0f;
-  private long mpLastStateHash = Long.MIN_VALUE;
-
-  // Phase E: input-driven multiplayer.
-  private float mpInputSendT = 0f;
-  private int mpInputSeq = 0;
-
-  // Multiplayer: server-authoritative time sync + night skip fx.
-  private float mpNightSkipFxT = 0f;
-  private float mpNightSkipFxDur = 0f;
 
   private OrthographicCamera cam;
   private OrthographicCamera uiCam;
@@ -115,7 +104,7 @@ public final class GameScreen extends ScreenAdapter {
 
   // ===== Ranged combat: Bow arrows (projectile) =====
   private static final int ARROW_MAX = 64;
-  // Multiplayer ammo item id (must match server + items.json)
+  // Ammo item id (must match items.json)
   private static final int ITEM_ARROW = 47;
   private static final float ARROW_HIT_RADIUS = 6.0f; // projectile thickness for reliable hits (tight-ish)
   private final boolean[] arrowAlive = new boolean[ARROW_MAX];
@@ -163,9 +152,7 @@ public final class GameScreen extends ScreenAdapter {
   private TilesetRegions tiles;
   private ChunkRenderer chunkRenderer;
 
-  // Multiplayer POI sprites (chest/bed) rendered client-side.
-  private TextureRegion mpPoiChestRegion;
-  private TextureRegion mpPoiBedRegion;
+  // (obsolete netcode removed)
 
   // Block 4 bootstrap
   private final Entities entities = new Entities();
@@ -183,149 +170,9 @@ public final class GameScreen extends ScreenAdapter {
     return h * 0x100000001b3L;
   }
 
-  private long hashNetPlayerState() {
-    long h = 0xcbf29ce484222325L;
+  // (obsolete snapshot hashing removed)
 
-    // inventory counts
-    if (inv != null && inv.countsById != null) {
-      h = fnv1aStep(h, inv.countsById.length);
-      for (int i = 0; i < inv.countsById.length; i++) {
-        h = fnv1aStep(h, inv.countsById[i]);
-      }
-    }
-
-    // wallet
-    h = fnv1aStep(h, wallet != null ? wallet.copper : 0L);
-
-    // progress
-    if (progress != null) {
-      h = fnv1aStep(h, progress.level);
-      h = fnv1aStep(h, progress.xp);
-      h = fnv1aStep(h, progress.xpToNext);
-      h = fnv1aStep(h, progress.skillPoints);
-      if (progress.skillLv != null) {
-        h = fnv1aStep(h, progress.skillLv.length);
-        for (int i = 0; i < progress.skillLv.length; i++) {
-          h = fnv1aStep(h, progress.skillLv[i]);
-        }
-      }
-    }
-
-    // needs
-    if (needs != null) {
-      h = fnv1aStep(h, Float.floatToIntBits(needs.hp));
-      h = fnv1aStep(h, Float.floatToIntBits(needs.stamina));
-      h = fnv1aStep(h, Float.floatToIntBits(needs.mana));
-      h = fnv1aStep(h, Float.floatToIntBits(needs.hunger));
-      h = fnv1aStep(h, Float.floatToIntBits(needs.sleep));
-    }
-
-    // time
-    h = fnv1aStep(h, Float.floatToIntBits(dayNight != null ? dayNight.t : 0f));
-    h = fnv1aStep(h, dayIndex);
-
-    // hotbar
-    if (hotbar != null) {
-      h = fnv1aStep(h, hotbar.length);
-      for (int i = 0; i < hotbar.length; i++) h = fnv1aStep(h, hotbar[i]);
-    }
-    h = fnv1aStep(h, hotbarSel);
-
-    // flags
-    h = fnv1aStep(h, hasBoat ? 1 : 0);
-    h = fnv1aStep(h, hasClimb ? 1 : 0);
-
-    return h;
-  }
-
-  /** Apply multiplayer player-only snapshot (no world/chests/entities). */
-  // Remote players (multiplayer rendering)
-  private static final class RemotePlayer {
-    long id;
-    float x;
-    float y;
-    int hp;
-    boolean inBed;
-    String name;
-  }
-  private final java.util.HashMap<Long, RemotePlayer> remotePlayers = new java.util.HashMap<>();
-
-  private static final class RemoteChest {
-    int id;
-    float x;
-    float y;
-  }
-  private final java.util.HashMap<Integer, RemoteChest> remoteChests = new java.util.HashMap<>();
-
-  private static final class RemoteBed {
-    int id;
-    float x;
-    float y;
-    long ownerId;
-  }
-  private final java.util.HashMap<Integer, RemoteBed> remoteBeds = new java.util.HashMap<>();
-
-  private static final class RemoteDrop {
-    int id;
-    int itemId;
-    int amount;
-    float x;
-    float y;
-  }
-  private final java.util.HashMap<Integer, RemoteDrop> remoteDrops = new java.util.HashMap<>();
-
-  private static final class RemoteMob {
-    int id;
-    int typeOrdinal;
-    float x;
-    float y;
-    int hp;
-  }
-  private final java.util.HashMap<Integer, RemoteMob> remoteMobs = new java.util.HashMap<>();
-  // Phase E: server-owned mob replication (mobId -> local entity index)
-  private final java.util.HashMap<Integer, Integer> mpMobEntityById = new java.util.HashMap<>();
-
-  // Phase C: server-owned harvest nodes (nodeId -> local entity index)
-  private final java.util.HashMap<Integer, Integer> mpNodeEntityById = new java.util.HashMap<>();
-
-  // Phase E: MP smoothing for own player position (server snapshot is discrete, render should be smooth).
-  private boolean mpHasSrvPos = false;
-  private float mpSrvPx = 0f;
-  private float mpSrvPy = 0f;
-
-  private long dbgLastSelfPstateMs = 0L;
-  private long dbgLastRemotePstateMs = 0L;
-
-  // Debug: periodic MP state line (no wall-clock timestamps; use frame counter + accumulated seconds).
-  private long dbgMpFrame = 0L;
-  private float dbgMpT = 0f;
-  private float dbgMpLogAcc = 0f;
-
-  private boolean mpInBed = false;
-
-  // Phase D: build replication (buildId -> local entity index)
-  private final java.util.HashMap<Integer, Integer> mpBuildEntityById = new java.util.HashMap<>();
-
-  private int findNearestMpBuildId(float wx, float wy, float reach) {
-    int bestId = -1;
-    float bestD2 = Float.POSITIVE_INFINITY;
-    float r2 = reach * reach;
-    for (java.util.Map.Entry<Integer, Integer> it : mpBuildEntityById.entrySet()) {
-      int id = it.getKey();
-      int e = it.getValue();
-      if (e < 0 || e >= com.yourgame.survival.entity.Entities.MAX) continue;
-      if (!entities.alive[e]) continue;
-
-      float dx = entities.x[e] - wx;
-      float dy = entities.y[e] - wy;
-      float d2 = dx * dx + dy * dy;
-      if (d2 <= r2 && d2 < bestD2) {
-        bestD2 = d2;
-        bestId = id;
-      }
-    }
-    return bestId;
-  }
+  // (obsolete replication code removed)
 
   
 
@@ -1236,11 +1083,7 @@ public final class GameScreen extends ScreenAdapter {
     entityRenderer = new EntityRenderer(entityRegions);
     uiRegions = new UiRegions();
 
-    // Multiplayer POI sprites (server-spawned):
-    // - POI chest uses build_chest.png (NOT the player-build chest sprite)
-    // - Beds use build_bed.png and are scaled via EntityMetrics.
-    mpPoiChestRegion = entityRegions.staticRegion("build_chest");
-    mpPoiBedRegion = entityRegions.staticRegion("build_bed");
+    // (obsolete POI sprite setup removed)
 
     // Controllers (wrappers; keep behavior identical)
     worldView = new WorldView(this);
@@ -1367,11 +1210,7 @@ public final class GameScreen extends ScreenAdapter {
 
   @Override
   public void render(float delta) {
-    // Debug counters (no timestamps; just counters).
-    try {
-      dbgMpFrame++;
-      if (delta > 0f && delta < 1f) dbgMpT += delta;
-    } catch (Throwable ignored) {}
+    // (obsolete debug counters removed)
 
     tickBootOverlay(delta);
 
@@ -1384,44 +1223,14 @@ public final class GameScreen extends ScreenAdapter {
       /* ===== SIMULATION TICK ===== */
       updateScheduler(delta);
 
-      // Multiplayer smoothing: server sends discrete snapshots (e.g. 10Hz), so approach them smoothly each frame.
-      // Apply AFTER updateScheduler so nothing in the sim tick overwrites our smoothed render position.
-      
-
-      // Debug: one compact line/sec for MP position + camera + entity coupling.
-      // No wall-clock timestamps; use accumulated seconds + frame counter.
-      
-
-      // Multiplayer: do NOT push full player state (STATE <b64>) to the server.
-      // Ownership: server is authoritative for state + position; client only sends inputs/intents.
+      // (obsolete client-sync notes removed)
 
       /* ===== WORLD DRAW ===== */
       worldView.renderWorld(delta, selectedTool);
 
-      // Multiplayer: draw POI chest + built beds using real sprites (not rectangles).
-      
+      // (obsolete rendering removed)
 
-      // Multiplayer: draw other players as markers.
-      
-
-      // Multiplayer: night skip fade overlay.
-      if (mpNightSkipFxT > 0f && shape != null) {
-        mpNightSkipFxT -= delta;
-        float u = 1f - Math.max(0f, mpNightSkipFxT) / Math.max(0.001f, mpNightSkipFxDur);
-        // fade out then in
-        float a = (u < 0.5f) ? (u / 0.5f) : (1f - (u - 0.5f) / 0.5f);
-        a = Math.max(0f, Math.min(1f, a));
-        try {
-          com.badlogic.gdx.math.Matrix4 m = new com.badlogic.gdx.math.Matrix4().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-          shape.setProjectionMatrix(m);
-          shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
-          shape.setColor(0f, 0f, 0f, a);
-          shape.rect(0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-          shape.end();
-        } catch (Throwable ignored) {
-          try { shape.end(); } catch (Throwable ignored2) {}
-        }
-      }
+      // (obsolete night-skip overlay removed)
 
       // Day/Night visuals target + smoothing (never instant, even via debug)
       {
@@ -1715,41 +1524,8 @@ public final class GameScreen extends ScreenAdapter {
       if (Gdx.input.isKeyJustPressed(Input.Keys.E)) buildRot += 15f;
     }
 
-    // Multiplayer: interact (E)
-    // Priority:
-    // 1) POI chest open (shared)
-    // 2) pickup nearest drop (shared)
-    if (false && !shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-      float reach = 90f;
-
-      // 1) find nearest chest in reach
-      int bestChestId = -1;
-      float bestChestD2 = Float.POSITIVE_INFINITY;
-      for (RemoteChest c : remoteChests.values()) {
-        if (c == null) continue;
-        float dx = c.x - px;
-        float dy = c.y - py;
-        float d2 = dx * dx + dy * dy;
-        if (d2 < bestChestD2) { bestChestD2 = d2; bestChestId = c.id; }
-      }
-      if (bestChestId >= 0 && bestChestD2 <= reach * reach) {
-      } else {
-        // 2) pickup drop
-        int bestDropId = -1;
-        float bestDropD2 = Float.POSITIVE_INFINITY;
-        for (RemoteDrop d : remoteDrops.values()) {
-          if (d == null) continue;
-          float dx = d.x - px;
-          float dy = d.y - py;
-          float d2 = dx * dx + dy * dy;
-          if (d2 < bestDropD2) { bestDropD2 = d2; bestDropId = d.id; }
-        }
-        if (bestDropId >= 0 && bestDropD2 <= reach * reach) {
-        } else {
-          game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
-        }
-      }
-    }
+    // Interact (E)
+    // (obsolete netcode interaction stub removed)
 
     // Hotbar select 1..8
     if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) {
@@ -1766,7 +1542,7 @@ public final class GameScreen extends ScreenAdapter {
     int selectedTool = equippedFromHotbar();
     if (playerE >= 0) entities.data0[playerE] = selectedTool; // equipped tool/weapon for rendering
 
-    // Eat meat (SHIFT+J) - in multiplayer this is server authoritative.
+    // Eat meat (SHIFT+J)
     boolean shiftPressed = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
     if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && shiftPressed && Gdx.input.isKeyJustPressed(Input.Keys.J)) {
        
@@ -1997,7 +1773,7 @@ public final class GameScreen extends ScreenAdapter {
       }
       // Weapon handling
       if (selectedTool >= 20 && selectedTool <= 27) {
-        // Bow (ID 22): uses arrows as ammo (server authoritative in multiplayer).
+        // Bow (ID 22): uses arrows as ammo.
         if (selectedTool == 22) {
           if (bowCooldownT <= 0f) {
             // Bow: do not spend stamina if no arrows.
@@ -2152,8 +1928,7 @@ public final class GameScreen extends ScreenAdapter {
     // Simulation must keep running during the boot overlay to hide initial load spikes.
     updateScheduler(delta);
 
-    // Multiplayer smoothing MUST run in the normal gameplay path as well (not only during boot overlay).
-    // Otherwise the client never applies server positions once controls are enabled.
+    // Smoothing must run in the normal gameplay path as well (not only during boot overlay).
     
 
     // Debug: one compact line/sec for MP position + camera + entity coupling.
@@ -3155,7 +2930,7 @@ public final class GameScreen extends ScreenAdapter {
    * @return hit entity index, or -1 if no hit. If a kill happens, arrowLastKill is set.
    */
   private int arrowHitSegment(float x0, float y0, float x1, float y1, float dmg) {
-    // Multiplayer visual arrows use dmg=0; they must never collide with local mobs.
+    // Visual-only arrows use dmg=0; they must never collide with local mobs.
     if (dmg <= 0f) return -1;
     // segment direction + length
     float dx = x1 - x0;
@@ -3313,8 +3088,7 @@ public final class GameScreen extends ScreenAdapter {
     int hungerCtrlLv = (SK_HUNGER_CTRL >= 0 && SK_HUNGER_CTRL < progress.skillLv.length) ? progress.skillLv[SK_HUNGER_CTRL] : 1;
     int sleepCtrlLv = (SK_SLEEP_CTRL >= 0 && SK_SLEEP_CTRL < progress.skillLv.length) ? progress.skillLv[SK_SLEEP_CTRL] : 1;
 
-    // Align core baselines with current Multiplayer feel, BUT keep skill effects in Singleplayer.
-    // Multiplayer is server-authoritative; Singleplayer owns its own skill scaling.
+    // Align core baselines with current feel, but keep skill effects consistent.
     final float HP_BASE = 500f;
     final float STAM_BASE = 100f;
     final float HUNGER_BASE = 200f;
@@ -3420,10 +3194,8 @@ public final class GameScreen extends ScreenAdapter {
     }
 
     // NOTE: traversal skills (Climbing/Boating) currently gate access, not movement speed.
-    // Multiplayer (Phase E): send input; server is authoritative for movement.
-    
 
-    // Offline: local movement + collision.
+    // Local movement + collision.
     // Smooth accel/brake (both sides): blend current velocity toward desired.
     float desiredVx = ix * speed;
     float desiredVy = iy * speed;
@@ -5592,10 +5364,7 @@ private void craftByOutput(int outItemId) {
       default -> EntityType.BUILD_WORKBENCH;
     };
 
-    // Multiplayer: server authoritative builds.
-    
-
-    // Offline
+    // Local build placement
     building.place(entities, t, wx, wy, buildRot, -1);
     game.audio.sfx("audio/sfx/place.wav", game.audio.sfxVolume(game.settings));
   }
@@ -6622,7 +6391,7 @@ private void craftByOutput(int outItemId) {
       // BLOCK D: procedural nodes (ensure around, but do NOT overwrite existing restored entities)
       // Use warmup-limited radius to avoid a generation burst right after loading.
       int r0 = (streamWarmupFrames > 0) ? 0 : streamRadiusChunks;
-      // Multiplayer: node visibility/removal must be server authoritative; do not spawn local procedural nodes.
+      // Node visibility/removal: do not spawn local procedural nodes here.
       if (true) {
         nodeSpawner.ensureAround(entities, worldNodes, px, py, r0);
       }

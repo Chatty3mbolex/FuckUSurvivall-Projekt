@@ -259,7 +259,7 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
         }
       }
 
-      Random r = new Random(seed ^ 0xBEEFF00DL);
+      // Nicht fertiges Feature: // Random r = new Random(seed ^ 0xBEEFF00DL); // (unused)
 
       final int cx0 = areaW / 2;
       final int cy0 = areaH / 2;
@@ -422,15 +422,10 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
     c.layers.waterMask[idx] = 0;
   }
 
-  /**
-   * Places a simple terraced mountain:
-   * - radius in tiles (diameter ~2*radius)
-   * - maxHeight in [1..255] written to TileLayers.heightLevel
-   *
-   * Notes:
-   * - This is currently purely visual (cliff shading) unless we set collision.
-   * - We keep it deterministic and avoid touching water.
-   */
+  // Nicht fertiges Feature:
+  // placeTerracedMountain(...) + setMountainTile(...)
+  // (Unused right now; keeping as commented code for later.)
+  /*
   private static void placeTerracedMountain(World world, int areaW, int areaH, int x0, int y0, int radius, int maxHeight) {
     if (world == null) return;
     if (radius <= 0 || maxHeight <= 0) return;
@@ -487,6 +482,7 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
     c.layers.collisionMask[idx] = 1;
     c.layers.waterMask[idx] = 0;
   }
+  */
 
   private static void fillCircleGround(World world, int areaW, int areaH, int x0, int y0, int r, int id) {
     int r2 = r * r;

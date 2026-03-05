@@ -60,6 +60,9 @@ public final class DefaultAdjacencyBuilder implements AdjacencyBuilder {
     return (b == Biome.WATER || b == Biome.RIVERBANK);
   }
 
+  // Nicht fertiges Feature:
+  // groundAtGlobalTile(...) (unused helper right now)
+  /*
   private short groundAtGlobalTile(final int tx, final int ty, final WorldGenContext ctx) {
     // Must match the legacy ground decision for deterministic edge masks.
     final float height = noise.fbm01(ctx.seed ^ 0xA1B2C3D4E5F60718L, tx, ty, ctx.config.heightFreq, ctx.config.heightOctaves);
@@ -93,5 +96,6 @@ public final class DefaultAdjacencyBuilder implements AdjacencyBuilder {
 
     return g;
   }
+  */
 }
 

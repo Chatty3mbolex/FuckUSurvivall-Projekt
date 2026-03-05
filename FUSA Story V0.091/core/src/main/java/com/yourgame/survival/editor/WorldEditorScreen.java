@@ -19,10 +19,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kotcrab.vis.ui.VisUI;
@@ -31,12 +31,12 @@ import com.yourgame.survival.SurvivalGame;
 import com.yourgame.survival.biome.BiomeSystem;
 import com.yourgame.survival.render.ChunkRenderer;
 import com.yourgame.survival.render.TilesetRegions;
+import com.yourgame.survival.spawn.SpawnTypeId;
+import com.yourgame.survival.spawn.SpawnTypeRegistry;
 import com.yourgame.survival.world.Biome;
 import com.yourgame.survival.world.Chunk;
 import com.yourgame.survival.world.TileIds;
 import com.yourgame.survival.world.World;
-import com.yourgame.survival.spawn.SpawnTypeId;
-import com.yourgame.survival.spawn.SpawnTypeRegistry;
 
 /**
  * Replacement editor (DO NOT COMPILE until fully implemented).
@@ -486,7 +486,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
       com.yourgame.survival.biome.BiomeSystem.NodeStampRuleDef r = new com.yourgame.survival.biome.BiomeSystem.NodeStampRuleDef();
       r.type = type;
       r.mask = mask;
-      try { r.min = Integer.parseInt(nodeMinField.getText().trim()); } catch (Throwable ignored) { r.min = 0; }
+      try { r.min = Integer.parseInt(nodeMinField.getText().trim()); } catch (NumberFormatException ignored) { r.min = 0; }
       try { r.max = Integer.parseInt(nodeMaxField.getText().trim()); } catch (Throwable ignored) { r.max = r.min; }
       try { r.jitterX = Float.parseFloat(nodeJxField.getText().trim()); } catch (Throwable ignored) { r.jitterX = 0f; }
       try { r.jitterY = Float.parseFloat(nodeJyField.getText().trim()); } catch (Throwable ignored) { r.jitterY = 0f; }

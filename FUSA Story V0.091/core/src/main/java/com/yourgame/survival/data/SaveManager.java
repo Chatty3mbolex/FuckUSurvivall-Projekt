@@ -1,11 +1,11 @@
 package com.yourgame.survival.data;
 
+import java.util.Arrays;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.yourgame.survival.entity.Entities;
 import com.yourgame.survival.entity.EntityType;
-
-import java.util.Arrays;
 
 /** Block 11: minimal save/load to JSON (slots 1..8). Desktop-only, offline. */
 public final class SaveManager {
@@ -51,7 +51,7 @@ public final class SaveManager {
   private static final String K_SHOPS = "shops";
   private static final String K_UID = "uid";
   private static final String K_WANDERING = "wandering";
-  private static final String K_OFFERS = "offers";
+  // private static final String K_OFFERS = "offers"; // unused
   private static final String K_OFFER_COUNT = "offerCount";
   private static final String K_ITEM_ID = "itemId";
   private static final String K_BUY = "buy";
@@ -477,7 +477,7 @@ public final class SaveManager {
     com.badlogic.gdx.utils.JsonValue root = new com.badlogic.gdx.utils.JsonReader().parse(txt);
 
     // Version (tolerant)
-    int saveVersion = root.getInt(K_SAVE_VERSION, 0);
+    // int saveVersion = root.getInt(K_SAVE_VERSION, 0);
     // name is optional
 
     outSeed[0] = root.getLong(K_SEED, 1337L);
@@ -820,11 +820,11 @@ public final class SaveManager {
     return out;
   }
 
-  private static boolean isBuild(EntityType t) {
-    return t == EntityType.BUILD_CHEST
-        || t == EntityType.BUILD_WORKBENCH
-        || t == EntityType.BUILD_BED
-        || t == EntityType.BUILD_CAMPFIRE
-        || t == EntityType.BUILD_LAMP;
-  }
+  // private static boolean isBuild(EntityType t) {
+    //return t == EntityType.BUILD_CHEST
+      //  || t == EntityType.BUILD_WORKBENCH
+        //|| t == EntityType.BUILD_BED
+        //|| t == EntityType.BUILD_CAMPFIRE
+        //|| t == EntityType.BUILD_LAMP;
+ // }
 }

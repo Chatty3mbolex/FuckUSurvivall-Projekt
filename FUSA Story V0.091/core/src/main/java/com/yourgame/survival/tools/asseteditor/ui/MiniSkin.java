@@ -1,6 +1,6 @@
 package com.yourgame.survival.tools.asseteditor.ui;
 
-import com.badlogic.gdx.Gdx;
+// Nicht fertiges Feature: // import com.badlogic.gdx.Gdx; // (unused)
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;

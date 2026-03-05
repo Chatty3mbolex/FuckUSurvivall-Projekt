@@ -1,6 +1,6 @@
 package com.yourgame.survival.render;
 
-import com.badlogic.gdx.Gdx;
+//import com.badlogic.gdx.Gdx; //unused
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 

@@ -3,7 +3,7 @@ package com.yourgame.survival.worldgen.paint;
 import com.yourgame.survival.world.Biome;
 import com.yourgame.survival.world.TileIds;
 import com.yourgame.survival.world.TileLayers;
-import com.yourgame.survival.world.World;
+// Nicht fertiges Feature: // import com.yourgame.survival.world.World; // (unused)
 import com.yourgame.survival.worldgen.WorldGenContext;
 import com.yourgame.survival.worldgen.biome.BiomeClassifier;
 import com.yourgame.survival.worldgen.noise.NoiseSampler;

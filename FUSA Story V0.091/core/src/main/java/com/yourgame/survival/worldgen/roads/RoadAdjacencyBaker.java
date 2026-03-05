@@ -1,7 +1,7 @@
 package com.yourgame.survival.worldgen.roads;
 
 import com.yourgame.survival.world.TileLayers;
-import com.yourgame.survival.world.World;
+// Nicht fertiges Feature: // import com.yourgame.survival.world.World; // (unused)
 import com.yourgame.survival.worldgen.WorldGenContext;
 
 /**

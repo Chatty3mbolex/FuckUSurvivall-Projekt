@@ -1,18 +1,17 @@
 package com.yourgame.survival.editor;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.PixmapIO;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.PixmapIO;
 
 /** Editor save helpers: backups + atomic writes. */
 public final class EditorSaveUtil {
@@ -33,7 +32,7 @@ public final class EditorSaveUtil {
       Path dst = src.resolveSibling(bakName);
       Files.copy(src, dst, StandardCopyOption.COPY_ATTRIBUTES);
       return dst.toString();
-    } catch (Throwable ignored) {
+    } catch (IOException ignored) {
       return null;
     }
   }
@@ -46,7 +45,7 @@ public final class EditorSaveUtil {
       FileHandle out = Gdx.files.local(backupLocalPath);
       out.parent().mkdirs();
       Files.copy(fh.file().toPath(), out.file().toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
-    } catch (Throwable ignored) {}
+    } catch (IOException ignored) {}
   }
 
   /** Atomic write string to Gdx local file path (temp + move). */
@@ -62,7 +61,7 @@ public final class EditorSaveUtil {
     // Try atomic move first; fall back to replace-existing.
     try {
       Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-    } catch (Throwable ignored) {
+    } catch (IOException ignored) {
       Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
     }
   }
@@ -83,7 +82,7 @@ public final class EditorSaveUtil {
 
     try {
       Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-    } catch (Throwable ignored) {
+    } catch (IOException ignored) {
       Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
     }
   }

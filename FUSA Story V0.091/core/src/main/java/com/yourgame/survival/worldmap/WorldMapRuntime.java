@@ -1,6 +1,5 @@
 package com.yourgame.survival.worldmap;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -147,7 +146,7 @@ public final class WorldMapRuntime {
     if (st == null) return null;
     if (dir == null) return null;
 
-    AreaCoord cur = new AreaCoord(st.curAx, st.curAy);
+    // Nicht fertiges Feature: // AreaCoord cur = new AreaCoord(st.curAx, st.curAy); // (unused)
     String curTid = st.curTemplateId;
     AreaTemplate curT = reg.get(curTid);
     if (curT == null) return null;

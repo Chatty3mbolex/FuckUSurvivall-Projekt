@@ -1,5 +1,7 @@
 package com.yourgame.survival.screens;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -10,8 +12,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.yourgame.survival.SurvivalGame;
 import com.yourgame.survival.data.PlayerProfile;
 import com.yourgame.survival.data.PlayerProfileManager;
-
-import java.util.ArrayList;
 
 /**
  * First screen (before Menu): asks "Wer spielt?" and lets user create/select a local profile.
@@ -38,8 +38,8 @@ public final class WhoPlaysScreen implements Screen {
   private String newName = "";
   private String pendingId = "";
 
-  private float btnW = 520f * UI_SCALE;
-  private float btnH = 52f * UI_SCALE;
+  private final float btnW = 520f * UI_SCALE;
+  private final float btnH = 52f * UI_SCALE;
 
   private float panelW;
   private float panelH;
@@ -229,7 +229,7 @@ public final class WhoPlaysScreen implements Screen {
     if (profiles == null) return;
     if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) selected--;
     if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) selected++;
-    if (profiles.size() > 0) {
+    if (!profiles.isEmpty()) {
       if (selected < 0) selected = profiles.size() - 1;
       if (selected >= profiles.size()) selected = 0;
     } else {

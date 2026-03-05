@@ -18,7 +18,6 @@ import com.yourgame.survival.worldgen.pipeline.ChunkGenOrchestrator;
  * NOTE: This is used only by the new WorldEditor and should not affect the main game.
  */
 public final class EditorWorldGenerator implements WorldGenerator {
-  private final long seed;
   private final BiomeSystem biomes;
 
   private final SlotGrid slotGrid;
@@ -28,7 +27,6 @@ public final class EditorWorldGenerator implements WorldGenerator {
   private Biome selectedBiome;
 
   public EditorWorldGenerator(long seed, BiomeSystem biomes, SlotGrid slotGrid, EditorMode mode, Biome selectedBiome) {
-    this.seed = seed;
     this.biomes = biomes;
     this.slotGrid = (slotGrid != null) ? slotGrid : new SlotGrid();
     this.mode = (mode != null) ? mode : EditorMode.NUR_BIOME;

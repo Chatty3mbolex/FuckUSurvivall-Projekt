@@ -22,7 +22,7 @@ public final class DefaultDecoScatter implements DecoScatter {
 
       int wd = l.waterDist[idx] & 0xFF;
       int veg = l.vegetation[idx] & 0xFF;
-      int rock = l.rockiness[idx] & 0xFF;
+      // Nicht fertiges Feature: // int rock = l.rockiness[idx] & 0xFF; // (unused)
 
       int var = (int) (hash01(ctx.seed ^ 0xABCDEF1122334455L, tx, ty) * 4f) & 3;
       float n1 = hash01(ctx.seed ^ 0x1234AA55CC33EE77L, tx, ty);

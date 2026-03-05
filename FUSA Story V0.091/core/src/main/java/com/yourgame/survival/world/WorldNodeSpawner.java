@@ -470,6 +470,10 @@ public final class WorldNodeSpawner {
     return z ^ (z >>> 33);
   }
 
+  // Nicht fertiges Feature:
+  // seedForRule(...) + computeZoneAreaTiles(...)
+  // (Unused right now; keeping as commented code for later.)
+  /*
   private static long seedForRule(BiomeSystem.SpawnRule r, int cx, int cy, int ri) {
     long h = 0x9E3779B97F4A7C15L;
     h ^= (long) cx * 0xBF58476D1CE4E5B9L;
@@ -535,5 +539,6 @@ public final class WorldNodeSpawner {
     // fallback: whole chunk
     return size * size;
   }
+  */
 
 }

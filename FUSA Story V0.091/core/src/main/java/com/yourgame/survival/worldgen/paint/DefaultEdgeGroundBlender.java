@@ -1,7 +1,7 @@
 package com.yourgame.survival.worldgen.paint;
 
 import com.yourgame.survival.world.Biome;
-import com.yourgame.survival.world.TileIds;
+// Nicht fertiges Feature: // import com.yourgame.survival.world.TileIds; // (unused)
 import com.yourgame.survival.world.TileLayers;
 import com.yourgame.survival.worldgen.WorldGenContext;
 import com.yourgame.survival.worldgen.biome.BiomeClassifier;

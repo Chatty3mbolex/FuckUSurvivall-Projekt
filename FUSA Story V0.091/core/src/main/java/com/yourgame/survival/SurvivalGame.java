@@ -5,7 +5,6 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.audio.Music;
 import com.yourgame.survival.data.SettingsIO;
 import com.yourgame.survival.editor.WorldEditorScreen;
 import com.yourgame.survival.screens.MenuScreen;
@@ -23,9 +22,9 @@ public final class SurvivalGame extends Game {
 
   // Menu music is managed globally (cross-screen) and can be faded out on transitions to gameplay.
   private com.badlogic.gdx.audio.Music menuMusic;
-  private float menuMusicFadeT = 0f;
-  private float menuMusicFadeDur = 0f;
-  private boolean menuMusicFadingOut = false;
+  private float menuMusicFadeT = 20f;
+  private float menuMusicFadeDur = 20f;
+  private boolean menuMusicFadingOut = true;
   private float menuMusicFadeK = 1f;
 
   private final boolean startTileEditor;

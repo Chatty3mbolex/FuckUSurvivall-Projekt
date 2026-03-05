@@ -100,7 +100,7 @@ public final class HarvestSystem {
         if (toolItemId != 14) return null;
 
         // Only harvest from below / lower side (not from the crown).
-        final float treeW = EntityMetrics.drawW(EntityType.NODE_TREE);
+        // Nicht fertiges Feature: // final float treeW = EntityMetrics.drawW(EntityType.NODE_TREE); // (unused)
         final float treeH = EntityMetrics.drawH(EntityType.NODE_TREE);
         final float treeX = es.x[i];
         final float treeY = es.y[i];
