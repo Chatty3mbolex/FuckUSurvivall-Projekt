@@ -6344,6 +6344,74 @@ private void craftByOutput(int outItemId) {
     try { worldNodes.removed.clear(); } catch (Throwable ignored) {}
   }
 
+  /**
+   * Clears ALL runtime state that must never survive across save/load.
+   *
+   * This is intentionally aggressive: it prevents ghost entities / duplicated players after loading.
+   */
+  private void clearAllStateForLoad() {
+    // Entities: wipe everything first; load will restore from snapshot.
+    for (int i = 0; i < Entities.MAX; i++) {
+      entities.alive[i] = false;
+      entities.type[i] = null;
+      entities.flags[i] = 0;
+      entities.itemId[i] = -1;
+      entities.itemAmount[i] = 0;
+      entities.data0[i] = -1;
+      entities.hp[i] = 0f;
+      entities.hpMax[i] = 0f;
+      entities.vx[i] = 0f;
+      entities.vy[i] = 0f;
+      entities.faceLock[i] = 0f;
+      entities.aiT[i] = 0f;
+      entities.aiT2[i] = 0f;
+      entities.aiF0[i] = 0f;
+      entities.aiF1[i] = 0f;
+      entities.rot[i] = 0f;
+    }
+    playerE = -1;
+
+    // Containers/caches that should not leak between runs.
+    try { chestStore.clear(); } catch (Throwable ignored) {}
+    try { worldNodes.removed.clear(); } catch (Throwable ignored) {}
+
+    // WorldMap is per-save; clear before importing from save.
+    try {
+      worldMap.knownAreas.clear();
+      worldMap.frontier.clear();
+      worldMap.edges.clear();
+      worldMap.exitsByArea.clear();
+      worldMap.areaStates.clear();
+      worldMap.setCurrent(0, 0, "");
+    } catch (Throwable ignored) {}
+
+    // Transient UI state.
+    shopOpen = false;
+    invOpen = false;
+    craftOpen = false;
+    buildMode = false;
+    openChestE = -1;
+
+    buyPopup = false;
+    sellPopup = false;
+    buyBuffer = "";
+    // Nicht fertiges Feature: sellBuffer = "";
+    dragArmed = false;
+    dragActive = false;
+    dragSrc = DRAG_SRC_NONE;
+    dragItemId = -1;
+    dragIndex = -1;
+
+    pricingOpen = false;
+    pricingPresetPopup = false;
+
+    // Projectiles
+    for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+
+    // CommandQueue scaffolding
+    commandQueue.clear();
+  }
+
   /** Sets player position and keeps the PLAYER entity in sync. */
   public void areaSetPlayerWorldPos(float wx, float wy) {
     px = wx;
@@ -6390,6 +6458,10 @@ private void craftByOutput(int outItemId) {
   }
   public void doLoad(int slot) {
     try {
+      // HARD RULE: loading a save must not keep any runtime cache/state from prior runs.
+      // If we don't wipe entities/world caches first, old entities can survive and you can "see a copy" of yourself.
+      clearAllStateForLoad();
+
       long[] seed = new long[1];
       float[] pxpy = new float[2];
       float[] dt = new float[1];

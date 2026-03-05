@@ -655,20 +655,6 @@ ground_grass
   orig: 32, 32
   offset: 0, 0
   index: 0
-ts_grass
-  rotate: false
-  xy: 1159, 1037
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: 0
-ts_r00_c00
-  rotate: false
-  xy: 1159, 1037
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: 0
 edge_rock
   rotate: false
   xy: 904, 430
@@ -2223,107 +2209,121 @@ transition_from_snow_straight__W
   orig: 32, 32
   offset: 0, 0
   index: 0
-uw_edge_0
+ts_grass
   rotate: false
   xy: 1339, 1439
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-uw_edge_1
+ts_r00_c00
+  rotate: false
+  xy: 1339, 1439
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 0
+uw_edge_0
   rotate: false
   xy: 1373, 1439
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-uw_edge_2
+uw_edge_1
   rotate: false
   xy: 1407, 1439
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-uw_edge_3
+uw_edge_2
   rotate: false
   xy: 1441, 1439
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
+uw_edge_3
+  rotate: false
+  xy: 1305, 1419
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 0
 water_deep
-  rotate: false
-  xy: 1305, 1419
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: 0
-water_fill
-  rotate: false
-  xy: 1305, 1419
-  size: 32, 32
-  orig: 32, 32
-  offset: 0, 0
-  index: 0
-water_flat_0
   rotate: false
   xy: 1339, 1405
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_1
+water_fill
+  rotate: false
+  xy: 1339, 1405
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 0
+water_flat_0
   rotate: false
   xy: 1373, 1405
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_2
+water_flat_1
   rotate: false
   xy: 1407, 1405
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_3
+water_flat_2
   rotate: false
   xy: 1441, 1405
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_4
+water_flat_3
   rotate: false
   xy: 1475, 1418
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_5
+water_flat_4
   rotate: false
   xy: 1509, 1418
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_6
+water_flat_5
   rotate: false
   xy: 1289, 1385
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_7
+water_flat_6
   rotate: false
   xy: 1289, 1351
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: 0
-water_flat_8
+water_flat_7
   rotate: false
   xy: 1289, 1317
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: 0
+water_flat_8
+  rotate: false
+  xy: 1289, 1283
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
