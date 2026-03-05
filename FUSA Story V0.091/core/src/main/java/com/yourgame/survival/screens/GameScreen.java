@@ -475,7 +475,8 @@ public final class GameScreen extends ScreenAdapter {
   private int skillHover = -1;
 
   // resolved equipped tool each frame (tools must exist in inventory + be in hotbar)
-  private int equippedItemId = -1;
+  // Nicht fertiges Feature: unused (logic uses equippedFromHotbar() + method param instead)
+  // private int equippedItemId = -1;
 
   private final int[] hotbar = new int[8];
   private int hotbarSel = 0;
@@ -7236,10 +7237,13 @@ private void craftByOutput(int outItemId) {
     final Rectangle r1 = new Rectangle();
   }
 
+  // Nicht fertiges Feature: unused placeholder type (no current gameflow usage)
+  /*
   private static final class UiState {
     // Placeholder for future UI state consolidation.
     boolean reserved;
   }
+  */
 
   private static final class InputState {
     float delta;
@@ -7247,14 +7251,14 @@ private void craftByOutput(int outItemId) {
     int my;
   }
 
+  // Nicht fertiges Feature: unused placeholder type (no current gameflow usage)
+  /*
   private static final class CommandBuffer {
     // Placeholder for future command buffering.
     int size = 0;
-    // Nicht fertiges Feature: commented out unused block
-    /*
     void clear() { size = 0; }
-    */
   }
+  */
 
 
   // Nicht fertiges Feature: commented out unused block

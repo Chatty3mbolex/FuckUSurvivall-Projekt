@@ -1,5 +1,7 @@
 package com.yourgame.survival.editor;
 
+import java.io.IOException;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -19,10 +21,10 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kotcrab.vis.ui.VisUI;
@@ -31,12 +33,12 @@ import com.yourgame.survival.SurvivalGame;
 import com.yourgame.survival.biome.BiomeSystem;
 import com.yourgame.survival.render.ChunkRenderer;
 import com.yourgame.survival.render.TilesetRegions;
-import com.yourgame.survival.spawn.SpawnTypeId;
-import com.yourgame.survival.spawn.SpawnTypeRegistry;
 import com.yourgame.survival.world.Biome;
 import com.yourgame.survival.world.Chunk;
 import com.yourgame.survival.world.TileIds;
 import com.yourgame.survival.world.World;
+import com.yourgame.survival.spawn.SpawnTypeId;
+import com.yourgame.survival.spawn.SpawnTypeRegistry;
 
 /**
  * Replacement editor (DO NOT COMPILE until fully implemented).
@@ -486,9 +488,9 @@ public final class WorldEditorScreen extends ScreenAdapter {
       com.yourgame.survival.biome.BiomeSystem.NodeStampRuleDef r = new com.yourgame.survival.biome.BiomeSystem.NodeStampRuleDef();
       r.type = type;
       r.mask = mask;
-      try { r.min = Integer.parseInt(nodeMinField.getText().trim()); } catch (NumberFormatException ignored) { r.min = 0; }
-      try { r.max = Integer.parseInt(nodeMaxField.getText().trim()); } catch (Throwable ignored) { r.max = r.min; }
-      try { r.jitterX = Float.parseFloat(nodeJxField.getText().trim()); } catch (Throwable ignored) { r.jitterX = 0f; }
+      try { r.min = Integer.parseInt(nodeMinField.getText().trim()); } catch (Throwable ignored) { r.min = 0; }
+      try { r.max = Integer.parseInt(nodeMaxField.getText().trim()); } catch (NumberFormatException ignored) { r.max = r.min; }
+      try { r.jitterX = Float.parseFloat(nodeJxField.getText().trim()); } catch (NumberFormatException ignored) { r.jitterX = 0f; }
       try { r.jitterY = Float.parseFloat(nodeJyField.getText().trim()); } catch (Throwable ignored) { r.jitterY = 0f; }
       r.allowOverlap = nodeOverlap.isChecked();
 
@@ -507,7 +509,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
       com.yourgame.survival.biome.BiomeSystem.EncounterStampRuleDef r = new com.yourgame.survival.biome.BiomeSystem.EncounterStampRuleDef();
       r.type = type;
       r.mask = mask;
-      try { r.maxLoaded = Integer.parseInt(encMaxLoaded.getText().trim()); } catch (Throwable ignored) { r.maxLoaded = 0; }
+      try { r.maxLoaded = Integer.parseInt(encMaxLoaded.getText().trim()); } catch (NumberFormatException ignored) { r.maxLoaded = 0; }
       try { r.respawnMin = Float.parseFloat(encMinT.getText().trim()); } catch (Throwable ignored) { r.respawnMin = 8f; }
       try { r.respawnMax = Float.parseFloat(encMaxT.getText().trim()); } catch (Throwable ignored) { r.respawnMax = 18f; }
 
@@ -603,11 +605,6 @@ public final class WorldEditorScreen extends ScreenAdapter {
   }
 
   private void rebuildWorld(boolean reloadFromDisk) {
-    // Nicht fertiges Feature: reloadFromDisk parameter is reserved for a future workflow.
-    // Keep it non-functional for now.
-    if (false && reloadFromDisk) {
-      // (intentionally empty)
-    }
     final long seed = 1234567L;
 
     // Drop references (helps GC; ensures old cache can't be used).
@@ -830,8 +827,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
   private SpawnTypeId activeSpawnType = SpawnTypeId.ANIMAL_DEER;
 
   private static final class PlacedObject {
-    // Nicht fertiges Feature: biomeName is currently redundant (map key already stores biome).
-    // String biomeName;
+    String biomeName;
     String zoneName;
     SpawnTypeId type;
     float lx;
@@ -1117,7 +1113,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
 
     // Place new object
     PlacedObject o = new PlacedObject();
-    // Nicht fertiges Feature: // o.biomeName = bk; // (redundant)
+    o.biomeName = bk;
     o.zoneName = zoneName;
     o.type = activeSpawnType;
 
@@ -1205,7 +1201,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
       EditorSaveUtil.backupLocalIfExists(file);
       try {
         EditorSaveUtil.atomicWritePngLocal(file, pm);
-      } catch (Throwable ignored) {
+      } catch (IOException ignored) {
         // last resort
         try { com.yourgame.survival.biome.BiomeSystem.writeHeightMaskPng(b, pm); } catch (Throwable ignored2) {}
       }
@@ -1228,7 +1224,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
       EditorSaveUtil.backupLocalIfExists(file);
       try {
         EditorSaveUtil.atomicWritePngLocal(file, pm);
-      } catch (Throwable ignored) {
+      } catch (IOException ignored) {
         try { com.yourgame.survival.biome.BiomeSystem.writeDecoMaskPng(b, pm); } catch (Throwable ignored2) {}
       }
 
@@ -1274,7 +1270,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
       EditorSaveUtil.atomicWriteStringLocal(com.yourgame.survival.biome.BiomeSystem.LOCAL_PATH, biomes.toJson());
       heightDirty.clear();
       decoDirty.clear();
-    } catch (Throwable ignored) {
+    } catch (IOException ignored) {
       // last resort (non-atomic)
       try { biomes.save(); heightDirty.clear(); decoDirty.clear(); } catch (Throwable ignored2) {}
     }
@@ -1511,17 +1507,23 @@ public final class WorldEditorScreen extends ScreenAdapter {
         c.layers.groundId[idx] = groundId;
         markDirty(tx, ty);
 
-        // Nudge fields to keep visuals coherent in preview.
-        if (groundId == com.yourgame.survival.world.TileIds.GROUND_DIRT) {
-          c.layers.pathField[idx] = (byte) 255;
-          c.layers.vegetation[idx] = 0;
-        } else if (groundId == com.yourgame.survival.world.TileIds.GROUND_ROCK) {
-          c.layers.rockiness[idx] = (byte) 255;
-          c.layers.vegetation[idx] = 0;
-        } else if (groundId == com.yourgame.survival.world.TileIds.GROUND_GRASS) {
-          if ((c.layers.vegetation[idx] & 0xFF) < 180) c.layers.vegetation[idx] = (byte) 180;
-          if ((c.layers.pathField[idx] & 0xFF) > 40) c.layers.pathField[idx] = (byte) 40;
-        }
+          // Nudge fields to keep visuals coherent in preview.
+          switch (groundId) {
+              case com.yourgame.survival.world.TileIds.GROUND_DIRT -> {
+                  c.layers.pathField[idx] = (byte) 255;
+                  c.layers.vegetation[idx] = 0;
+              }
+              case com.yourgame.survival.world.TileIds.GROUND_ROCK -> {
+                  c.layers.rockiness[idx] = (byte) 255;
+                  c.layers.vegetation[idx] = 0;
+              }
+              case com.yourgame.survival.world.TileIds.GROUND_GRASS -> {
+                  if ((c.layers.vegetation[idx] & 0xFF) < 180) c.layers.vegetation[idx] = (byte) 180;
+                  if ((c.layers.pathField[idx] & 0xFF) > 40) c.layers.pathField[idx] = (byte) 40;
+              }
+              default -> {
+              }
+          }
       }
     }
   }
