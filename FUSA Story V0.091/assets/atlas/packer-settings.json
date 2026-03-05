@@ -1,0 +1,15 @@
+{
+  "pot": true,
+  "maxWidth": 4096,
+  "maxHeight": 4096,
+  "paddingX": 2,
+  "paddingY": 2,
+  "edgePadding": true,
+  "duplicatePadding": true,
+  "rotation": false,
+  "stripWhitespaceX": false,
+  "stripWhitespaceY": false,
+  "alphaThreshold": 0,
+  "filterMin": "Nearest",
+  "filterMag": "Nearest"
+}

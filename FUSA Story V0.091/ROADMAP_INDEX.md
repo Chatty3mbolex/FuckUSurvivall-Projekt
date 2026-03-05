@@ -1,0 +1,103 @@
+# ROADMAP_INDEX (v0.029)
+
+Die Roadmap ist die CHECKLIST_TODO.md. Dieser Index ist nur zum schnellen Springen (ID-Suche).
+
+- NODE_10_SCHEMA_MODEL – Schema model baseline
+  - NODE_10_SCHEMA_MODEL__AT_001: Verify BiomeSystem.LOCAL_PATH is config/biomes.json and loadOrCreate() creates defaults when missing/corrupt.
+  - NODE_10_SCHEMA_MODEL__AT_002: Verify schema fields exist in BiomeDef: groundId, roadsEnabled, edgeWidthTiles, edgeGroundOverride, customZones, zoneMasks, spawnRules, poiTemplates.
+  - NODE_10_SCHEMA_MODEL__AT_003: Verify BiomeSystem.save() writes UTF-8 pretty JSON and does not crash game on parse errors (fallback to defaults).
+- NODE_20_ZONE_SHAPE_ENCODING – Zone shape encoding
+  - NODE_20_ZONE_SHAPE_ENCODING__AT_001: Verify zone mask representation uses ZoneMaskDef{name,file} and BiomeSystem.zoneMaskAt() correctly reads alpha > 0.
+  - NODE_20_ZONE_SHAPE_ENCODING__AT_002: Verify BiomeSystem.writeZoneMaskPng() writes under config/biome_masks with sanitized biome+zone names.
+  - NODE_20_ZONE_SHAPE_ENCODING__AT_003: Verify zone mask caching (zoneMaskCache) is invalidated on setBiomeDef() and editor reloads masks per biome.
+- NODE_30_EDITOR_ACCUMULATOR – Editor accumulator
+  - NODE_30_EDITOR_ACCUMULATOR__AT_001: Verify BiomeEditorScreen keeps stamps/overlays per active zone and shows counts (trees/stones/zone pixels/road tiles).
+  - NODE_30_EDITOR_ACCUMULATOR__AT_002: Verify deriveRuleFromStamps() produces a deterministic rule update based on stamps within the active zone.
+  - NODE_30_EDITOR_ACCUMULATOR__AT_003: Verify editor does not write raw stamp positions into JSON (only derived rules + masks).
+- NODE_40_EDITOR_SAVE_LOAD_SCHEMA – Editor save/load
+  - NODE_40_EDITOR_SAVE_LOAD_SCHEMA__AT_001: Verify 'Apply JSON' path parses a single-biome JSON fragment and updates BiomeSystem in-memory without crashing.
+  - NODE_40_EDITOR_SAVE_LOAD_SCHEMA__AT_002: Verify Save writes BiomeSystem.toJson() to config/biomes.json and persists zoneMasks references.
+  - NODE_40_EDITOR_SAVE_LOAD_SCHEMA__AT_003: Verify editor can reload config/biomes.json and reconstruct UI state (selected biome + active zone + masks).
+- NODE_50_PREVIEW_FROM_SCHEMA – Map preview from schema
+  - NODE_50_PREVIEW_FROM_SCHEMA__AT_001: Verify previewWorldSeed() uses per-biome previewSeed when available, otherwise stable fallback seed.
+  - NODE_50_PREVIEW_FROM_SCHEMA__AT_002: Verify preview world regeneration rebuilds chunks (ensurePreviewChunksExist) and shows schema-driven ground/roads/spawns.
+  - NODE_50_PREVIEW_FROM_SCHEMA__AT_003: Verify template preview mode (single biome forced) vs mixed preview behavior is consistent and deterministic per seed.
+- NODE_60_RUNTIME_HOOK – Runtime hook
+  - NODE_60_RUNTIME_HOOK__AT_001: Verify WorldNodeSpawner uses BiomeSystem spawn rules and respects zone masks/edge bands when spawning.
+  - NODE_60_RUNTIME_HOOK__AT_002: Verify runtime roads mask is computed deterministically via BiomeSystem.buildRoadMaskForChunk / isRoadAtGlobalTile.
+  - NODE_60_RUNTIME_HOOK__AT_003: Verify biome config changes affect newly generated chunks without corrupting existing saves.
+- NODE_70_EDITOR_CONSISTENCY – Editor consistency pass
+  - NODE_70_EDITOR_CONSISTENCY__AT_001: Verify editor UI state transitions are safe: switching biome/zone, toggling overlays, regenerating preview.
+  - NODE_70_EDITOR_CONSISTENCY__AT_002: Verify Pixmap/Texture lifecycle is safe (dispose/refresh) to avoid memory leaks during long editing sessions.
+  - NODE_70_EDITOR_CONSISTENCY__AT_003: Verify sanitizeZoneName() prevents invalid filenames / JSON keys.
+- NODE_80_SANITY_CHECKS_NO_BUILD – Sanity checks (no build)
+  - NODE_80_SANITY_CHECKS_NO_BUILD__AT_001: Static scan: search for obvious syntax errors / missing imports (no compile).
+  - NODE_80_SANITY_CHECKS_NO_BUILD__AT_002: Static scan: verify start scripts exist (Roadmap/Game/BiomeEditor/AssetEditor) and point to expected Gradle tasks.
+  - NODE_80_SANITY_CHECKS_NO_BUILD__AT_003: Static scan: verify assets referenced by UI exist under assets/ (fonts/ui.ttf, ui/title.png, ui/mainmenu_bg.png, ui/cursor_crosshair.png).
+- NODE_90_BUILD_AND_RUN – Build + run (first real compile)
+  - NODE_90_BUILD_AND_RUN__AT_001: Confirm JDK 17 is used (JAVA_HOME / java -version) and Gradle wrapper runs.
+  - NODE_90_BUILD_AND_RUN__AT_002: Decide Gradle distribution strategy: wrapper download vs local gradle zip; document the choice in ERROR.MD if wrapper fails.
+  - NODE_90_BUILD_AND_RUN__AT_003: Run desktop compile+run once: gradlew.bat :desktop:run (from project root). Capture first runtime error stacktrace if any.
+  - NODE_90_BUILD_AND_RUN__AT_004: Run Biome Editor entry: gradlew.bat :desktop:run --args="--biome-editor" (or START_4_BIOME_EDITOR.bat). Verify window opens and renders preview.
+  - NODE_90_BUILD_AND_RUN__AT_005: If atlas is missing or empty: run gradlew.bat packAtlas (assets/atlas/src -> assets/atlas/game.atlas + game.png), then rerun.
+  - NODE_90_BUILD_AND_RUN__AT_006: Run dedicated server distribution build: gradlew.bat :server:installDist (do NOT start it yet, only ensure distribution is created).
+  - NODE_90_BUILD_AND_RUN__AT_007: Open build/reports/problems/problems-report.html after build (if generated) and link it in ERROR.MD for NODE_91.
+- NODE_91_FIX_COMPILE_ERRORS – Fix compile errors
+  - NODE_91_FIX_COMPILE_ERRORS__AT_001: Fix errors iteratively: always resolve the FIRST javac error, then re-run the same Gradle task; repeat until clean.
+  - NODE_91_FIX_COMPILE_ERRORS__AT_002: BiomeSystem schema bugfix: ensure BiomeDef serializes/deserializes previewSeed correctly AND reads groundId from "groundId" (not "previewSeed").
+  - NODE_91_FIX_COMPILE_ERRORS__AT_003: Desktop launcher args: extend DesktopLauncher/SurvivalGame to support modes beyond biome editor (asset editor, asset index) without breaking existing start scripts.
+  - NODE_91_FIX_COMPILE_ERRORS__AT_004: Multiplayer UI compile sanity: ensure MultiplayerScreen join dialog and session code compile and do not reference missing assets/regions.
+  - NODE_91_FIX_COMPILE_ERRORS__AT_005: Server module sanity: ensure com.yourgame.survival.server.DedicatedServerMain is on classpath and server/build.gradle mainClass matches the package.
+  - NODE_91_FIX_COMPILE_ERRORS__AT_006: Resolve library/version mismatches that can break tooling (e.g., gdxVersion in root build.gradle vs bundled libs) if they block build tasks like packAtlas.
+  - NODE_91_FIX_COMPILE_ERRORS__AT_007: Once compile passes: run :desktop:classes and :server:classes explicitly to confirm both graphs compile cleanly.
+- NODE_92_SMOKE_TEST_ASSET_EDITOR – Smoke test: asset editor
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_001: Wire entrypoint: ensure START_5_ASSET_EDITOR.bat actually launches AssetEditorScreen (command-line switch must route to it).
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_002: Atlas load check: AssetEditorScreen must see atlas/game.atlas regions; if empty, fix packAtlas pipeline first.
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_003: Index scan check: AssetIndexScanner must find atlas region references in code (no false positives outside atlas).
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_004: UI functional pass: list scroll, kind filter, search, selection updates preview + info labels.
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_005: Collision pipeline pass: pipette BG, tolerance slider, recompute, verify draft vs actual collision overlays behave and never crash on transparent sprites.
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_006: Save pass: 2-click confirm works; MetaIO writes sidecar meta next to source asset; reopen editor and verify meta reload.
+  - NODE_92_SMOKE_TEST_ASSET_EDITOR__AT_007: Asset index mode: make START_2_ASSET_INDEX.bat work (define what "--asset-editor#" does: generate/report index and exit).
+- NODE_93_SMOKE_TEST_GAME_CLIENT – Smoke test: game client
+  - NODE_93_SMOKE_TEST_GAME_CLIENT__AT_001: Run START_3_GAME.bat. Verify main menu renders (title + background), buttons respond, and no missing asset exceptions.
+  - NODE_93_SMOKE_TEST_GAME_CLIENT__AT_002: Start New Game: verify GameScreen enters world, player controls work, and no immediate null-pointer spam in console.
+  - NODE_93_SMOKE_TEST_GAME_CLIENT__AT_003: Open Tutorial/Options/Credits screens once each to catch missing UI regions/assets early.
+  - NODE_93_SMOKE_TEST_GAME_CLIENT__AT_004: Open Multiplayer menu: verify join dialog works (IP/Port edit, connect/cancel) and session status messages display.
+  - NODE_93_SMOKE_TEST_GAME_CLIENT__AT_005: Run Biome Editor (START_4_BIOME_EDITOR.bat): verify zone mask paint/edit, apply JSON, save config/biomes.json, reload editor and confirm persistence.
+  - NODE_93_SMOKE_TEST_GAME_CLIENT__AT_006: Regression check: after saving biome config, start New Game again and verify runtime uses updated biome settings (groundId/roads/spawns).
+- NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART – Asset audit: remove debug art
+  - NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART__AT_001: Generate 'IST index' report (from AssetIndexScanner) and compare against atlas regions: list missing regions and unused regions.
+  - NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART__AT_002: Search for placeholder/debug regions by heuristics (solid-color, text labels, obvious dev sprites) and replace or remove them safely.
+  - NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART__AT_003: Re-pack atlas (packAtlas) and verify no runtime code still references removed regions (fix references, not with silent fallbacks).
+  - NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART__AT_004: Audit UI textures loaded via Gdx.files.internal (ui/*.png, fonts/*.ttf, terrain/*): verify all exist and are in the release package.
+  - NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART__AT_005: Collision meta audit: ensure every ENTITY/TILE that needs collision has a meta entry (or a deterministic auto-collision rule).
+  - NODE_94_ASSET_AUDIT_REMOVE_DEBUG_ART__AT_006: Remove/ignore stale build artifacts (build/reports, old atlases) from the final release zip to keep size and confusion down.
+- NODE_95_PERFORMANCE_PASS – Performance pass
+  - NODE_95_PERFORMANCE_PASS__AT_001: Stability run: 10–20 minutes play session; watch for memory growth and GC spikes (especially Pixmap/Texture creation).
+  - NODE_95_PERFORMANCE_PASS__AT_002: Hotspot scan: ensure no per-frame allocations in render loops (new Vector2/StringBuilder/arrays inside render).
+  - NODE_95_PERFORMANCE_PASS__AT_003: Chunk/biome generation: verify caches (roadMaskCache, zoneMaskCache) have bounded size and are cleared on config changes.
+  - NODE_95_PERFORMANCE_PASS__AT_004: Asset editor: verify atlas and pixmaps are disposed correctly when screen is closed or selection changes.
+  - NODE_95_PERFORMANCE_PASS__AT_005: Optional: add simple FPS + alloc counters toggle (dev-only) and remove/disable for release if desired.
+- NODE_96_SAVE_LOAD_REGRESSION – Regression: save/load
+  - NODE_96_SAVE_LOAD_REGRESSION__AT_001: Biome schema regression: edit biome, save, restart app, reload, confirm preview matches and JSON round-trips without drift.
+  - NODE_96_SAVE_LOAD_REGRESSION__AT_002: World save/load regression: create a save, exit to menu, load same slot, confirm world/position/inventory persist.
+  - NODE_96_SAVE_LOAD_REGRESSION__AT_003: Backwards compatibility check: load an older save (if available) and ensure missing schema fields fall back safely.
+  - NODE_96_SAVE_LOAD_REGRESSION__AT_004: Corruption handling: intentionally break config/biomes.json and confirm BiomeSystem falls back to defaults without crash and rewrites a valid file.
+  - NODE_96_SAVE_LOAD_REGRESSION__AT_005: Path correctness: verify files are written to the intended run folder (assets workingDir vs project root) and document it.
+- NODE_97_DEDICATED_SERVER_SMOKE – Smoke test: dedicated server
+  - NODE_97_DEDICATED_SERVER_SMOKE__AT_001: Run server/server/start_dedicated_server.bat. Confirm it builds installDist and starts listening on 0.0.0.0:7777.
+  - NODE_97_DEDICATED_SERVER_SMOKE__AT_002: Connectivity test: from another terminal, connect via telnet/netcat and send PING/JOIN; verify protocol responses.
+  - NODE_97_DEDICATED_SERVER_SMOKE__AT_003: Client test: from game, use MultiplayerScreen join dialog to connect to 127.0.0.1:7777 and verify WORLD_INIT + PLAYER_SPAWN handled.
+  - NODE_97_DEDICATED_SERVER_SMOKE__AT_004: UI wiring: replace 'Dedicated Server (noch nicht implementiert)' toast with an actual action (open join dialog with default port or auto-connect).
+  - NODE_97_DEDICATED_SERVER_SMOKE__AT_005: Shutdown behavior: stop server using stop_dedicated_server.bat; ensure client detects closure cleanly (onClosed callback).
+- NODE_98_RELEASE_PACKAGE_ZIP – Release packaging
+  - NODE_98_RELEASE_PACKAGE_ZIP__AT_001: Create desktop distribution: gradlew.bat :desktop:distZip (or custom zip) and verify it launches with bundled assets.
+  - NODE_98_RELEASE_PACKAGE_ZIP__AT_002: Create server distribution: :server:installDist output + start scripts; verify running from a clean folder works.
+  - NODE_98_RELEASE_PACKAGE_ZIP__AT_003: Package assets/config + atlas + audio + fonts + ui + data; confirm no absolute paths are required at runtime.
+  - NODE_98_RELEASE_PACKAGE_ZIP__AT_004: Include Roadmap UI + STATE/CHECKLIST files for traceability; exclude heavy caches (.gradle, build/) unless explicitly needed.
+  - NODE_98_RELEASE_PACKAGE_ZIP__AT_005: Final smoke: unzip into a fresh folder, run START_3_GAME.bat and START_4_BIOME_EDITOR.bat successfully (no IDE).
+- NODE_99_BACKUP_AND_TAG – Backup + tag
+  - NODE_99_BACKUP_AND_TAG__AT_001: Create final backup zip snapshot (full project + release artifacts) named with the current Stable version.
+  - NODE_99_BACKUP_AND_TAG__AT_002: Update STATE.json (LAST_COMPLETED_NODE, NEXT_NODE='—', VERSION_NOTE) and move NODEs into CHECKLIST_DONE.md.
+  - NODE_99_BACKUP_AND_TAG__AT_003: Append ANALYSE_LOG.md with a dated release entry: what changed, known issues, and verification steps executed.
+  - NODE_99_BACKUP_AND_TAG__AT_004: Optionally create a short CHANGELOG section in README_ROADMAP.md (or a new RELEASE_NOTES.md) for the shipped build.

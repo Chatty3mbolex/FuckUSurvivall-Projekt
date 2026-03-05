@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "biomes": {
+    "GRASSLAND": {
+      "groundId": 0,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": {},
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 3, "max": 8, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "CORE", "type": "ROCK", "min": 1, "max": 3, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 2, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "FOREST": {
+      "groundId": 0,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": { "BEACH": 2 },
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 4, "max": 10, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "CORE", "type": "ROCK", "min": 0, "max": 2, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "CORE", "type": "BUSH", "min": 1, "max": 4, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 2, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "SWAMP": {
+      "groundId": 1,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": {},
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 2, "max": 6, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "CORE", "type": "BUSH", "min": 2, "max": 6, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "WATER", "type": "FISH", "min": 0, "max": 1, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 2, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "BEACH": {
+      "groundId": 2,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": {},
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 0, "max": 3, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "CORE", "type": "ROCK", "min": 0, "max": 2, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "WATER", "type": "FISH", "min": 0, "max": 1, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 2, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "RIVERBANK": {
+      "groundId": 2,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": {},
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 1, "max": 4, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "WATER", "type": "FISH", "min": 0, "max": 1, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 2, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "WATER": {
+      "groundId": 2,
+      "roadsEnabled": false,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": {},
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "WATER", "type": "FISH", "min": 0, "max": 1, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": []
+    },
+
+    "MOUNTAIN": {
+      "groundId": 3,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": { "FOREST": 0, "GRASSLAND": 0, "_WATER": 2 },
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 0, "max": 2, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "EDGE", "type": "TREE", "min": 1, "max": 4, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28, "side": "*", "neighborBiome": "FOREST" },
+        { "zone": "CORE", "type": "ROCK", "min": 2, "max": 6, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "CORE", "type": "IRON", "min": 1, "max": 4, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "OLD_MINE", "weight": 0.35, "min": 0, "max": 1, "requiresRoad": true, "roadClass": "service", "connectRadius": 28, "edgePadTiles": 6 },
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 1, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "SNOWHIGHLAND": {
+      "groundId": 4,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": { "FOREST": 0, "GRASSLAND": 0, "_WATER": 2 },
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "EDGE", "type": "TREE", "min": 1, "max": 3, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28, "side": "*", "neighborBiome": "FOREST" },
+        { "zone": "CORE", "type": "ROCK", "min": 2, "max": 6, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "CORE", "type": "IRON", "min": 1, "max": 4, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 1, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "VOLCANIC": {
+      "groundId": 3,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": { "_WATER": 2 },
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "ROCK", "min": 2, "max": 6, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "CORE", "type": "IRON", "min": 1, "max": 4, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "OLD_MINE", "weight": 0.35, "min": 0, "max": 1, "requiresRoad": true, "roadClass": "service", "connectRadius": 28, "edgePadTiles": 6 },
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 1, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "ASHFIELD": {
+      "groundId": 1,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": { "_WATER": 2 },
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "ROCK", "min": 2, "max": 6, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "CORE", "type": "IRON", "min": 1, "max": 4, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "OLD_MINE", "weight": 0.35, "min": 0, "max": 1, "requiresRoad": true, "roadClass": "service", "connectRadius": 28, "edgePadTiles": 6 },
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 1, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "ISLANDS": {
+      "groundId": 0,
+      "roadsEnabled": true,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": { "_WATER": 2 },
+      "customZones": [],
+      "spawnRules": [
+        { "zone": "CORE", "type": "TREE", "min": 2, "max": 6, "allowTreeOverlap": true, "treeJitterX": 0.42, "treeJitterY": 0.28 },
+        { "zone": "CORE", "type": "ROCK", "min": 0, "max": 2, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 },
+        { "zone": "WATER", "type": "FISH", "min": 0, "max": 1, "allowTreeOverlap": false, "treeJitterX": 0.0, "treeJitterY": 0.0 }
+      ],
+      "poiTemplates": [
+        { "key": "TREASURE_CHEST", "weight": 0.65, "min": 0, "max": 2, "requiresRoad": false, "roadClass": "none", "connectRadius": 0, "edgePadTiles": 6 }
+      ]
+    },
+
+    "LAVA": {
+      "groundId": 5,
+      "roadsEnabled": false,
+      "edgeWidthTiles": 6,
+      "edgeGroundOverride": {},
+      "customZones": [],
+      "spawnRules": [],
+      "poiTemplates": []
+    }
+  }
+}
+

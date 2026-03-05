@@ -1,0 +1,8 @@
+APPLIED
+iron_ingot.png	->	item_10.png
+copper_ingot.png	->	item_11.png
+silver_ingot.png	->	item_12.png
+gold_ingot.png	->	item_13.png
+copper_coin.png	->	item_31.png
+silver_coin.png	->	item_32.png
+gold_coin.png	->	item_33.png

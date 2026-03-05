@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FuckUSurvival – Roadmap UI (0.029)</title>
+  <style>
+    :root{--bg:#0f1115;--card:#161a22;--card2:#111521;--fg:#e6e6e6;--muted:#a7adbb;--line:#2a3040;--ok:#2dd4bf;--warn:#fbbf24;--bad:#fb7185;--btn:#232a3a;--btn2:#1b2130;}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",Arial}
+    a{color:inherit}
+    header{padding:16px 16px 8px;border-bottom:1px solid var(--line)}
+    h1{margin:0 0 4px;font-size:18px}
+    .sub{color:var(--muted);font-size:12px}
+    .wrap{display:grid;grid-template-columns: 360px 1fr;gap:12px;padding:12px}
+    @media(max-width:980px){.wrap{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+    .card h2{margin:0 0 8px;font-size:14px}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;background:var(--btn2);border:1px solid var(--line);color:var(--muted);font-size:12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .btn{cursor:pointer;border:1px solid var(--line);background:var(--btn);color:var(--fg);padding:8px 10px;border-radius:10px;font-weight:600}
+    .btn:active{transform:translateY(1px)}
+    .btn.small{padding:6px 8px;font-size:12px}
+    .btn.ghost{background:transparent}
+    input[type="search"], select{background:var(--card2);border:1px solid var(--line);color:var(--fg);padding:8px 10px;border-radius:10px;outline:none}
+    .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px}
+    .item .top{display:flex;gap:8px;align-items:flex-start}
+    .id{min-width:185px;max-width:185px;word-break:break-word}
+    .title{font-weight:800}
+    .meta{color:var(--muted);font-size:12px;margin-top:2px}
+    .desc{color:var(--muted);margin-top:6px}
+    .tag{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .tag.ok{border-color:rgba(45,212,191,.35);color:var(--ok)}
+    .tag.todo{border-color:rgba(251,191,36,.35);color:var(--warn)}
+    .tag.imp-unwichtig{border-color:rgba(167,173,187,.35)}
+    .tag.imp-kann{border-color:rgba(167,173,187,.35)}
+    .tag.imp-wichtig{border-color:rgba(251,191,36,.35);color:var(--warn)}
+    .tag.imp-sehr{border-color:rgba(251,113,133,.35);color:var(--bad)}
+    .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    @media(max-width:1200px){.cols{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:650px){.cols{grid-template-columns:1fr}}
+    .col h3{margin:0 0 8px;font-size:13px;color:var(--muted)}
+    .line{height:1px;background:var(--line);margin:10px 0}
+    .hint{color:var(--muted);font-size:12px}
+    .kpi{display:flex;gap:10px;flex-wrap:wrap}
+    .kpi .box{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:150px}
+    .kpi .n{font-size:20px;font-weight:900}
+    .kpi .l{color:var(--muted);font-size:12px}
+    .timeline{display:flex;flex-direction:column;gap:10px}
+    .trow{display:grid;grid-template-columns: 32px 1fr;gap:10px;align-items:start}
+    .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);margin-top:3px}
+    .dot.ok{border-color:var(--ok)}
+    .dot.todo{border-color:var(--warn)}
+    .tcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px}
+    .footer{padding:10px 16px 18px;color:var(--muted);font-size:12px}
+    .err{color:var(--bad)}
+    .okmsg{color:var(--ok)}
+    .kbd{border:1px solid var(--line);background:var(--card2);border-radius:8px;padding:2px 6px;font-size:12px}
+  
+  .subtasks{margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:10px;background:rgba(255,255,255,.02)}
+  .subhead{font-size:12px;color:rgba(167,173,187,.9);margin-bottom:8px}
+  .sub{display:block;font-size:13px;line-height:1.35;margin:6px 0;color:rgba(229,231,235,.95)}
+  .sub input{margin-right:8px;transform:translateY(1px)}
+  .subadd{display:flex;gap:8px;margin-top:10px}
+  .subinput{flex:1;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:10px;font-size:13px;outline:none}
+  .subbtn{padding:10px 12px}
+  .warn{margin-top:8px;font-size:12px;color:rgba(251,191,36,.9)}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>FuckUSurvival – Roadmap UI</h1>
+  <div class="sub">v0.029 · Datenbank (Guardrails/Failsafe) oben · Tasks = CHECKLIST_TODO.md · Local Server optional (Write-Back) · Ohne externe Libraries</div>
+</header>
+
+<div class="wrap">
+  <aside class="card" id="left">
+    <h2>Datenbank</h2>
+    <div class="row" style="margin-bottom:8px">
+      <span class="pill" id="pillVersion">…</span>
+      <span class="pill" id="pillState">STATE.json: …</span>
+      <span class="pill" id="pillChecklist">CHECKLIST: …</span>
+      <span class="pill" id="pillMode">Mode: …</span>
+    </div>
+
+    <div class="kpi" style="margin-bottom:10px">
+      <div class="box"><div class="n" id="kpiDone">0</div><div class="l">Done</div></div>
+      <div class="box"><div class="n" id="kpiTodo">0</div><div class="l">Todo</div></div>
+      <div class="box"><div class="n" id="kpiNext">—</div><div class="l">NEXT_NODE</div></div>
+    </div>
+
+    <div class="line"></div>
+
+    <h2>Guardrails</h2>
+    <div class="list" id="guardrails"></div>
+
+    <div class="line"></div>
+
+    <h2>Failsafe</h2>
+    <div class="list" id="failsafe"></div>
+
+    <div class="line"></div>
+
+    <h2>Controls</h2>
+    <div class="row" style="margin:8px 0 10px">
+      <label class="hint">View</label>
+      <select id="viewSelect">
+        <option value="importance">Kategorien (Wichtigkeit)</option>
+        <option value="timeline">Timeline (ohne Zeit)</option>
+        <option value="diagram">Diagramm (Dependencies)</option>
+        <option value="details">Node-Details (Additional Tasks)</option>
+      </select>
+    </div>
+
+    <div class="row" style="margin:8px 0 10px">
+      <input id="search" type="search" placeholder="Suche: ID / Titel / Keyword…" style="flex:1" />
+      <button class="btn small" id="clearSearch">Clear</button>
+    </div>
+
+    <div class="row" style="margin:8px 0 10px">
+      <button class="btn" id="exportAll">Write / Export: STATE + CHECKLIST</button>
+      <button class="btn ghost" id="resetLocal">Reset Local</button>
+    </div>
+
+    <div class="row" style="margin:8px 0 10px">
+      <button class="btn" id="newNode">New Node</button>
+      <a class="btn ghost" href="/roadmap/features.html">Features Liste</a>
+    </div>
+
+    <div class="hint" id="statusLine">
+      Tipp: Für Write-Back (Checkbox schreibt direkt in Dateien) starte <span class="kbd">roadmap\start_roadmap_windows.bat</span> oder <span class="kbd">node roadmap/server.js</span>.
+    </div>
+    <div class="hint err" id="errLine" style="margin-top:6px;display:none"></div>
+    <div class="hint okmsg" id="okLine" style="margin-top:6px;display:none"></div>
+  </aside>
+
+  <main class="card" id="main">
+    <div class="row" style="justify-content:space-between;align-items:end;margin-bottom:8px">
+      <div>
+        <h2 style="margin:0">Tasks</h2>
+        <div class="hint">Alle Einträge hier müssen 1:1 in CHECKLIST_TODO.md existieren (oder werden beim Export so geschrieben).</div>
+      </div>
+      <div class="row">
+        <span class="pill">Toggle Done → UI + Export</span>
+      </div>
+    </div>
+
+    <div id="viewImportance" style="display:none"></div>
+    <div id="viewTimeline" style="display:none"></div>
+    <div id="viewDiagram" style="display:none"></div>
+    <div id="viewDetails" style="display:none"></div>
+  </main>
+</div>
+
+<div class="footer">Roadmap UI ist ein reines Workspace-Tool: keine Netzwerk-Abhängigkeiten, keine externen JS/CDN, keine automatischen Builds.</div>
+
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+
+  const STORAGE_KEY = 'FUS_ROADMAP_LOCAL_STATE_v0024';
+
+  let server = { ready:false, base:'', mode:'read-only' };
+
+  let db = null;
+  let checklist = { raw:'', doneIds:new Set(), allIds:new Set() };
+  let state = { raw:'', NEXT_NODE:null, LAST_COMPLETED_NODE:null };
+  let local = { overrides: {} }; // id -> done boolean
+
+  function showErr(msg){
+    const el = $('errLine');
+    el.style.display='block';
+    el.textContent = msg;
+  }
+  function showOk(msg){
+    const el = $('okLine');
+    el.style.display='block';
+    el.textContent = msg;
+    setTimeout(()=>{el.style.display='none'; el.textContent='';}, 2500);
+  }
+
+  function loadLocal(){
+    try{
+      const s = localStorage.getItem(STORAGE_KEY);
+      if(!s) return;
+      const parsed = JSON.parse(s);
+      if(parsed && typeof parsed==='object') local = parsed;
+    }catch(e){}
+  }
+  function saveLocal(){
+    try{localStorage.setItem(STORAGE_KEY, JSON.stringify(local));}catch(e){}
+  }
+
+  function parseChecklist(md){
+    const lines = md.split(/\r?\n/);
+    const done = new Set();
+    const all = new Set();
+    for(const ln of lines){
+      const m = ln.match(/^\s*-\s*\[(x| )\]\s+(NODE_\d+_[A-Z0-9_]+)\s*$/i);
+      if(m){
+        const id = m[2].trim();
+        all.add(id);
+        if(m[1].toLowerCase()==='x') done.add(id);
+      }
+    }
+    return {raw:md, doneIds:done, allIds:all};
+  }
+
+  function getDone(id){
+    if(local.overrides && Object.prototype.hasOwnProperty.call(local.overrides, id)) return !!local.overrides[id];
+    return checklist.doneIds.has(id);
+  }
+
+  function getSubDone(subId){
+    if(local.subOverrides && Object.prototype.hasOwnProperty.call(local.subOverrides, subId)) return !!local.subOverrides[subId];
+    for(const t of (db.tasks||[])){
+      const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+      const st = subs.find(x=>String(x.id)===String(subId));
+      if(st) return !!st.done;
+    }
+    return false;
+  }
+
+  function setSubDone(nodeId, subtaskId, val){
+    if(server.ready){
+      writeSubtaskToServer(nodeId, subtaskId, !!val);
+      return;
+    }
+    local.subOverrides = local.subOverrides || {};
+    local.subOverrides[subtaskId] = !!val;
+    saveLocal();
+    renderAll();
+  }
+
+  function addSubtask(nodeId, text){
+    const t = String(text||'').trim();
+    if(!t) return;
+    if(server.ready){
+      addSubtaskToServer(nodeId, t);
+      return;
+    }
+    showErr('Write-Back ist aus. Starte roadmap/server.js (oder start_roadmap_windows.bat), damit Subtasks gespeichert werden.');
+  }
+
+  function setDone(id, val){
+    // If server is ready: write-through. Otherwise: local override only.
+    if(server.ready){
+      writeTaskToServer(id, !!val);
+      return;
+    }
+
+    local.overrides = local.overrides || {};
+    local.overrides[id] = !!val;
+    saveLocal();
+    renderAll();
+  }
+
+  async function writeTaskToServer(id, done){
+    try{
+      const r = await fetch(server.base + '/api/task', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({id, done})
+      });
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||'write failed');
+
+      // refresh in-memory state from server response
+      db = j.db;
+      checklist = parseChecklist(j.checklist.raw || '');
+      state.raw = j.state.raw || '';
+      try{
+        const obj = JSON.parse(state.raw);
+        state.NEXT_NODE = obj.NEXT_NODE || null;
+        state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+      }catch(_){ }
+
+      // local overrides are obsolete in write mode
+      local = {overrides:{}};
+      saveLocal();
+
+      renderAll();
+      showOk(`Geschrieben: ${id} = ${done?'done':'todo'}`);
+    }catch(e){
+      showErr('Write-Back fehlgeschlagen: ' + (e && e.message ? e.message : String(e)));
+      // fallback to local override so user doesn't lose click
+      local.overrides = local.overrides || {};
+      local.overrides[id] = !!done;
+      saveLocal();
+      renderAll();
+    }
+  }
+
+  
+  async function writeSubtaskToServer(nodeId, subtaskId, done){
+    try{
+      const r = await fetch(server.base + '/api/node/additional/toggle', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({nodeId, subtaskId, done})
+      });
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||'write failed');
+
+      db = j.db;
+      checklist = parseChecklist(j.checklist.raw || '');
+      state.raw = j.state.raw || '';
+      try{
+        const obj = JSON.parse(state.raw);
+        state.NEXT_NODE = obj.NEXT_NODE || null;
+        state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+      }catch(_){ }
+
+      local = {overrides:{}, subOverrides:{}};
+      saveLocal();
+
+      renderAll();
+      showOk(`Geschrieben: ${subtaskId} = ${done?'done':'todo'}`);
+    }catch(e){
+      showErr('Write-Back fehlgeschlagen: ' + (e && e.message ? e.message : String(e)));
+      local.subOverrides = local.subOverrides || {};
+      local.subOverrides[subtaskId] = !!done;
+      saveLocal();
+      renderAll();
+    }
+  }
+
+  async function addSubtaskToServer(nodeId, text){
+    try{
+      const r = await fetch(server.base + '/api/node/additional', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({nodeId, text})
+      });
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||'add failed');
+
+      db = j.db;
+      checklist = parseChecklist(j.checklist.raw || '');
+      state.raw = j.state.raw || '';
+      try{
+        const obj = JSON.parse(state.raw);
+        state.NEXT_NODE = obj.NEXT_NODE || null;
+        state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+      }catch(_){ }
+
+      local = {overrides:{}, subOverrides:{}};
+      saveLocal();
+
+      renderAll();
+      showOk('Subtask hinzugefügt');
+    }catch(e){
+      showErr('Subtask speichern fehlgeschlagen: ' + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+  function normalizeImportance(s){
+    const v = (s||'').toLowerCase();
+    if(v.includes('sehr')) return 'sehr wichtig';
+    if(v.includes('wichtig')) return 'wichtig';
+    if(v.includes('kann')) return 'kann man machen';
+    return 'unwichtig';
+  }
+
+  function tagClassForImportance(imp){
+    const n = normalizeImportance(imp);
+    if(n==='sehr wichtig') return 'imp-sehr';
+    if(n==='wichtig') return 'imp-wichtig';
+    if(n==='kann man machen') return 'imp-kann';
+    return 'imp-unwichtig';
+  }
+
+  function computeNextNode(){
+    // Next = first task (by timeline) that is not done.
+    const tasks = [...db.tasks].sort((a,b)=>a.timeline-b.timeline);
+    for(const t of tasks){
+      if(!getDone(t.id)) return t.id;
+    }
+    return '—';
+  }
+
+  function computeLastCompletedNode(){
+    const tasks = [...db.tasks].sort((a,b)=>a.timeline-b.timeline);
+    let last = null;
+    for(const t of tasks){
+      if(getDone(t.id)) last = t.id;
+    }
+    return last || '—';
+  }
+
+  function renderDatabase(){
+    $('pillVersion').textContent = `DB v${db.version} · ${db.updated}`;
+
+    const next = computeNextNode();
+    $('kpiNext').textContent = next;
+
+    let doneCount=0;
+    for(const t of db.tasks){ if(getDone(t.id)) doneCount++; }
+    $('kpiDone').textContent = String(doneCount);
+    $('kpiTodo').textContent = String(db.tasks.length - doneCount);
+
+    // pills
+    $('pillState').textContent = state.NEXT_NODE ? `STATE.json: ${state.NEXT_NODE}` : 'STATE.json: (nicht geladen)';
+    $('pillChecklist').textContent = checklist.raw ? `CHECKLIST: ${checklist.allIds.size} Einträge` : 'CHECKLIST: (nicht geladen)';
+    $('pillMode').textContent = `Mode: ${server.mode}`;
+
+    function renderMini(list, elId){
+      const root = $(elId);
+      root.innerHTML = '';
+      for(const x of list){
+        const d = document.createElement('div');
+        d.className='item';
+        d.innerHTML = `<div class="top"><div class="mono" style="min-width:72px;color:var(--muted)">${x.id}</div><div>${escapeHtml(x.text)}</div></div>`;
+        root.appendChild(d);
+      }
+    }
+
+    renderMini(db.database.guardrails, 'guardrails');
+    renderMini(db.database.failsafe, 'failsafe');
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+  }
+
+  function taskCard(t){
+    const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+    const openSubs = subs.filter(st=>!getSubDone(st.id));
+    const hasOpenSubs = openSubs.length>0;
+    const done = getDone(t.id);
+    const canCompleteNode = !hasOpenSubs;
+
+    const imp = normalizeImportance(t.importance);
+    const impCls = tagClassForImportance(imp);
+
+    const wrap = document.createElement('div');
+    wrap.className='item';
+    wrap.id = `task_${t.id}`;
+
+    const deps = (t.dependsOn||[]).slice().sort();
+    const depHtml = deps.length ? deps.map(d=>`<a href="#task_${d}" class="mono">${d}</a>`).join(', ') : '—';
+    const kwHtml = (t.keywords||[]).map(k=>`<span class="pill">${escapeHtml(k)}</span>`).join(' ');
+
+    wrap.innerHTML = `
+      <div class="top">
+        <div class="id mono">${t.id}</div>
+        <div style="flex:1">
+          <div class="row" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="title">${escapeHtml(t.label)}</div>
+              <div class="meta">Timeline #${t.timeline} · Depends: ${depHtml}</div>
+            </div>
+            <div class="row" style="gap:6px">
+              <span class="tag ${done?'ok':'todo'}">${done?'done':'todo'}</span>
+              <span class="tag ${impCls}">${imp}</span>
+              ${subs.length?`<span class="pill" title="Additional Tasks">AT:${subs.length}</span>`:""}
+              <label class="pill" style="cursor:pointer">
+                <input type="checkbox" ${done?'checked':''} ${(!canCompleteNode && !done)?'disabled':''} data-task="${t.id}" style="transform:translateY(1px)" />
+                done
+              </label>
+            </div>
+          </div>
+          <div class="desc">${escapeHtml(t.description||'')}</div>
+          ${subs.length?`<div class="subtasks">
+            <div class="subhead">Additional Tasks (müssen vor Node fertig sein)</div>
+            ${subs.map(st=>`<label class="sub"><input type="checkbox" data-subtask="${st.id}" data-node="${t.id}" ${getSubDone(st.id)?'checked':''}/> <span class="mono">${st.id}</span> ${escapeHtml(st.text||'')}</label>`).join('')}
+            <div class="subadd">
+              <input class="subinput" type="text" placeholder="Add task in node…" data-subadd-input="${t.id}" />
+              <button class="btn subbtn" data-subadd-btn="${t.id}">Add</button>
+            </div>
+            ${hasOpenSubs?`<div class="warn">Node kann erst abgeschlossen werden, wenn alle Additional Tasks done sind.</div>`:''}
+          </div>`:''}
+
+          <div class="row" style="margin-top:8px">${kwHtml}</div>
+        </div>
+      </div>
+    `;
+
+    // wire checkbox
+    const cb = wrap.querySelector('input[type="checkbox"][data-task]');
+    cb.addEventListener('change', (e)=>{
+      setDone(t.id, !!e.target.checked);
+    });
+
+    // wire subtasks
+    for(const subCb of wrap.querySelectorAll('input[type="checkbox"][data-subtask]')){
+      subCb.addEventListener('change', (e)=>{
+        const sid = e.target.getAttribute('data-subtask');
+        const nid = e.target.getAttribute('data-node');
+        setSubDone(nid, sid, !!e.target.checked);
+      });
+    }
+
+    const addBtn = wrap.querySelector('button[data-subadd-btn]');
+    if(addBtn){
+      addBtn.addEventListener('click', ()=>{
+        const nid = addBtn.getAttribute('data-subadd-btn');
+        const inp = wrap.querySelector('input[data-subadd-input="'+nid+'"]');
+        if(!inp) return;
+        const val = inp.value;
+        inp.value='';
+        addSubtask(nid, val);
+      });
+    }
+
+
+    return wrap;
+  }
+
+  function renderImportanceView(filtered){
+    const groups = {
+      'unwichtig': [],
+      'kann man machen': [],
+      'wichtig': [],
+      'sehr wichtig': []
+    };
+    for(const t of filtered){
+      groups[normalizeImportance(t.importance)].push(t);
+    }
+    // within group: timeline order
+    for(const k of Object.keys(groups)) groups[k].sort((a,b)=>a.timeline-b.timeline);
+
+    const root = $('viewImportance');
+    root.innerHTML = '';
+
+    const cols = document.createElement('div');
+    cols.className='cols';
+
+    const order = ['sehr wichtig','wichtig','kann man machen','unwichtig'];
+    for(const key of order){
+      const col = document.createElement('div');
+      col.className='col';
+      col.innerHTML = `<h3>${key}</h3>`;
+      const lst = document.createElement('div');
+      lst.className='list';
+      for(const t of groups[key]) lst.appendChild(taskCard(t));
+      col.appendChild(lst);
+      cols.appendChild(col);
+    }
+
+    root.appendChild(cols);
+  }
+
+  function renderTimelineView(filtered){
+    const tasks = [...filtered].sort((a,b)=>a.timeline-b.timeline);
+    const root = $('viewTimeline');
+    root.innerHTML='';
+
+    const tl = document.createElement('div');
+    tl.className='timeline';
+
+    for(const t of tasks){
+      const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+    const openSubs = subs.filter(st=>!getSubDone(st.id));
+    const hasOpenSubs = openSubs.length>0;
+    const done = getDone(t.id);
+    const canCompleteNode = !hasOpenSubs;
+
+      const row = document.createElement('div');
+      row.className='trow';
+
+      const dot = document.createElement('div');
+      dot.className = `dot ${done?'ok':'todo'}`;
+
+      const card = document.createElement('div');
+      card.className='tcard';
+      card.appendChild(taskCard(t));
+
+      row.appendChild(dot);
+      row.appendChild(card);
+      tl.appendChild(row);
+    }
+
+    root.appendChild(tl);
+  }
+
+  function renderDiagramView(filtered){
+    // Offline DAG view (no external libs).
+    // Main nodes are positioned by timeline within importance rows.
+    // Additional Tasks are rendered as child nodes under their parent node (they are implicit dependencies).
+    const tasks = [...filtered].sort((a,b)=>a.timeline-b.timeline);
+    const root = $('viewDiagram');
+    root.innerHTML='';
+
+    const hint = document.createElement('div');
+    hint.className='hint';
+    hint.style.marginBottom='10px';
+    hint.textContent = 'Diagramm: Reihenfolge = Timeline. Linien = dependsOn. Unter-Kästchen = Additional Tasks (müssen done sein, bevor die Node abgeschlossen werden kann). Klick: Node -> Timeline, Subtask -> Details.';
+    root.appendChild(hint);
+
+    const host = document.createElement('div');
+    host.style.background = 'var(--card2)';
+    host.style.border = '1px solid var(--line)';
+    host.style.borderRadius = '12px';
+    host.style.padding = '10px';
+    host.style.overflow = 'auto';
+    host.style.maxHeight = '70vh';
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+
+    // layout constants
+    const NODE_W = 260;
+    const NODE_H = 64;
+    const SUB_H  = 18;
+    const SUB_GAP = 2;
+    const GAP_X = 60;
+    const GAP_Y = 22;
+    const PAD = 18;
+
+    const rowOrder = ['sehr wichtig','wichtig','kann man machen','unwichtig'];
+    const rows = new Map(rowOrder.map(r=>[r, []]));
+    for(const t of tasks){ rows.get(normalizeImportance(t.importance)).push(t); }
+
+    function nodeTotalHeight(t){
+      const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+      if(!subs.length) return NODE_H;
+      return NODE_H + 10 + subs.length * (SUB_H + SUB_GAP);
+    }
+
+    // row heights (avoid overlaps when many subtasks exist)
+    const rowHeights = new Map();
+    for(const r of rowOrder){
+      const arr = rows.get(r);
+      let h = NODE_H;
+      for(const t of arr) h = Math.max(h, nodeTotalHeight(t));
+      rowHeights.set(r, h);
+    }
+
+    // y offsets per row
+    const rowY = new Map();
+    let accY = PAD;
+    for(const r of rowOrder){
+      rowY.set(r, accY);
+      accY += rowHeights.get(r) + GAP_Y;
+    }
+
+    // x/y positions per node
+    const pos = new Map();
+    let maxCols = 0;
+    for(const r of rowOrder){
+      const arr = rows.get(r);
+      maxCols = Math.max(maxCols, arr.length);
+      arr.forEach((t, i)=>{
+        pos.set(t.id, {
+          x: PAD + i*(NODE_W+GAP_X),
+          y: rowY.get(r)
+        });
+      });
+    }
+
+    const W = PAD*2 + Math.max(1, maxCols)*(NODE_W+GAP_X) - GAP_X;
+    const H = accY - GAP_Y + PAD; // remove last GAP_Y, add padding
+    svg.setAttribute('width', String(W));
+    svg.setAttribute('height', String(H));
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    // row labels
+    for(const r of rowOrder){
+      const y = rowY.get(r) - 6;
+      const tx = document.createElementNS(svgNS,'text');
+      tx.setAttribute('x', String(PAD));
+      tx.setAttribute('y', String(Math.max(12,y)));
+      tx.setAttribute('fill', 'rgba(167,173,187,.9)');
+      tx.setAttribute('font-size', '12');
+      tx.setAttribute('font-family', 'system-ui,Segoe UI,Roboto,Arial');
+      tx.textContent = r;
+      svg.appendChild(tx);
+    }
+
+    // edges first (under nodes)
+    for(const t of tasks){
+      const p2 = pos.get(t.id);
+      if(!p2) continue;
+      const deps = (t.dependsOn||[]);
+      for(const dep of deps){
+        const p1 = pos.get(dep);
+        if(!p1) continue;
+        const x1 = p1.x + NODE_W;
+        const y1 = p1.y + NODE_H/2;
+        const x2 = p2.x;
+        const y2 = p2.y + NODE_H/2;
+        const path = document.createElementNS(svgNS,'path');
+        const mx = (x1 + x2) / 2;
+        path.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+        path.setAttribute('fill','none');
+        // edge color by dependent readiness
+        const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+        const openSubs = subs.filter(st=>!getSubDone(st.id));
+        const ready = openSubs.length===0;
+        path.setAttribute('stroke', (getDone(t.id) && ready) ? 'rgba(45,212,191,.5)' : 'rgba(251,191,36,.4)');
+        path.setAttribute('stroke-width','2');
+        svg.appendChild(path);
+      }
+    }
+
+    // nodes + subtasks
+    for(const t of tasks){
+      const p = pos.get(t.id);
+      if(!p) continue;
+
+      const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+      const openSubs = subs.filter(st=>!getSubDone(st.id));
+      const hasOpenSubs = openSubs.length>0;
+      const done = getDone(t.id);
+      const ready = !hasOpenSubs;
+
+      const g = document.createElementNS(svgNS,'g');
+      g.setAttribute('transform', `translate(${p.x},${p.y})`);
+
+      // main node click -> timeline
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', ()=>{
+        $('viewSelect').value = 'timeline';
+        renderAll();
+        location.hash = `task_${t.id}`;
+      });
+
+      const r = document.createElementNS(svgNS,'rect');
+      r.setAttribute('x','0'); r.setAttribute('y','0');
+      r.setAttribute('rx','12'); r.setAttribute('ry','12');
+      r.setAttribute('width', String(NODE_W));
+      r.setAttribute('height', String(NODE_H));
+      r.setAttribute('fill', 'rgba(15,17,21,.15)');
+      r.setAttribute('stroke', (done && ready) ? 'rgba(45,212,191,.9)' : 'rgba(42,48,64,1)');
+      r.setAttribute('stroke-width','2');
+      g.appendChild(r);
+
+      const t1 = document.createElementNS(svgNS,'text');
+      t1.setAttribute('x','12'); t1.setAttribute('y','26');
+      t1.setAttribute('fill', 'rgba(230,230,230,.95)');
+      t1.setAttribute('font-size', '12');
+      t1.setAttribute('font-family', 'ui-monospace,Menlo,Consolas,monospace');
+      t1.textContent = t.id;
+      g.appendChild(t1);
+
+      const t2 = document.createElementNS(svgNS,'text');
+      t2.setAttribute('x','12'); t2.setAttribute('y','46');
+      t2.setAttribute('fill', 'rgba(167,173,187,.95)');
+      t2.setAttribute('font-size', '12');
+      t2.setAttribute('font-family', 'system-ui,Segoe UI,Roboto,Arial');
+      const label = (t.label||'').length > 34 ? (t.label||'').slice(0,34)+'…' : (t.label||'');
+      t2.textContent = `#${t.timeline} · ${label}`;
+      g.appendChild(t2);
+
+      if(subs.length){
+        const t3 = document.createElementNS(svgNS,'text');
+        t3.setAttribute('x','12'); t3.setAttribute('y','62');
+        t3.setAttribute('fill', ready ? 'rgba(45,212,191,.85)' : 'rgba(251,191,36,.85)');
+        t3.setAttribute('font-size', '11');
+        t3.setAttribute('font-family', 'system-ui,Segoe UI,Roboto,Arial');
+        const doneSubs = subs.length - openSubs.length;
+        t3.textContent = `AT ${doneSubs}/${subs.length}`;
+        g.appendChild(t3);
+      }
+
+      // child nodes: Additional Tasks
+      if(subs.length){
+        for(let i=0;i<subs.length;i++){
+          const st = subs[i];
+          const sy = NODE_H + 10 + i*(SUB_H+SUB_GAP);
+          const sr = document.createElementNS(svgNS,'rect');
+          sr.setAttribute('x','10'); sr.setAttribute('y', String(sy));
+          sr.setAttribute('rx','8'); sr.setAttribute('ry','8');
+          sr.setAttribute('width', String(NODE_W-20));
+          sr.setAttribute('height', String(SUB_H));
+          sr.setAttribute('fill','rgba(15,17,21,.10)');
+          sr.setAttribute('stroke', getSubDone(st.id) ? 'rgba(45,212,191,.55)' : 'rgba(251,191,36,.45)');
+          sr.setAttribute('stroke-width','1.5');
+          g.appendChild(sr);
+
+          const sidShort = String(st.id||'').replace(t.id,'').replace(/^__/, '');
+          const stx = document.createElementNS(svgNS,'text');
+          stx.setAttribute('x','18'); stx.setAttribute('y', String(sy + 13));
+          stx.setAttribute('fill','rgba(230,230,230,.90)');
+          stx.setAttribute('font-size','10');
+          stx.setAttribute('font-family', 'ui-monospace,Menlo,Consolas,monospace');
+          stx.textContent = sidShort || st.id;
+          g.appendChild(stx);
+
+          const txt = (st.text||'');
+          const txtShort = txt.length>46 ? txt.slice(0,46)+'…' : txt;
+          const sty = document.createElementNS(svgNS,'text');
+          sty.setAttribute('x','92'); sty.setAttribute('y', String(sy + 13));
+          sty.setAttribute('fill','rgba(167,173,187,.92)');
+          sty.setAttribute('font-size','10');
+          sty.setAttribute('font-family', 'system-ui,Segoe UI,Roboto,Arial');
+          sty.textContent = txtShort;
+          g.appendChild(sty);
+
+          // override click to open details view for that node
+          sr.style.cursor = 'pointer';
+          sr.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            selectedNodeId = t.id;
+            $('viewSelect').value = 'details';
+            renderAll();
+            location.hash = `task_${t.id}`;
+          });
+          stx.style.cursor = 'pointer';
+          stx.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            selectedNodeId = t.id;
+            $('viewSelect').value = 'details';
+            renderAll();
+            location.hash = `task_${t.id}`;
+          });
+          sty.style.cursor = 'pointer';
+          sty.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            selectedNodeId = t.id;
+            $('viewSelect').value = 'details';
+            renderAll();
+            location.hash = `task_${t.id}`;
+          });
+        }
+      }
+
+      svg.appendChild(g);
+    }
+
+    host.appendChild(svg);
+    root.appendChild(host);
+  }
+
+
+  let selectedNodeId = null;
+
+  function renderDetailsView(filtered){
+    const root = $('viewDetails');
+    root.innerHTML = '';
+
+    const ordered = [...filtered].sort((a,b)=>(a.timeline||0)-(b.timeline||0));
+    if(!ordered.length){
+      root.innerHTML = `<div class="hint">Keine Nodes im Filter.</div>`;
+      return;
+    }
+    if(!selectedNodeId || !ordered.some(t => t.id === selectedNodeId)){
+      selectedNodeId = ordered[0].id;
+    }
+
+    const top = document.createElement('div');
+    top.className = 'row';
+    top.style.justifyContent = 'space-between';
+    top.style.marginBottom = '10px';
+
+    const left = document.createElement('div');
+    left.className = 'row';
+    left.style.gap = '8px';
+
+    const sel = document.createElement('select');
+    sel.style.minWidth = '340px';
+    for(const t of ordered){
+      const o = document.createElement('option');
+      o.value = t.id;
+      o.textContent = `${t.id} · ${t.label}`;
+      sel.appendChild(o);
+    }
+    sel.value = selectedNodeId;
+    sel.addEventListener('change', ()=>{
+      selectedNodeId = sel.value;
+      renderAll();
+    });
+
+    const jump = document.createElement('a');
+    jump.href = `#task_${selectedNodeId}`;
+    jump.className = 'btn small ghost';
+    jump.textContent = 'Jump (Liste)';
+
+    left.appendChild(sel);
+    left.appendChild(jump);
+
+    const right = document.createElement('div');
+    right.className = 'row';
+    right.style.gap = '8px';
+
+    const btnExport = document.createElement('button');
+    btnExport.className = 'btn small';
+    btnExport.textContent = 'Save (Export STATE+CHECKLIST)';
+    btnExport.addEventListener('click', ()=> $('exportAll').click());
+
+    right.appendChild(btnExport);
+
+    top.appendChild(left);
+    top.appendChild(right);
+
+    root.appendChild(top);
+
+    const t = ordered.find(x=>x.id===selectedNodeId) || ordered[0];
+    const card = document.createElement('div');
+    card.className = 'item';
+
+    const subs = Array.isArray(t.additionalTasks) ? t.additionalTasks : [];
+    const hasOpenSubs = subs.some(st => !getSubDone(st.id));
+    const done = getDone(t.id);
+
+    card.innerHTML = `
+      <div class="top">
+        <div class="id mono">${t.id}</div>
+        <div style="flex:1">
+          <div class="row" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="title">${escapeHtml(t.label)}</div>
+              <div class="meta">Timeline #${t.timeline} · Importance: ${escapeHtml(normalizeImportance(t.importance))}</div>
+            </div>
+            <div class="row" style="gap:6px">
+              <span class="tag ${done?'ok':'todo'}">${done?'done':'todo'}</span>
+              ${subs.length?`<span class="pill" title="Additional Tasks">AT:${subs.length}</span>`:''}
+              <label class="pill" style="cursor:pointer">
+                <input type="checkbox" ${done?'checked':''} ${(hasOpenSubs && !done)?'disabled':''} data-task="${t.id}" style="transform:translateY(1px)" />
+                done
+              </label>
+            </div>
+          </div>
+          <div class="desc">${escapeHtml(t.description||'')}</div>
+
+          <div class="subtasks">
+            <div class="subhead">Additional Tasks (müssen vor Node fertig sein)</div>
+            ${subs.length ? subs.map(st=>`<label class="sub"><input type="checkbox" data-subtask="${st.id}" data-node="${t.id}" ${getSubDone(st.id)?'checked':''}/> <span class="mono">${st.id}</span> ${escapeHtml(st.text||'')}</label>`).join('') : `<div class="hint">Keine Additional Tasks.</div>`}
+            <div class="subadd">
+              <input class="subinput" type="text" placeholder="Task hinzufügen…" data-subadd-input="${t.id}" />
+              <button class="btn subbtn" data-subadd-btn="${t.id}">Speichern</button>
+            </div>
+            ${hasOpenSubs?`<div class="warn">Node kann erst abgeschlossen werden, wenn alle Additional Tasks done sind.</div>`:''}
+          </div>
+        </div>
+      </div>
+    `;
+
+    const cb = card.querySelector('input[type="checkbox"][data-task]');
+    cb.addEventListener('change', (e)=> setDone(t.id, !!e.target.checked));
+
+    for(const subCb of card.querySelectorAll('input[type="checkbox"][data-subtask]')){
+      subCb.addEventListener('change', (e)=>{
+        const sid = e.target.getAttribute('data-subtask');
+        const nid = e.target.getAttribute('data-node');
+        setSubDone(nid, sid, !!e.target.checked);
+      });
+    }
+
+    const addBtn = card.querySelector('button[data-subadd-btn]');
+    if(addBtn){
+      addBtn.addEventListener('click', ()=>{
+        const nid = addBtn.getAttribute('data-subadd-btn');
+        const inp = card.querySelector('input[data-subadd-input="'+nid+'"]');
+        if(!inp) return;
+        const val = inp.value;
+        inp.value='';
+        addSubtask(nid, val);
+      });
+    }
+
+    root.appendChild(card);
+  }
+
+function currentFilter(){
+    const q = ($('search').value||'').trim().toLowerCase();
+    if(!q) return db.tasks;
+    return db.tasks.filter(t=>{
+      const hay = [t.id, t.label, (t.description||''), (t.keywords||[]).join(' ')].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  function renderAll(){
+    renderDatabase();
+    const filtered = currentFilter();
+
+    const view = $('viewSelect').value;
+    $('viewImportance').style.display = view==='importance' ? 'block' : 'none';
+    $('viewTimeline').style.display = view==='timeline' ? 'block' : 'none';
+    $('viewDiagram').style.display = view==='diagram' ? 'block' : 'none';
+    $('viewDetails').style.display = view==='details' ? 'block' : 'none';
+
+    if(view==='importance') renderImportanceView(filtered);
+    else if(view==='timeline') renderTimelineView(filtered);
+    else if(view==='diagram') renderDiagramView(filtered);
+    else renderDetailsView(filtered);
+  }
+
+  function exportChecklist(){
+    // Build checklist markdown from db.tasks (timeline order), using done state.
+    const tasks = [...db.tasks].sort((a,b)=>a.timeline-b.timeline);
+    const lines = ['# CHECKLIST_TODO.md'];
+    for(const t of tasks){
+      lines.push(`- [${getDone(t.id)?'x':' '}] ${t.id}`);
+    }
+    lines.push('');
+    return lines.join('\n');
+  }
+
+  function exportState(){
+    const next = computeNextNode();
+    const last = computeLastCompletedNode();
+
+    let parsed = null;
+    try{ parsed = state.raw ? JSON.parse(state.raw) : null; }catch(e){ parsed = null; }
+    if(!parsed || typeof parsed !== 'object'){
+      parsed = { PROJECT: db.project, LAST_COMPLETED_NODE: last, NEXT_NODE: next, VERSION_NOTE: `Roadmap UI export (v${db.version})`, NOTES: '' };
+    }
+
+    parsed.LAST_COMPLETED_NODE = last;
+    parsed.NEXT_NODE = next;
+    if(typeof parsed.VERSION_NOTE !== 'string') parsed.VERSION_NOTE = `Roadmap UI export (v${db.version})`;
+
+    return JSON.stringify(parsed, null, 2) + "\n";
+  }
+
+  function download(name, content){
+    const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function load(){
+    loadLocal();
+
+    // Probe local server first (write mode)
+    try{
+      const rPing = await fetch('/api/ping', {cache:'no-store'});
+      const jPing = await rPing.json();
+      if(jPing && jPing.ok){
+        server.ready = true;
+        server.base = '';
+        server.mode = 'write-enabled';
+      }
+    }catch(e){
+      server.ready = false;
+      server.base = '';
+      server.mode = 'read-only';
+    }
+
+    if(server.ready){
+      // Load everything from API (ensures same source-of-truth as write-back)
+      try{
+        const r = await fetch('/api/data', {cache:'no-store'});
+        const j = await r.json();
+        if(!j.ok) throw new Error(j.error||'api/data failed');
+        db = j.db;
+        checklist = parseChecklist(j.checklist.raw || '');
+        state.raw = j.state.raw || '';
+        try{
+          const obj = JSON.parse(state.raw);
+          state.NEXT_NODE = obj.NEXT_NODE || null;
+          state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+        }catch(_){ }
+      }catch(e){
+        server.ready = false;
+        server.mode = 'read-only';
+        showErr('Server-Ping ok, aber /api/data failed: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    if(!db){
+      // Fallback: static fetch (read-only)
+      try{
+        const r = await fetch('./ROADMAP_DB.json', {cache:'no-store'});
+        db = await r.json();
+      }catch(e){
+        showErr('ROADMAP_DB.json konnte nicht geladen werden. Öffne die Seite über einen lokalen Server.');
+        return;
+      }
+
+      try{
+        const r1 = await fetch('../CHECKLIST_TODO.md', {cache:'no-store'});
+        const md = await r1.text();
+        checklist = parseChecklist(md);
+      }catch(e){ }
+
+      try{
+        const r2 = await fetch('../STATE.json', {cache:'no-store'});
+        const st = await r2.text();
+        state.raw = st;
+        try{
+          const obj = JSON.parse(st);
+          state.NEXT_NODE = obj.NEXT_NODE || null;
+          state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+        }catch(_){ }
+      }catch(e){ }
+    }
+
+    // Sanity: ensure DB tasks are a subset of checklist, otherwise UI still works but export will fix.
+    const missing = [];
+    for(const t of db.tasks){
+      if(checklist.raw && !checklist.allIds.has(t.id)) missing.push(t.id);
+    }
+    if(missing.length){
+      showErr('Hinweis: DB enthält Tasks, die nicht in CHECKLIST_TODO.md stehen. Export schreibt eine konsistente CHECKLIST_TODO.md. Missing: ' + missing.join(', '));
+    }
+
+    $('viewSelect').addEventListener('change', renderAll);
+    $('search').addEventListener('input', renderAll);
+    $('clearSearch').addEventListener('click', ()=>{ $('search').value=''; renderAll(); });
+
+    $('exportAll').addEventListener('click', ()=>{
+      if(server.ready){
+        (async ()=>{
+          try{
+            const r = await fetch('/api/export', {method:'POST'});
+            const j = await r.json();
+            if(!j.ok) throw new Error(j.error||'export failed');
+            // refresh
+            db = j.db;
+            checklist = parseChecklist(j.checklist.raw || '');
+            state.raw = j.state.raw || '';
+            try{
+              const obj = JSON.parse(state.raw);
+              state.NEXT_NODE = obj.NEXT_NODE || null;
+              state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+            }catch(_){ }
+            renderAll();
+            showOk('Geschrieben: STATE.json + CHECKLIST_TODO.md');
+          }catch(e){
+            showErr('Write/Export fehlgeschlagen: ' + (e && e.message ? e.message : String(e)));
+          }
+        })();
+      } else {
+        download('CHECKLIST_TODO.md', exportChecklist());
+        download('STATE.json', exportState());
+        showOk('Export erstellt (Downloads). Überschreibe im Projektordner die Dateien.');
+      }
+    });
+
+    $('resetLocal').addEventListener('click', ()=>{
+      local = {overrides:{}};
+      try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
+      renderAll();
+      showOk('Local overrides gelöscht.');
+
+
+    $('newNode').addEventListener('click', ()=>{
+      if(!server.ready){
+        showErr('New Node braucht Write-Back. Starte roadmap/server.js (oder start_roadmap_windows.bat).');
+        return;
+      }
+
+      const label = prompt('Node label (Titel):');
+      if(label===null) return;
+      const lbl = String(label||'').trim();
+      if(!lbl){ showErr('Leerer Titel.'); return; }
+
+      const desc = prompt('Beschreibung (optional):', '') || '';
+      const imp = (prompt('Importance: sehr wichtig / wichtig / kann / unwichtig', 'wichtig') || 'wichtig').trim();
+      const depends = (prompt('dependsOn (Komma-getrennte NODE_... IDs, optional):', '') || '').split(',').map(x=>x.trim()).filter(Boolean);
+      const keywords = (prompt('keywords (Komma-getrennt, optional):', '') || '').split(',').map(x=>x.trim()).filter(Boolean);
+      const insertAfter = (prompt('Insert after Node ID (optional, z.B. '+(state.NEXT_NODE||'NODE_80_SANITY_CHECKS_NO_BUILD')+'):', state.NEXT_NODE||'') || '').trim();
+
+      (async ()=>{
+        try{
+          const r = await fetch('/api/node/new', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ label: lbl, description: desc, importance: imp, dependsOn: depends, keywords: keywords, insertAfter })
+          });
+          const j = await r.json();
+          if(!j.ok) throw new Error(j.error||'node/new failed');
+          db = j.db;
+          checklist = parseChecklist(j.checklist.raw || '');
+          state.raw = j.state.raw || '';
+          try{
+            const obj = JSON.parse(state.raw);
+            state.NEXT_NODE = obj.NEXT_NODE || null;
+            state.LAST_COMPLETED_NODE = obj.LAST_COMPLETED_NODE || null;
+          }catch(_){ }
+          renderAll();
+          showOk('Node erstellt: ' + (j.created && j.created.id ? j.created.id : '(ok)'));
+        }catch(e){
+          showErr('New Node fehlgeschlagen: ' + (e && e.message ? e.message : String(e)));
+        }
+      })();
+    });    });
+
+    renderAll();
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

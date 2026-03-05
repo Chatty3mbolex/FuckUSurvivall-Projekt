@@ -1,0 +1,7 @@
+{
+  "PROJECT": "FuckUSurvival",
+  "LAST_COMPLETED_NODE": "NODE_80_SANITY_CHECKS_NO_BUILD",
+  "NEXT_NODE": "NODE_90_BUILD_AND_RUN",
+  "VERSION_NOTE": "Roadmap refinement + Additional Tasks + Diagram includes AT (DB/UI v0.029)",
+  "NOTES": "Roadmap refined (v0.029) with Additional Tasks. Key issues to address after first build: BiomeSystem.BiomeDef JSON field bug (previewSeed/groundId) and desktop launcher mode routing (asset editor/index). Multiplayer 'Dedicated' button is still placeholder; use join dialog for now."
+}
