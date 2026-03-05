@@ -315,7 +315,7 @@ public final class GameScreen extends ScreenAdapter {
   // ============================================================
   // Procedural mode has been removed: the game always runs in Areas-only mode.
   // Guardrail: we must NOT stream/generate biomes/chunks in the background during play.
-  private static final boolean areaMode = true;
+  private static final boolean AREA_MODE = true;
 
   // Area bounds state (computed from player position)
   private boolean inRedZone = false;
@@ -550,7 +550,7 @@ public final class GameScreen extends ScreenAdapter {
   private boolean hasBoat = false;
   private boolean hasClimb = false;
 
-  private int streamRadiusChunks = 1;
+  private final int streamRadiusChunks = 1;
 
   // Startup warmup: keep streaming radius at 0 for a short time to avoid a generation burst on "New Game".
   // This reduces immediate chunk generation from (2r+1)^2 to 1, then ramps to the configured radius.
@@ -664,7 +664,7 @@ public final class GameScreen extends ScreenAdapter {
       long v = 0L;
       for (int i = 0; i < 8; i++) v = (v << 8) | (h[i] & 0xFFL);
       return v;
-    } catch (Throwable t) {
+    } catch (java.security.NoSuchAlgorithmException | RuntimeException e) {
       return s24.hashCode();
     }
   }
@@ -1158,7 +1158,7 @@ public final class GameScreen extends ScreenAdapter {
 
     // FUSA Areas-only mode: load the current area into the world BEFORE spawning the player.
     // This prevents any background biome/procedural world from being used as the visible world.
-    if (areaMode) {
+    if (AREA_MODE) {
       try {
         // Ensure alpha exits exist for HOME (currently every side is an exit).
         com.yourgame.survival.worldmap.AreaCoord c0 = new com.yourgame.survival.worldmap.AreaCoord(worldMap.curAx, worldMap.curAy);
@@ -1179,7 +1179,7 @@ public final class GameScreen extends ScreenAdapter {
     if (true) {
       // Areas-only mode requirement (FUSA):
       // - Do NOT run background biome/procedural systems (merchants/nodes/encounters) unless ordered.
-      if (!areaMode) {
+      if (!AREA_MODE) {
         // Merchants: keep 6 inside the currently rendered/loaded area (3 fixed + 3 wandering)
         // During warmup we keep streaming radius at 0; merchants/nodes will populate after a few frames.
         merchants.ensureMerchantsAround(entities, world, px, py, r0, 3, 3, data, priceBook, progress);
@@ -1329,13 +1329,13 @@ public final class GameScreen extends ScreenAdapter {
     // - Travel is only possible when holding SHIFT+T while in red zone OR already in void.
     // - Penalties only apply while standing in void.
     // Areas-only: travel can be triggered only while standing in the red zone (still inside the area).
-    if (areaMode && shiftHeld && Gdx.input.isKeyJustPressed(Input.Keys.T) && inRedZone) {
+    if (AREA_MODE && shiftHeld && Gdx.input.isKeyJustPressed(Input.Keys.T) && inRedZone) {
       int tx = (int) Math.floor(px / World.TILE_WORLD);
       int ty = (int) Math.floor(py / World.TILE_WORLD);
       int w = com.yourgame.survival.tuning.TuningAreas.AREA_W_TILES;
       int h = com.yourgame.survival.tuning.TuningAreas.AREA_H_TILES;
 
-      com.yourgame.survival.worldmap.Dir4 dir = null;
+      com.yourgame.survival.worldmap.Dir4 dir;
       // Areas-only: we never allow stepping outside the area, so direction is always chosen from inside.
       // Choose the nearest edge.
       {
@@ -1621,9 +1621,9 @@ public final class GameScreen extends ScreenAdapter {
     float mdy = mouseWorldY - py;
     float ml2 = mdx * mdx + mdy * mdy;
     if (ml2 > 1e-6f) {
-      float inv = (float) (1.0 / Math.sqrt(ml2));
-      float ax = mdx * inv;
-      float ay = mdy * inv;
+      float invLen = (float) (1.0 / Math.sqrt(ml2));
+      float ax = mdx * invLen;
+      float ay = mdy * invLen;
       if (baseF.x * ax + baseF.y * ay >= 0f) {
         desiredFx = ax;
         desiredFy = ay;
@@ -1996,7 +1996,7 @@ public final class GameScreen extends ScreenAdapter {
     Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
     // Camera clamp inside the current Area (player cannot enter VOID).
-    if (areaMode) {
+    if (AREA_MODE) {
       float tw = World.TILE_WORLD;
       float areaW = com.yourgame.survival.tuning.TuningAreas.AREA_W_TILES * tw;
       float areaH = com.yourgame.survival.tuning.TuningAreas.AREA_H_TILES * tw;
@@ -2037,14 +2037,14 @@ public final class GameScreen extends ScreenAdapter {
     // - Unknown = black
     // - Explored = dark fog overlay (content stays visible)
     // - Visible now = clear, with soft edge
-    if (areaMode && shape != null) {
+    if (AREA_MODE && shape != null) {
       renderFogOfWarOverlayWorld();
     }
 
     // ============================================================
     // Area bounds: red border veil (10 tiles wide)
     // ============================================================
-    if (areaMode && shape != null && inRedZone) {
+    if (AREA_MODE && shape != null && inRedZone) {
       try {
         shape.setProjectionMatrix(cam.combined);
         shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
@@ -2086,7 +2086,7 @@ public final class GameScreen extends ScreenAdapter {
     // ============================================================
     // Area bounds warning UI (FUSA)
     // ============================================================
-    if (areaMode) {
+    if (AREA_MODE) {
       if (inRedZone) {
         font.setColor(1f, 0.2f, 0.2f, 1f);
         font.getData().setScale(1.0f * UI_FONT_SCALE);
@@ -2577,9 +2577,11 @@ public final class GameScreen extends ScreenAdapter {
   private void collectInputSnapshot(float delta, InputState out) {
     // Block 8 scaffolding: a single place to sample inputs and (later) produce commands.
     // Keep it minimal for now (behavior stays as-is).
-    out.delta = delta;
-    out.mx = Gdx.input.getX();
-    out.my = Gdx.input.getY();
+
+    // Nicht fertiges Feature: sampled input values are currently never read
+    // out.delta = delta;
+    // out.mx = Gdx.input.getX();
+    // out.my = Gdx.input.getY();
 
     // Command queue is currently unused (gameplay still executes immediately), but we clear it
     // so it can be safely filled later without leaking old data.
@@ -3081,7 +3083,7 @@ public final class GameScreen extends ScreenAdapter {
 
     // Streaming warmup: defer heavy chunk generation for a few frames right after entering gameplay.
     if (streamWarmupFrames > 0) streamWarmupFrames--;
-    final int streamR = areaMode ? 0 : ((streamWarmupFrames > 0) ? 0 : streamRadiusChunks);
+    final int streamR = AREA_MODE ? 0 : ((streamWarmupFrames > 0) ? 0 : streamRadiusChunks);
 
     // Player hand swing FX timer (purely visual; rendered by EntityRenderer).
     if (playerE >= 0) {
@@ -3146,7 +3148,7 @@ public final class GameScreen extends ScreenAdapter {
     // Biome damage (Cold/Heat) + mitigation (MUST NOT generate chunks)
     //
     // Requirement (FUSA Areas-only mode): biomes must not drive gameplay by default.
-    if (!areaMode) {
+    if (!AREA_MODE) {
       int hereBiomeId = world.biomeIdAtWorldPeek(px, py, Biome.GRASSLAND.id & 0xff);
       Biome hb = Biome.byId(hereBiomeId);
 
@@ -3243,7 +3245,7 @@ public final class GameScreen extends ScreenAdapter {
     if (coll) blocked = true;
 
     // Story world (Areas-only): hard block stepping outside the Area.
-    if (areaMode) {
+    if (AREA_MODE) {
       float tw = World.TILE_WORLD;
       float areaW = com.yourgame.survival.tuning.TuningAreas.AREA_W_TILES * tw;
       float areaH = com.yourgame.survival.tuning.TuningAreas.AREA_H_TILES * tw;
@@ -3279,7 +3281,7 @@ public final class GameScreen extends ScreenAdapter {
     // In story-world (area) we still want ALL entities in the visible screen area rendered,
     // so we use a view-based radius here (plus 1 chunk margin).
     int viewR = streamR;
-    if (areaMode) {
+    if (AREA_MODE) {
       float chunkWorld = World.TILE_WORLD * World.CHUNK_SIZE;
       float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
       float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
@@ -3296,7 +3298,7 @@ public final class GameScreen extends ScreenAdapter {
     // ============================================================
     // Area bounds logic: red zone + void timer + penalties
     // ============================================================
-    if (areaMode) {
+    if (AREA_MODE) {
       int tx = (int) Math.floor(px / World.TILE_WORLD);
       int ty = (int) Math.floor(py / World.TILE_WORLD);
 
@@ -4868,10 +4870,6 @@ private void craftByOutput(int outItemId) {
       }
 
       // Drag-only selection (handled in uiHandleDragDropAndPopup)
-      if (false && hitRect(mx, my, sx, sy, slot, slot)) {
-        buildSel = i;
-        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
-      }
     }
 
     // Rotation + rule (still text, but now inside panel and large/black)
@@ -6064,7 +6062,7 @@ private void craftByOutput(int outItemId) {
 
   private void areaFogRevealTick(float dt) {
     try {
-      if (!areaMode) return;
+      if (!AREA_MODE) return;
       if (worldMap == null) return;
 
       fowAccT += dt;
@@ -6391,7 +6389,7 @@ private void craftByOutput(int outItemId) {
       resetWorld(seed[0]);
 
       // Areas-only mode: reload the current area tilemap into the new world.
-      if (areaMode) {
+      if (AREA_MODE) {
         try {
           new com.yourgame.survival.worldmap.JsonAreaWorldLoader().loadInto(this, worldMap.curTemplateId, null);
         } catch (Throwable ignored) {}
@@ -7246,9 +7244,10 @@ private void craftByOutput(int outItemId) {
   */
 
   private static final class InputState {
-    float delta;
-    int mx;
-    int my;
+    // Nicht fertiges Feature: currently never read
+    // float delta;
+    // int mx;
+    // int my;
   }
 
   // Nicht fertiges Feature: unused placeholder type (no current gameflow usage)
