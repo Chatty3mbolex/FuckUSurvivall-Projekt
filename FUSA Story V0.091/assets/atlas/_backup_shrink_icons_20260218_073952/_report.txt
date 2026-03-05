@@ -1,7 +1,0 @@
-SCALE=0.90
-item_10.png
-item_11.png
-item_13.png
-item_31.png
-item_32.png
-item_33.png
