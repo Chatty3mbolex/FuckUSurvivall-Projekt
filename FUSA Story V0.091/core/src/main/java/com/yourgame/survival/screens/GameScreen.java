@@ -839,7 +839,7 @@ public final class GameScreen extends ScreenAdapter {
       float minPackDist = com.yourgame.survival.tuning.TuningEncounters.ORK_PACK_MIN_DIST_WU; // avoid exact stacking
       float minPackDist2 = minPackDist * minPackDist;
 
-      int placed = 0;
+      boolean placedAny = false;
       for (int i = 0; i < pack && spawned < target; i++) {
         float ox = (randRange(-1000, 1000) / 1000f) * packR;
         float oy = (randRange(-1000, 1000) / 1000f) * packR;
@@ -865,12 +865,12 @@ public final class GameScreen extends ScreenAdapter {
 
         if (entities.spawn(t, sx, sy) >= 0) {
           spawned++;
-          placed++;
+          placedAny = true;
         }
       }
 
       // If nothing could be placed, keep trying other centers.
-      // (no-op: continue at end of loop is unnecessary)
+      if (!placedAny) continue;
     }
   }
 
@@ -1842,16 +1842,25 @@ public final class GameScreen extends ScreenAdapter {
         // Note: requested extra range mainly for fists/knife, but applying mildly to melee keeps it consistent.
         range *= meleeMul;
 
-        game.audio.sfx("audio/sfx/attack_melee.wav", game.audio.sfxVolume(game.settings));
+        // Execute melee attack.
+        var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+        if (k != null) onKill(k);
+        if (playerE >= 0) entities.aiF0[playerE] = HAND_SWING_DUR;
 
-         
+        game.audio.sfx("audio/sfx/attack_melee.wav", game.audio.sfxVolume(game.settings));
       }
       } else {
+        // Unarmed melee (uses the same CombatMelee scaling).
         int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
         float meleeMul = SkillEffects.mul5(meleeLv);
+        float dmg = 10f * meleeMul;
+        float range = REACH_COMBAT * meleeMul;
+
+        var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+        if (k != null) onKill(k);
+        if (playerE >= 0) entities.aiF0[playerE] = HAND_SWING_DUR;
 
         game.audio.sfx("audio/sfx/attack_melee.wav", game.audio.sfxVolume(game.settings));
-         
       }
     }
 
@@ -2580,6 +2589,7 @@ public final class GameScreen extends ScreenAdapter {
     }
   }
 
+  @SuppressWarnings("unused")
   private void collectInputSnapshot(float delta, InputState out) {
     // Block 8 scaffolding: a single place to sample inputs and (later) produce commands.
     // Keep it minimal for now (behavior stays as-is).
@@ -2594,6 +2604,7 @@ public final class GameScreen extends ScreenAdapter {
     commandQueue.clear();
   }
 
+  @SuppressWarnings("unused")
   private void applyCommands(com.yourgame.survival.sim.CommandQueue commands) {
     // Block 8 scaffolding: command queue exists for future deterministic simulation.
     // For now, gameplay is still executed immediately at input sites.
@@ -3236,16 +3247,10 @@ public final class GameScreen extends ScreenAdapter {
     //
     // We use *peek* queries with safe defaults.
     final boolean coll;
-    final boolean water;
-    final Biome b;
-    final boolean heightBlocked;
 
     // Areas-only: use *peek* queries.
     // Outside loaded chunks => defaults are NOT blocking.
     coll = world.isBlockedAtWorldPeek(nx, ny, false);
-    water = world.isWaterAtWorldPeek(nx, ny, false);
-    b = Biome.GRASSLAND;
-    heightBlocked = false;
 
     boolean blocked = false;
     if (coll) blocked = true;
@@ -4358,7 +4363,7 @@ private void buyApplyBuffer() {
     int v = Integer.parseInt(buyBuffer);
     v = MathUtils.clamp(v, 1, Math.max(1, buyMax));
     buyAmount = v;
-  } catch (Throwable t) {
+  } catch (NumberFormatException ignored) {
     buyAmount = 1;
   }
 }
@@ -4372,7 +4377,7 @@ private void craftApplyQtyBuffer() {
     if (craftQtyFocusIdx >= 0 && craftQtyFocusIdx < craftQtyByRecipe.length) {
       craftQtyByRecipe[craftQtyFocusIdx] = Math.max(0, v);
     }
-  } catch (Throwable t) {
+  } catch (NumberFormatException ignored) {
     if (craftQtyFocusIdx >= 0 && craftQtyFocusIdx < craftQtyByRecipe.length) craftQtyByRecipe[craftQtyFocusIdx] = 1;
   }
 }
@@ -4899,8 +4904,6 @@ private void craftByOutput(int outItemId) {
         EntityType.BUILD_LAMP
     };
 
-    float mx = Gdx.input.getX();
-    float my = uiMouseYUp();
     // NOTE: selection is via drag (no click-to-select)
 
     buildSlotsCount = buildTypes.length;
@@ -5365,7 +5368,6 @@ private void craftByOutput(int outItemId) {
     float pad = 18f;
 
     float barW = hotbar.length * slot + (hotbar.length - 1) * pad;
-    float barH = slot;
 
     float x0 = (Gdx.graphics.getWidth() - barW) * 0.5f;
     float y0 = 0f; // bottom edge flush with screen bottom
@@ -5659,10 +5661,13 @@ private void craftByOutput(int outItemId) {
 
         // Base color by template
         float r = 0.25f, g = 0.25f, b = 0.25f;
-        if ("HOME".equals(tid)) { r = 0.30f; g = 0.35f; b = 0.45f; }
-        else if ("GEN_GRASSLAND".equals(tid)) { r = 0.20f; g = 0.55f; b = 0.20f; }
-        else if ("GEN_ROCKY_FIELDS".equals(tid)) { r = 0.45f; g = 0.45f; b = 0.45f; }
-        else if ("GEN_LIGHT_FOREST".equals(tid)) { r = 0.18f; g = 0.35f; b = 0.18f; }
+        switch (tid) {
+          case "HOME" -> { r = 0.30f; g = 0.35f; b = 0.45f; }
+          case "GEN_GRASSLAND" -> { r = 0.20f; g = 0.55f; b = 0.20f; }
+          case "GEN_ROCKY_FIELDS" -> { r = 0.45f; g = 0.45f; b = 0.45f; }
+          case "GEN_LIGHT_FOREST" -> { r = 0.18f; g = 0.35f; b = 0.18f; }
+          default -> { /* keep base */ }
+        }
 
         float a = 0.85f * alpha;
         shape.setColor(r, g, b, a);
@@ -6737,7 +6742,7 @@ private void craftByOutput(int outItemId) {
       if (v < 0) v = 0;
       if (v > 2_000_000_000L) v = 2_000_000_000L;
       pricingEditCopper[pricingSel] = (int) v;
-    } catch (Throwable t) {
+    } catch (NumberFormatException ignored) {
       // ignore
     }
   }
@@ -7135,9 +7140,8 @@ private void craftByOutput(int outItemId) {
     for (int ri = 0; ri < skillMenuRows.size(); ri++) {
       SkillMenuRow r = skillMenuRows.get(ri);
 
-      boolean catOpen = true;
       if (r.kind != SkillMenuRow.HEADER1) {
-        catOpen = skillMenuCatOpen.getOrDefault(r.catKey, true);
+        boolean catOpen = skillMenuCatOpen.getOrDefault(r.catKey, true);
         if (!catOpen) continue;
 
         // skills are only visible if their subcategory is open
