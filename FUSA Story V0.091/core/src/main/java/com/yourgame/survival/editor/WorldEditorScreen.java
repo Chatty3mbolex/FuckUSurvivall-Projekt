@@ -603,6 +603,11 @@ public final class WorldEditorScreen extends ScreenAdapter {
   }
 
   private void rebuildWorld(boolean reloadFromDisk) {
+    // Nicht fertiges Feature: reloadFromDisk parameter is reserved for a future workflow.
+    // Keep it non-functional for now.
+    if (false && reloadFromDisk) {
+      // (intentionally empty)
+    }
     final long seed = 1234567L;
 
     // Drop references (helps GC; ensures old cache can't be used).
@@ -825,7 +830,8 @@ public final class WorldEditorScreen extends ScreenAdapter {
   private SpawnTypeId activeSpawnType = SpawnTypeId.ANIMAL_DEER;
 
   private static final class PlacedObject {
-    String biomeName;
+    // Nicht fertiges Feature: biomeName is currently redundant (map key already stores biome).
+    // String biomeName;
     String zoneName;
     SpawnTypeId type;
     float lx;
@@ -1111,7 +1117,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
 
     // Place new object
     PlacedObject o = new PlacedObject();
-    o.biomeName = bk;
+    // Nicht fertiges Feature: // o.biomeName = bk; // (redundant)
     o.zoneName = zoneName;
     o.type = activeSpawnType;
 

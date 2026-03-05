@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Locale;
+// Nicht fertiges Feature: // import java.util.Locale; // (unused; uses fully-qualified java.util.Locale.US below)
 
 /**
  * Tile Editor (ground tiles, schema-driven).

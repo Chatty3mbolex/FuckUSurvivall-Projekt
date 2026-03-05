@@ -30,18 +30,19 @@ import com.yourgame.survival.tools.asseteditor.ui.MiniSkin;
 import com.yourgame.survival.tools.asseteditor.ui.PreviewCanvas;
 
 import java.io.File;
-import java.nio.file.Files;
+// Nicht fertiges Feature: unused imports (we use fully-qualified names below)
+// import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Locale;
-import java.util.ArrayList;
+// import java.util.ArrayList;
 import java.util.List;
 import java.nio.file.Path;
-import java.nio.file.DirectoryStream;
+// import java.nio.file.DirectoryStream;
 import java.util.Comparator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+// import java.util.Map;
+// import java.util.HashMap;
+// import java.util.regex.Pattern;
+// import java.util.regex.Matcher;
 
 /**
  * Standalone Sprite/Tile editor (desktop). Designed for THIS project's atlas/src structure.

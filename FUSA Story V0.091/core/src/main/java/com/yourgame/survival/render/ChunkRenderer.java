@@ -10,15 +10,15 @@ import com.yourgame.survival.world.World;
 /** Block C: draws chunks as tiles from the TextureAtlas (ground-only). */
 public final class ChunkRenderer {
   private final TilesetRegions tiles;
-  // used only for safe neighbor sampling in blob-mask calculation
-  private World world;
+  // Nicht fertiges Feature: used only for safe neighbor sampling in blob-mask calculation (currently unused).
+  // private World world;
 
   public ChunkRenderer(TilesetRegions tiles) {
     this.tiles = tiles;
   }
 
   public void draw(SpriteBatch batch, World world, float camX, float camY, int radiusChunks) {
-    this.world = world;
+    // Nicht fertiges Feature: // this.world = world; // (unused)
     int ccx = (int) Math.floor((camX / World.TILE_WORLD) / World.CHUNK_SIZE);
     int ccy = (int) Math.floor((camY / World.TILE_WORLD) / World.CHUNK_SIZE);
 

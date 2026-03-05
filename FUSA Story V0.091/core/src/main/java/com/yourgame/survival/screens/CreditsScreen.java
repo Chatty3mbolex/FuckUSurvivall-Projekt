@@ -13,7 +13,8 @@ import com.yourgame.survival.render.UiRegions;
 public final class CreditsScreen extends ScreenAdapter {
   public interface BackAction { void goBack(); }
 
-  private final SurvivalGame game;
+  // Nicht fertiges Feature: game reference currently unused on this screen.
+  // private final SurvivalGame game;
   private final BackAction back;
 
   private static final float UI_SCALE = 1.65f;
@@ -24,7 +25,7 @@ public final class CreditsScreen extends ScreenAdapter {
   private UiRegions ui;
 
   public CreditsScreen(SurvivalGame game, BackAction back) {
-    this.game = game;
+    // Nicht fertiges Feature: // this.game = game; // (unused)
     this.back = back;
   }
 

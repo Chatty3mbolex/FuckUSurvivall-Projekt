@@ -954,6 +954,10 @@ d.edgeWidthTiles = 6;
     }
   }
 
+  // Nicht fertiges Feature:
+  // Anchor + Node were intended as local helper structs for zone stamping / anchors,
+  // but are currently unused. Keeping as commented code for later re-enable.
+  /*
   private static final class Anchor {
     public final int tx;
     public final int ty;
@@ -973,6 +977,7 @@ d.edgeWidthTiles = 6;
       this.ty = ty;
     }
   }
+  */
 }
 
 

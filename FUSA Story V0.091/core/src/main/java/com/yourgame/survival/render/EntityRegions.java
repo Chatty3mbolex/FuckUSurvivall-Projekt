@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.yourgame.survival.entity.Entities;
+// Nicht fertiges Feature: // import com.yourgame.survival.entity.Entities; // (unused)
 import com.yourgame.survival.entity.EntityType;
 
 import com.badlogic.gdx.utils.Array;
@@ -76,11 +76,14 @@ public final class EntityRegions {
     }
   }
 
+  // Nicht fertiges Feature: unused convenience overload (kept for later).
+  /*
   private TextureRegion reqLiving(String name) {
     TextureAtlas.AtlasRegion r = livingAtlas.findRegion(name);
     if (r == null) throw new IllegalStateException("Missing living atlas region: " + name);
     return r;
   }
+  */
 
   private TextureRegion reqLiving(String name, int index) {
     TextureAtlas.AtlasRegion r = livingAtlas.findRegion(name, index);

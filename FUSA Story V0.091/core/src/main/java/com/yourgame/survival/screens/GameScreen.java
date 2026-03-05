@@ -43,11 +43,12 @@ import com.yourgame.survival.systems.SystemScheduler;
 import com.yourgame.survival.world.Biome;
 import com.yourgame.survival.world.World;
 import com.yourgame.survival.world.TileIds;
-import com.yourgame.survival.world.SpawnSettings;
+// Nicht fertiges Feature: // import com.yourgame.survival.world.SpawnSettings; // (unused)
 import com.yourgame.survival.world.WorldNodeSpawner;
 import com.yourgame.survival.world.WorldNodes;
 
-import com.badlogic.gdx.files.FileHandle;
+// Nicht fertiges Feature: duplicate import (FileHandle is already imported above)
+// import com.badlogic.gdx.files.FileHandle;
 import java.util.HashMap;
 import java.util.ArrayList;
 
@@ -68,8 +69,9 @@ public final class GameScreen extends ScreenAdapter {
   private static final int SK_MINING = SkillDefs.indexOf("Mining");
   private static final int SK_WOODCUTTING = SkillDefs.indexOf("Woodcutting");
   private static final int SK_HUNTING = SkillDefs.indexOf("Hunting");
-  private static final int SK_FISHING = SkillDefs.indexOf("Fishing");
-  private static final int SK_FORAGING = SkillDefs.indexOf("Foraging");
+  // Nicht fertiges Feature: unused skills (kept for later re-enable)
+  // private static final int SK_FISHING = SkillDefs.indexOf("Fishing");
+  // private static final int SK_FORAGING = SkillDefs.indexOf("Foraging");
   private static final int SK_LOOTING = SkillDefs.indexOf("Looting");
   private static final int SK_COMBAT_MELEE = SkillDefs.indexOf("CombatMelee");
   private static final int SK_COMBAT_RANGED = SkillDefs.indexOf("CombatRanged");
@@ -83,8 +85,9 @@ public final class GameScreen extends ScreenAdapter {
   private static final int SK_TRADING = SkillDefs.indexOf("Trading");
   private static final int SK_STEALTH = SkillDefs.indexOf("Stealth");
   private static final int SK_INTIMIDATION = SkillDefs.indexOf("Intimidation");
-  private static final int SK_CLIMBING = SkillDefs.indexOf("Climbing");
-  private static final int SK_BOATING = SkillDefs.indexOf("Boating");
+  // Nicht fertiges Feature: unused skills (kept for later re-enable)
+  // private static final int SK_CLIMBING = SkillDefs.indexOf("Climbing");
+  // private static final int SK_BOATING = SkillDefs.indexOf("Boating");
 
   // Movement speed skill: SkillDefs has no explicit "Speed"; we use Navigation as the movement-speed progression.
   private static final int SK_SPEED = SkillDefs.indexOf("Navigation");
@@ -118,7 +121,7 @@ public final class GameScreen extends ScreenAdapter {
   private float bowCooldownT = 0f;
 
   // Harvest SFX (hold-to-hack)
-  private float hackSfxT = 0f;
+// Nicht fertiges Feature:   private float hackSfxT = 0f;
 
   // RMB hold behavior: emulate repeated click (press/release) at fixed cadence.
   // This lets harvesting/using tools look like discrete swings while still being hold-to-use.
@@ -136,13 +139,13 @@ public final class GameScreen extends ScreenAdapter {
 
   // Block 7: render/input scratch + future state/command buffering (structural only)
   private final RenderScratch scratch = new RenderScratch();
-  private final UiState uiState = new UiState();
+// Nicht fertiges Feature:   private final UiState uiState = new UiState();
   private final InputState inputState = new InputState();
-  private final CommandBuffer commands = new CommandBuffer();
+// Nicht fertiges Feature:   private final CommandBuffer commands = new CommandBuffer();
 
   // Block 8: deterministic command pipeline scaffolding
   private final com.yourgame.survival.sim.CommandQueue commandQueue = new com.yourgame.survival.sim.CommandQueue(256);
-  private com.yourgame.survival.sim.SimContext simContext = null;
+// Nicht fertiges Feature:   private com.yourgame.survival.sim.SimContext simContext = null;
 
   private final long worldSeed;
   private World world;
@@ -164,11 +167,14 @@ public final class GameScreen extends ScreenAdapter {
   // Ensure the player starts a new game at full HP (after hpMax is computed from skills).
   private boolean forceFullHpOnce = true;
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private static long fnv1aStep(long h, long v) {
     // 64-bit FNV-1a
     h ^= v;
     return h * 0x100000001b3L;
   }
+  */
 
   // (obsolete snapshot hashing removed)
 
@@ -313,12 +319,12 @@ public final class GameScreen extends ScreenAdapter {
 
   // Area bounds state (computed from player position)
   private boolean inRedZone = false;
-  private boolean inVoid = false;
-  private float voidTimer = 0f;
+// Nicht fertiges Feature:   private boolean inVoid = false;
+// Nicht fertiges Feature:   private float voidTimer = 0f;
   // Void penalty stage:
   // 0 = not penalized yet
   // 1 = 50% HP penalty applied, next expiry kills player
-  private int voidStage = 0;
+// Nicht fertiges Feature:   private int voidStage = 0;
 
   // WorldMap UI (Shift+M)
   private boolean mapOpen = false;
@@ -329,7 +335,7 @@ public final class GameScreen extends ScreenAdapter {
   private float mapDragLastY = 0f;
   private int mapSelectedAx = 0;
   private int mapSelectedAy = 0;
-  private boolean mapZoomOpen = false;
+// Nicht fertiges Feature:   private boolean mapZoomOpen = false;
 
   // Map view mode: 0 = world overview, 1 = area map (live or war-stand).
   private int mapViewMode = 0;
@@ -341,7 +347,7 @@ public final class GameScreen extends ScreenAdapter {
   private int mapTransTo = 0;
 
   // Snapshot invalidation: update the map UI only when something changed.
-  private boolean worldMapDirty = true;
+// Nicht fertiges Feature:   private boolean worldMapDirty = true;
 
   // Fog of War (persistent explored + dynamic visible)
   private float fowAccT = 0f;
@@ -419,7 +425,7 @@ public final class GameScreen extends ScreenAdapter {
   private int invToolRowsDrawn = 0;
 
   private float hotbarX0, hotbarY0, hotbarSlotPx, hotbarPadPx;
-  private boolean hotbarLayoutValid = false;
+// Nicht fertiges Feature:   private boolean hotbarLayoutValid = false;
 
   // --- Drag & popup state ---
   private static final int DRAG_SRC_NONE = 0;
@@ -451,7 +457,7 @@ public final class GameScreen extends ScreenAdapter {
   private int sellItemId = -1;
   private int sellAmount = 1;
   private int sellMax = 1;
-  private String sellBuffer = "";
+// Nicht fertiges Feature:   private String sellBuffer = "";
   private int sellPriceEach = 0;
   private int sellPriceEachRaw = 0;
 
@@ -537,7 +543,7 @@ public final class GameScreen extends ScreenAdapter {
 
   // Player facing smoothing: angle (radians) that we steer toward the mouse, clamped to the front hemisphere.
   private float playerAimA = 0f;
-  private boolean playerAimInit = false;
+// Nicht fertiges Feature:   private boolean playerAimInit = false;
 
   // Progression constraints (Block 3)
   private boolean hasBoat = false;
@@ -556,9 +562,9 @@ public final class GameScreen extends ScreenAdapter {
   private static final float REACH_HARVEST = com.yourgame.survival.tuning.TuningGameplay.REACH_HARVEST;
   private static final float REACH_COMBAT = com.yourgame.survival.tuning.TuningGameplay.REACH_COMBAT;
   private static final float REACH_PICKUP = com.yourgame.survival.tuning.TuningGameplay.REACH_PICKUP;
-  private static final float REACH_BUILD_REMOVE = com.yourgame.survival.tuning.TuningGameplay.REACH_BUILD_REMOVE;
-  private static final float REACH_SHOP = com.yourgame.survival.tuning.TuningGameplay.REACH_SHOP;
-  private static final float REACH_BED = com.yourgame.survival.tuning.TuningGameplay.REACH_BED;
+// Nicht fertiges Feature:   private static final float REACH_BUILD_REMOVE = com.yourgame.survival.tuning.TuningGameplay.REACH_BUILD_REMOVE;
+// Nicht fertiges Feature:   private static final float REACH_SHOP = com.yourgame.survival.tuning.TuningGameplay.REACH_SHOP;
+// Nicht fertiges Feature:   private static final float REACH_BED = com.yourgame.survival.tuning.TuningGameplay.REACH_BED;
 
   // Action cone: must stay in front of the player (max +/-60° around facing => 120° total).
   private static final float ACTION_FOV_DEG = com.yourgame.survival.tuning.TuningGameplay.ACTION_FOV_DEG;
@@ -668,9 +674,11 @@ public final class GameScreen extends ScreenAdapter {
     nodeSpawner.resetSpawnedChunks();
 
     // Block 8: refresh sim context references
-    simContext = new com.yourgame.survival.sim.SimContext(world, entities, inv, wallet, progress, needs, priceBook);
+// Nicht fertiges Feature:     simContext = new com.yourgame.survival.sim.SimContext(world, entities, inv, wallet, progress, needs, priceBook);
   }
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private void preloadChunksBlocking(int radiusChunks, int timeoutMs) {
     if (world == null) return;
 
@@ -702,6 +710,7 @@ public final class GameScreen extends ScreenAdapter {
       world.requestAroundWorld(px, py, r);
     }
   }
+  */
 
   private void sanitizeSpawnForWorld() {
     // Only adjust if the tile is not walkable.
@@ -1343,9 +1352,9 @@ public final class GameScreen extends ScreenAdapter {
       if (dir != null) {
         boolean ok = areaTryTravelAtEdge(dir);
         if (ok) {
-          inVoid = false;
-          voidTimer = 0f;
-          voidStage = 0;
+// Nicht fertiges Feature:           inVoid = false;
+// Nicht fertiges Feature:           voidTimer = 0f;
+// Nicht fertiges Feature:           voidStage = 0;
         }
       }
     }
@@ -1358,16 +1367,16 @@ public final class GameScreen extends ScreenAdapter {
       if (mapOpen) {
         // Open: start in world overview.
         mapViewMode = 0;
-        mapZoomOpen = false;
+// Nicht fertiges Feature:         mapZoomOpen = false;
         mapTransActive = false;
         mapTransT = 0f;
-        worldMapDirty = false;
+// Nicht fertiges Feature:         worldMapDirty = false;
         mapSelectedAx = worldMap.curAx;
         mapSelectedAy = worldMap.curAy;
       } else {
         // Close: reset.
         mapViewMode = 0;
-        mapZoomOpen = false;
+// Nicht fertiges Feature:         mapZoomOpen = false;
         mapTransActive = false;
         mapTransT = 0f;
       }
@@ -1417,7 +1426,7 @@ public final class GameScreen extends ScreenAdapter {
           if (sx >= bx - cell * 0.5f && sx <= bx + cell * 0.5f && sy >= by - cell * 0.5f && sy <= by + cell * 0.5f) {
             mapSelectedAx = c.ax;
             mapSelectedAy = c.ay;
-            mapZoomOpen = true;
+// Nicht fertiges Feature:             mapZoomOpen = true;
 
             // Transition to area map (war-stand or live if current).
             mapTransActive = true;
@@ -1623,7 +1632,7 @@ public final class GameScreen extends ScreenAdapter {
     // Aim angle: hard face toward desired direction (no smoothing) as requested.
     float desiredA = (float) Math.atan2(desiredFy, desiredFx);
     playerAimA = desiredA;
-    playerAimInit = true;
+// Nicht fertiges Feature:     playerAimInit = true;
 
     float fovFx = desiredFx;
     float fovFy = desiredFy;
@@ -1750,7 +1759,7 @@ public final class GameScreen extends ScreenAdapter {
           }
 
         } else if (rmbJust) {
-          hackSfxT = 0f;
+// Nicht fertiges Feature:           hackSfxT = 0f;
           game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
         }
       }
@@ -1758,7 +1767,7 @@ public final class GameScreen extends ScreenAdapter {
 
     if (!rmbDown) {
       // release stops hack loop immediately
-      hackSfxT = 0f;
+// Nicht fertiges Feature:       hackSfxT = 0f;
     }
 
     // Combat (LMB)
@@ -2124,7 +2133,7 @@ public final class GameScreen extends ScreenAdapter {
           mapTransT = 1f;
           mapTransActive = false;
           mapViewMode = mapTransTo;
-          mapZoomOpen = (mapViewMode == 1);
+// Nicht fertiges Feature:           mapZoomOpen = (mapViewMode == 1);
         }
       }
 
@@ -3291,9 +3300,9 @@ public final class GameScreen extends ScreenAdapter {
       int ty = (int) Math.floor(py / World.TILE_WORLD);
 
       // Areas-only: player can never step into VOID.
-      inVoid = false;
-      voidTimer = 0f;
-      voidStage = 0;
+// Nicht fertiges Feature:       inVoid = false;
+// Nicht fertiges Feature:       voidTimer = 0f;
+// Nicht fertiges Feature:       voidStage = 0;
 
       // Red zone warning: within N tiles of any area edge.
       int w = com.yourgame.survival.tuning.TuningAreas.AREA_W_TILES;
@@ -3309,10 +3318,10 @@ public final class GameScreen extends ScreenAdapter {
       // Fog of War: persistently reveal explored area while playing.
       areaFogRevealTick(dt);
     } else {
-      inVoid = false;
+// Nicht fertiges Feature:       inVoid = false;
       inRedZone = false;
-      voidTimer = 0f;
-      voidStage = 0;
+// Nicht fertiges Feature:       voidTimer = 0f;
+// Nicht fertiges Feature:       voidStage = 0;
     }
 
     // Areas-only: no background chunk streaming here.
@@ -3424,6 +3433,8 @@ public final class GameScreen extends ScreenAdapter {
     }
   }
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private boolean isNearBuild(EntityType t, float range) {
     float eff = range + com.yourgame.survival.entity.EntityMetrics.radius(t);
     float r2 = eff * eff;
@@ -3436,6 +3447,7 @@ public final class GameScreen extends ScreenAdapter {
     }
     return false;
   }
+  */
 
   private float actionFovDeg() {
     // NOTE: requested: skills can expand FoV/actionrange.
@@ -3708,6 +3720,8 @@ public final class GameScreen extends ScreenAdapter {
     }
   }
 
+  // Nicht fertiges Feature: commented out unused block
+  /*
   private void shopBuyIndex(int idx, int amount) {
     if (idx < 0 || idx >= shopOfferCount) return;
     if (amount <= 0) return;
@@ -3732,6 +3746,7 @@ public final class GameScreen extends ScreenAdapter {
       game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
     }
   }
+  */
 
   /** Sell any itemId to merchant (used by inventory→shop drag). priceEachRaw is base copper before skills. */
   private void shopSellItem(int itemId, int priceEachRaw, int amount) {
@@ -4471,7 +4486,7 @@ private void openSellPopup(int itemId, int src, int srcIndex) {
 
   sellMax = Math.max(1, available);
   sellAmount = 1;
-  sellBuffer = String.valueOf(sellAmount);
+// Nicht fertiges Feature:   sellBuffer = String.valueOf(sellAmount);
 
   game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
 }
@@ -4480,7 +4495,7 @@ private void sellSetAmount(int v) {
   if (!sellPopup) return;
   v = MathUtils.clamp(v, 1, Math.max(1, sellMax));
   sellAmount = v;
-  sellBuffer = String.valueOf(v);
+// Nicht fertiges Feature:   sellBuffer = String.valueOf(v);
 }
 
 private void sellCancel() {
@@ -4490,7 +4505,7 @@ private void sellCancel() {
   sellMax = 1;
   sellPriceEach = 0;
   sellPriceEachRaw = 0;
-  sellBuffer = "";
+// Nicht fertiges Feature:   sellBuffer = "";
   dragArmed = false;
   dragActive = false;
   dragSrc = DRAG_SRC_NONE;
@@ -4683,6 +4698,8 @@ private void craftByOutput(int outItemId) {
     craft.craft(inv, r);
   }
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private void drawCraftLines(float x, float y) {
     // legacy text renderer (still used inside the craft panel)
     int[] outs = {40, 14, 15};
@@ -4701,6 +4718,7 @@ private void craftByOutput(int outItemId) {
       font.draw(batch, (i+1) + ") " + name + (ok?" [OK] ":" [NO] ") + "<= " + req, x, y - i*22f);
     }
   }
+  */
 
   private void ensurePanelAnchor(float panelW, float panelH, boolean forBuild, boolean forCraft, boolean forChest) {
     float w = Gdx.graphics.getWidth();
@@ -5308,7 +5326,7 @@ private void craftByOutput(int outItemId) {
     hotbarY0 = y0;
     hotbarSlotPx = slot;
     hotbarPadPx = pad;
-    hotbarLayoutValid = true;
+// Nicht fertiges Feature:     hotbarLayoutValid = true;
 
     for (int i=0;i<hotbar.length;i++) {
       float sx = x0 + i * (slot + pad);
@@ -5330,6 +5348,8 @@ private void craftByOutput(int outItemId) {
     }
   }
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private void drawInventoryLines(float x, float y) {
     // legacy (unused) - kept for quick debug
     int shown = 0;
@@ -5343,7 +5363,10 @@ private void craftByOutput(int outItemId) {
     }
     if (shown == 0) font.draw(batch, "(empty)", x, y);
   }
+  */
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private void drawBuildLines(float x, float y) {
     String[] names = {"Workbench","Bed","Campfire","Lamp"};
     for (int i=0;i<names.length;i++) {
@@ -5352,6 +5375,7 @@ private void craftByOutput(int outItemId) {
     }
     font.draw(batch, "Placement rule: not on water.", x, y - names.length*18 - 10);
   }
+  */
 
   private void placeBuildAtMouse(float wx, float wy) {
     if (!building.canPlace(world, wx, wy)) return;
@@ -5369,6 +5393,8 @@ private void craftByOutput(int outItemId) {
     game.audio.sfx("audio/sfx/place.wav", game.audio.sfxVolume(game.settings));
   }
 
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private void drawChestLines(float x, float y) {
     if (openChestE < 0) return;
     int idx = entities.data0[openChestE];
@@ -5381,6 +5407,7 @@ private void craftByOutput(int outItemId) {
     font.draw(batch, "Player wood=" + inv.countsById[0] + " stone=" + inv.countsById[1] + " coins=" + inv.countsById[31], x, y);
     font.draw(batch, "Chest  wood=" + chest.countsById[0] + " stone=" + chest.countsById[1] + " coins=" + chest.countsById[31], x, y - 18);
   }
+  */
 
   private void chestStoreFromPlayer(int itemId, int amount) {
     if (openChestE < 0) return;
@@ -5452,7 +5479,7 @@ private void craftByOutput(int outItemId) {
           if (!worldMap.exitsByArea.containsKey(c1)) {
             worldMap.exitsByArea.put(c1, new com.yourgame.survival.worldmap.WorldMapState.AreaExits(true, true, true, true));
           }
-          worldMapDirty = true;
+// Nicht fertiges Feature:           worldMapDirty = true;
           toast = "WorldMap: entered " + r.templateId + " @(" + worldMap.curAx + "," + worldMap.curAy + ")";
           toastT = 2.2f;
           break;
@@ -5692,7 +5719,7 @@ private void craftByOutput(int outItemId) {
                     st.fogW = fw;
                     st.fogH = fh;
                     st.fogBitsB64 = java.util.Base64.getEncoder().encodeToString(fogABytes);
-                    worldMapDirty = true;
+// Nicht fertiges Feature:                     worldMapDirty = true;
                   }
                 }
               }
@@ -5846,7 +5873,7 @@ private void craftByOutput(int outItemId) {
       // Force next reveal tick to run immediately after travel.
       fowAccT = com.yourgame.survival.tuning.TuningAreas.FOW_REVEAL_STEP_SEC;
 
-      worldMapDirty = true;
+// Nicht fertiges Feature:       worldMapDirty = true;
 
       // Place player just inside the opposite edge.
       float tw = World.TILE_WORLD;
@@ -5874,6 +5901,8 @@ private void craftByOutput(int outItemId) {
     }
   }
 
+  // Nicht fertiges Feature: commented out unused block
+  /*
   private static boolean fogBitGet(byte[] fog, int idx) {
     if (fog == null) return false;
     int bi = idx >> 3;
@@ -5882,7 +5911,10 @@ private void craftByOutput(int outItemId) {
     int mask = 1 << bit;
     return (fog[bi] & mask) != 0;
   }
+  */
 
+  // Nicht fertiges Feature: commented out unused block
+  /*
   private static boolean fogBitSet(byte[] fog, int idx) {
     if (fog == null) return false;
     int bi = idx >> 3;
@@ -5893,6 +5925,7 @@ private void craftByOutput(int outItemId) {
     fog[bi] |= mask;
     return true;
   }
+  */
 
   private byte[] getCurrentAreaFogAlphaBytesOrNull(int fogW, int fogH) {
     try {
@@ -5927,7 +5960,7 @@ private void craftByOutput(int outItemId) {
         st.fogW = fogW;
         st.fogH = fogH;
         st.fogScale = com.yourgame.survival.tuning.TuningAreas.FOW_ALPHA_SCALE_TILES;
-        worldMapDirty = true;
+// Nicht fertiges Feature:         worldMapDirty = true;
         return a;
       }
 
@@ -6119,7 +6152,7 @@ private void craftByOutput(int outItemId) {
 
       if (changed) {
         st.fogBitsB64 = java.util.Base64.getEncoder().encodeToString(a);
-        worldMapDirty = true;
+// Nicht fertiges Feature:         worldMapDirty = true;
       }
     } catch (Throwable ignored) {}
   }
@@ -6161,9 +6194,12 @@ private void craftByOutput(int outItemId) {
   }
 
   @Deprecated
+  // Nicht fertiges Feature: commented out unused method
+  /*
   private void ensureEncounters() {
     // Replaced by EncounterSpawner (Block 12). Intentionally left as no-op.
   }
+  */
 
   // =====================================================================
   // Area/WorldMap loading helpers (alpha scaffolding)
@@ -6407,7 +6443,7 @@ private void craftByOutput(int outItemId) {
       buyBuffer = "";
       dragArmed = false;
       dragActive = false;
-      hackSfxT = 0f;
+// Nicht fertiges Feature:       hackSfxT = 0f;
       bowCooldownT = 0f;
       for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
       commandQueue.clear();
@@ -7214,15 +7250,21 @@ private void craftByOutput(int outItemId) {
   private static final class CommandBuffer {
     // Placeholder for future command buffering.
     int size = 0;
+    // Nicht fertiges Feature: commented out unused block
+    /*
     void clear() { size = 0; }
+    */
   }
 
 
+  // Nicht fertiges Feature: commented out unused block
+  /*
   private static int anchorToStep(int tile, int step) {
     if (step <= 1) return tile;
     // Round to nearest multiple of step (works for negative coordinates too).
     int m = Math.round(tile / (float) step);
     return m * step;
   }
+  */
 
 }
