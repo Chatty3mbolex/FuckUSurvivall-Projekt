@@ -1246,15 +1246,19 @@ public final class GameScreen extends ScreenAdapter {
       {
         float rawLight;
         float rawWarm;
-        if (dnDebugMode == 1) {
-          rawLight = 1f;
-          rawWarm = 0f;
-        } else if (dnDebugMode == 2) {
-          rawLight = 0f;
-          rawWarm = 0f;
-        } else {
-          rawLight = dayNight.daylightPhased();
-          rawWarm = dayNight.warmTwilight();
+        switch (dnDebugMode) {
+          case 1 -> {
+            rawLight = 1f;
+            rawWarm = 0f;
+          }
+          case 2 -> {
+            rawLight = 0f;
+            rawWarm = 0f;
+          }
+          default -> {
+            rawLight = dayNight.daylightPhased();
+            rawWarm = dayNight.warmTwilight();
+          }
         }
         dnTarget = rawLight;
         dnWarmTarget = rawWarm;
@@ -1949,15 +1953,19 @@ public final class GameScreen extends ScreenAdapter {
     {
       float rawLight;
       float rawWarm;
-      if (dnDebugMode == 1) {
-        rawLight = 1f;
-        rawWarm = 0f;
-      } else if (dnDebugMode == 2) {
-        rawLight = 0f;
-        rawWarm = 0f;
-      } else {
-        rawLight = dayNight.daylightPhased();
-        rawWarm = dayNight.warmTwilight();
+      switch (dnDebugMode) {
+        case 1 -> {
+          rawLight = 1f;
+          rawWarm = 0f;
+        }
+        case 2 -> {
+          rawLight = 0f;
+          rawWarm = 0f;
+        }
+        default -> {
+          rawLight = dayNight.daylightPhased();
+          rawWarm = dayNight.warmTwilight();
+        }
       }
       dnTarget = rawLight;
       dnWarmTarget = rawWarm;
@@ -4211,57 +4219,71 @@ private void uiHandleDragDropAndPopup() {
   // Drop / click resolution.
   if (lmbJustReleased && dragArmed) {
     if (dragActive) {
-      if (dragSrc == DRAG_SRC_SHOP) {
-        // Drop shop item into inventory -> open buy popup
-        int normalSlot = invHitNormalSlot(mx, my);
-        int toolSlot = invHitToolSlot(mx, my);
-        if (normalSlot >= 0 || toolSlot >= 0) {
-          openBuyPopup(dragIndex, normalSlot, toolSlot);
-        } else {
-          // dropped nowhere -> ignore
-          game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+      switch (dragSrc) {
+        case DRAG_SRC_SHOP -> {
+          // Drop shop item into inventory -> open buy popup
+          int normalSlot = invHitNormalSlot(mx, my);
+          int toolSlot = invHitToolSlot(mx, my);
+          if (normalSlot >= 0 || toolSlot >= 0) {
+            openBuyPopup(dragIndex, normalSlot, toolSlot);
+          } else {
+            // dropped nowhere -> ignore
+            game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+          }
         }
-      } else if (dragSrc == DRAG_SRC_BUILD) {
-        // Drop build icon into world -> place
-        buildSel = MathUtils.clamp(dragIndex, 0, 4);
-        // Only place if not dropped inside the build panel
-        if (!(buildLayoutValid && mx >= buildPanelX0 && mx <= buildPanelX0 + buildPanelW && my >= buildPanelY0 && my <= buildPanelY0 + buildPanelH)) {
-          placeBuildAtMouse(mouseWorldX, mouseWorldY);
-          game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
-        } else {
-          game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
-        }
-      } else if (dragSrc == DRAG_SRC_TOOLINV || dragSrc == DRAG_SRC_NORMINV) {
-        // Drop inventory item onto merchant panel => SELL (popup)
-        if (shopOpen && shopLayoutValid && mx >= shopPanelX0 && mx <= shopPanelX0 + shopPanelW && my >= shopPanelY0 && my <= shopPanelY0 + shopPanelH) {
-          openSellPopup(dragItemId, dragSrc, dragIndex);
-        } else if (dragSrc == DRAG_SRC_TOOLINV) {
-          // Tool inventory: Drop tool onto hotbar OR reorder inside tool inventory.
-          int hb = hotbarHit(mx, my);
-          if (hb >= 0) {
-            hotbar[hb] = dragItemId;
+        case DRAG_SRC_BUILD -> {
+          // Drop build icon into world -> place
+          buildSel = MathUtils.clamp(dragIndex, 0, 4);
+          // Only place if not dropped inside the build panel
+          if (!(buildLayoutValid && mx >= buildPanelX0 && mx <= buildPanelX0 + buildPanelW && my >= buildPanelY0 && my <= buildPanelY0 + buildPanelH)) {
+            placeBuildAtMouse(mouseWorldX, mouseWorldY);
             game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
           } else {
-            int dropTool = invHitToolSlot(mx, my);
-            if (dropTool >= 0 && dropTool != dragIndex) {
-              inv.swapToolSlots(dragIndex, dropTool);
+            game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+          }
+        }
+        case DRAG_SRC_TOOLINV -> {
+          // Drop inventory item onto merchant panel => SELL (popup)
+          if (shopOpen && shopLayoutValid && mx >= shopPanelX0 && mx <= shopPanelX0 + shopPanelW && my >= shopPanelY0 && my <= shopPanelY0 + shopPanelH) {
+            openSellPopup(dragItemId, dragSrc, dragIndex);
+          } else {
+            // Tool inventory: Drop tool onto hotbar OR reorder inside tool inventory.
+            int hb = hotbarHit(mx, my);
+            if (hb >= 0) {
+              hotbar[hb] = dragItemId;
               game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
             } else {
-              game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+              int dropTool = invHitToolSlot(mx, my);
+              if (dropTool >= 0 && dropTool != dragIndex) {
+                inv.swapToolSlots(dragIndex, dropTool);
+                game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+              } else {
+                game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+              }
             }
           }
-        } else {
-          // Normal inventory drag dropped elsewhere -> ignore
-          game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
         }
-      } else if (dragSrc == DRAG_SRC_HOTBAR) {
-        // Reorder hotbar by drag&drop.
-        int target = hotbarNearestSlot(mx, my);
-        if (target >= 0) {
-          hotbarMoveWithShift(dragIndex, target);
-          game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
-        } else {
-          game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+        case DRAG_SRC_NORMINV -> {
+          // Drop inventory item onto merchant panel => SELL (popup)
+          if (shopOpen && shopLayoutValid && mx >= shopPanelX0 && mx <= shopPanelX0 + shopPanelW && my >= shopPanelY0 && my <= shopPanelY0 + shopPanelH) {
+            openSellPopup(dragItemId, dragSrc, dragIndex);
+          } else {
+            // Normal inventory drag dropped elsewhere -> ignore
+            game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+          }
+        }
+        case DRAG_SRC_HOTBAR -> {
+          // Reorder hotbar by drag&drop.
+          int target = hotbarNearestSlot(mx, my);
+          if (target >= 0) {
+            hotbarMoveWithShift(dragIndex, target);
+            game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+          } else {
+            game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+          }
+        }
+        default -> {
+          // ignore
         }
       }
     } else {
@@ -4449,11 +4471,26 @@ private void buyHandleMouseClick(float mx, float my) {
     return;
   }
 
-  if (mx >= b0x && mx <= b0x + smallW && my >= qy && my <= qy + smallH) { buySetAmount(buyAmount - 10); return; }
-  if (mx >= b1x && mx <= b1x + smallW && my >= qy && my <= qy + smallH) { buySetAmount(buyAmount - 1); return; }
-  if (mx >= b2x && mx <= b2x + smallW && my >= qy && my <= qy + smallH) { buySetAmount(buyAmount + 1); return; }
-  if (mx >= b3x && mx <= b3x + smallW && my >= qy && my <= qy + smallH) { buySetAmount(buyAmount + 10); return; }
-  if (mx >= b4x && mx <= b4x + smallW && my >= qy && my <= qy + smallH) { buySetAmount(buyMax); return; }
+  // Qty buttons (refactor: switch instead of if chain)
+  if (my >= qy && my <= qy + smallH) {
+    int btn = -1;
+    if (mx >= b0x && mx <= b0x + smallW) btn = 0;
+    else if (mx >= b1x && mx <= b1x + smallW) btn = 1;
+    else if (mx >= b2x && mx <= b2x + smallW) btn = 2;
+    else if (mx >= b3x && mx <= b3x + smallW) btn = 3;
+    else if (mx >= b4x && mx <= b4x + smallW) btn = 4;
+
+    if (btn >= 0) {
+      switch (btn) {
+        case 0 -> buySetAmount(buyAmount - 10);
+        case 1 -> buySetAmount(buyAmount - 1);
+        case 2 -> buySetAmount(buyAmount + 1);
+        case 3 -> buySetAmount(buyAmount + 10);
+        case 4 -> buySetAmount(buyMax);
+        default -> { /* no-op */ }
+      }
+    }
+  }
 }
 
 // --- SELL POPUP (mirror of buy popup, minimal logic for compile + functionality) ---
@@ -4561,11 +4598,26 @@ private void sellHandleMouseClick(float mx, float my) {
     return;
   }
 
-  if (mx >= b0x && mx <= b0x + smallW && my >= qy && my <= qy + smallH) { sellSetAmount(sellAmount - 10); return; }
-  if (mx >= b1x && mx <= b1x + smallW && my >= qy && my <= qy + smallH) { sellSetAmount(sellAmount - 1); return; }
-  if (mx >= b2x && mx <= b2x + smallW && my >= qy && my <= qy + smallH) { sellSetAmount(sellAmount + 1); return; }
-  if (mx >= b3x && mx <= b3x + smallW && my >= qy && my <= qy + smallH) { sellSetAmount(sellAmount + 10); return; }
-  if (mx >= b4x && mx <= b4x + smallW && my >= qy && my <= qy + smallH) { sellSetAmount(sellMax); return; }
+  // Qty buttons (refactor: switch instead of if chain)
+  if (my >= qy && my <= qy + smallH) {
+    int btn = -1;
+    if (mx >= b0x && mx <= b0x + smallW) btn = 0;
+    else if (mx >= b1x && mx <= b1x + smallW) btn = 1;
+    else if (mx >= b2x && mx <= b2x + smallW) btn = 2;
+    else if (mx >= b3x && mx <= b3x + smallW) btn = 3;
+    else if (mx >= b4x && mx <= b4x + smallW) btn = 4;
+
+    if (btn >= 0) {
+      switch (btn) {
+        case 0 -> sellSetAmount(sellAmount - 10);
+        case 1 -> sellSetAmount(sellAmount - 1);
+        case 2 -> sellSetAmount(sellAmount + 1);
+        case 3 -> sellSetAmount(sellAmount + 10);
+        case 4 -> sellSetAmount(sellMax);
+        default -> { /* no-op */ }
+      }
+    }
+  }
 }
 
 private void drawDragGhostAndBuyPopup() {
@@ -5470,7 +5522,7 @@ private void craftByOutput(int outItemId) {
       // Human-readable debug feedback.
       // We keep it short because it may be used frequently.
       switch (r.code) {
-        case OK:
+        case OK -> {
           // Alpha exits: all sides are exits for now.
           com.yourgame.survival.worldmap.AreaCoord c1 = new com.yourgame.survival.worldmap.AreaCoord(worldMap.curAx, worldMap.curAy);
           if (!worldMap.exitsByArea.containsKey(c1)) {
@@ -5479,19 +5531,19 @@ private void craftByOutput(int outItemId) {
 // Nicht fertiges Feature:           worldMapDirty = true;
           toast = "WorldMap: entered " + r.templateId + " @(" + worldMap.curAx + "," + worldMap.curAy + ")";
           toastT = 2.2f;
-          break;
-        case NO_EXIT:
+        }
+        case NO_EXIT -> {
           toast = "WorldMap: no exit";
           toastT = 2.0f;
-          break;
-        case INVALID_PLACEMENT:
+        }
+        case INVALID_PLACEMENT -> {
           toast = "WorldMap: invalid placement";
           toastT = 2.2f;
-          break;
-        case LOAD_FAILED:
+        }
+        case LOAD_FAILED -> {
           toast = "WorldMap: load failed: " + r.templateId;
           toastT = 2.6f;
-          break;
+        }
       }
     } catch (Throwable t) {
       toast = "WorldMap travel error";
@@ -5755,12 +5807,14 @@ private void craftByOutput(int outItemId) {
 
           // groundId colors (0..5 from tileset.json)
           float r = 0.15f, g = 0.15f, b = 0.15f;
-          if (gid == 0) { r = 0.15f; g = 0.55f; b = 0.20f; } // GRASS
-          else if (gid == 1) { r = 0.45f; g = 0.30f; b = 0.15f; } // DIRT
-          else if (gid == 2) { r = 0.70f; g = 0.65f; b = 0.25f; } // SAND
-          else if (gid == 3) { r = 0.45f; g = 0.45f; b = 0.45f; } // ROCK
-          else if (gid == 4) { r = 0.85f; g = 0.90f; b = 0.95f; } // SNOW
-          else if (gid == 5) { r = 0.85f; g = 0.15f; b = 0.10f; } // LAVA
+          switch (gid) {
+            case 0 -> { r = 0.15f; g = 0.55f; b = 0.20f; } // GRASS
+            case 1 -> { r = 0.45f; g = 0.30f; b = 0.15f; } // DIRT
+            case 2 -> { r = 0.70f; g = 0.65f; b = 0.25f; } // SAND
+            case 3 -> { r = 0.45f; g = 0.45f; b = 0.45f; } // ROCK
+            case 4 -> { r = 0.85f; g = 0.90f; b = 0.95f; } // SNOW
+            case 5 -> { r = 0.85f; g = 0.15f; b = 0.10f; } // LAVA
+          }
 
           float rx = x0 + mx * cw;
           float ry = y0 + my * ch;
@@ -5878,10 +5932,10 @@ private void craftByOutput(int outItemId) {
       float h = com.yourgame.survival.tuning.TuningAreas.AREA_H_TILES * tw;
       float pad = 2f * tw;
       switch (dir) {
-        case W: px = w - pad; break;
-        case E: px = pad; break;
-        case S: py = h - pad; break;
-        case N: py = pad; break;
+        case W -> px = w - pad;
+        case E -> px = pad;
+        case S -> py = h - pad;
+        case N -> py = pad;
       }
       // Keep other axis (roughly) stable.
       px = MathUtils.clamp(px, pad, w - pad);
@@ -7098,41 +7152,44 @@ private void craftByOutput(int outItemId) {
       // stop when we are past the bottom
       if (ry < listYBottom) break;
 
-      if (r.kind == SkillMenuRow.HEADER1) {
-        boolean hov = mx >= listX && mx <= listX + (w - 72f) && my >= ry - rh + 6f && my <= ry + 6f;
-        if (hov) catHoverKey = r.catKey;
+      switch (r.kind) {
+        case SkillMenuRow.HEADER1 -> {
+          boolean hov = mx >= listX && mx <= listX + (w - 72f) && my >= ry - rh + 6f && my <= ry + 6f;
+          if (hov) catHoverKey = r.catKey;
 
-        boolean open = skillMenuCatOpen.getOrDefault(r.catKey, true);
-        String twisty = open ? "[-]" : "[+]";
+          boolean open = skillMenuCatOpen.getOrDefault(r.catKey, true);
+          String twisty = open ? "[-]" : "[+]";
 
-        // Category: distinct big button
-        batch.setColor(1f, 1f, 1f, 1f);
-        batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, listX, ry - rh + 8f, w - 72f, rh - 8f);
+          // Category: distinct big button
+          batch.setColor(1f, 1f, 1f, 1f);
+          batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, listX, ry - rh + 8f, w - 72f, rh - 8f);
 
-        font.setColor(0f, 0f, 0f, 1f);
-        font.getData().setScale(1.20f * UI_FONT_SCALE);
-        font.draw(batch, twisty + "  " + r.label, listX + 16f, ry - 12f);
-      } else if (r.kind == SkillMenuRow.HEADER2) {
-        // Subcategory indent (about "2 tiles"), keep right edge aligned by shrinking width.
-        float subIndent = 64f;
-        float subX = listX + 10f + subIndent;
-        float subW = (w - 72f) - 20f - subIndent;
+          font.setColor(0f, 0f, 0f, 1f);
+          font.getData().setScale(1.20f * UI_FONT_SCALE);
+          font.draw(batch, twisty + "  " + r.label, listX + 16f, ry - 12f);
+        }
+        case SkillMenuRow.HEADER2 -> {
+          // Subcategory indent (about "2 tiles"), keep right edge aligned by shrinking width.
+          float subIndent = 64f;
+          float subX = listX + 10f + subIndent;
+          float subW = (w - 72f) - 20f - subIndent;
 
-        boolean hov = mx >= subX && mx <= subX + subW && my >= ry - rh + 6f && my <= ry + 6f;
-        if (hov) subHoverKey = r.subKey;
+          boolean hov = mx >= subX && mx <= subX + subW && my >= ry - rh + 6f && my <= ry + 6f;
+          if (hov) subHoverKey = r.subKey;
 
-        boolean open = skillMenuSubOpen.getOrDefault(r.subKey, true);
-        String twisty = open ? "[-]" : "[+]";
+          boolean open = skillMenuSubOpen.getOrDefault(r.subKey, true);
+          String twisty = open ? "[-]" : "[+]";
 
-        // Subcategory: distinct medium row
-        batch.setColor(1f, 1f, 1f, 1f);
-        batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, subX, ry - rh + 10f, subW, rh - 12f);
+          // Subcategory: distinct medium row
+          batch.setColor(1f, 1f, 1f, 1f);
+          batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, subX, ry - rh + 10f, subW, rh - 12f);
 
-        font.setColor(0f, 0f, 0f, 1f);
-        font.getData().setScale(1.05f * UI_FONT_SCALE);
-        font.draw(batch, twisty + "  " + r.label, subX + 18f, ry - 12f);
-      } else {
-        int i = r.skillIndex;
+          font.setColor(0f, 0f, 0f, 1f);
+          font.getData().setScale(1.05f * UI_FONT_SCALE);
+          font.draw(batch, twisty + "  " + r.label, subX + 18f, ry - 12f);
+        }
+        default -> {
+          int i = r.skillIndex;
 
         // Skill indent (relative to subcategory position), keep right edge aligned.
         float subIndentBase = 64f;
@@ -7174,6 +7231,7 @@ private void craftByOutput(int outItemId) {
         font.setColor(0f, 0f, 0f, 1f);
         font.getData().setScale(1.0f * UI_FONT_SCALE);
         font.draw(batch, line, textX, ry - 12f);
+        }
       }
 
       y -= rh;
