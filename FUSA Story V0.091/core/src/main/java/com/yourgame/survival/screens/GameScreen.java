@@ -870,7 +870,9 @@ public final class GameScreen extends ScreenAdapter {
       }
 
       // If nothing could be placed, keep trying other centers.
-      if (!placedAny) continue;
+      if (!placedAny) {
+        continue;
+      }
     }
   }
 

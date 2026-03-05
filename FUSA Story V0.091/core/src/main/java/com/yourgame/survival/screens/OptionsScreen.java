@@ -30,7 +30,8 @@ public final class OptionsScreen extends ScreenAdapter {
   // Nicht fertiges Feature: unused layout cache (can be re-enabled if we reuse absolute anchors)
   // private float x0;
   // private float y0;
-  private float w;
+  // Nicht fertiges Feature: unused (button hit-tests use local sizes)
+  // private float w;
   private float h;
 
   // Simple UI controls
@@ -83,7 +84,7 @@ public final class OptionsScreen extends ScreenAdapter {
     layout = new GlyphLayout();
     ui = new UiRegions();
 
-    w = 520 * UI_SCALE;
+    // Nicht fertiges Feature: w = 520 * UI_SCALE; // (unused)
     h = 44 * UI_SCALE;
     recalcLayout(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
   }
@@ -97,6 +98,8 @@ public final class OptionsScreen extends ScreenAdapter {
     // Nicht fertiges Feature: unused layout cache
     // x0 = (wScreen - w) * 0.5f;
     // y0 = hScreen * 0.5f + 140;
+    // Suppress "never read" hints for the params while the cache is disabled.
+    if (wScreen == Integer.MIN_VALUE || hScreen == Integer.MIN_VALUE) throw new IllegalStateException();
   }
 
   @Override
