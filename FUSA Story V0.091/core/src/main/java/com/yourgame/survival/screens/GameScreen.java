@@ -839,7 +839,6 @@ public final class GameScreen extends ScreenAdapter {
       float minPackDist = com.yourgame.survival.tuning.TuningEncounters.ORK_PACK_MIN_DIST_WU; // avoid exact stacking
       float minPackDist2 = minPackDist * minPackDist;
 
-      boolean placedAny = false;
       for (int i = 0; i < pack && spawned < target; i++) {
         float ox = (randRange(-1000, 1000) / 1000f) * packR;
         float oy = (randRange(-1000, 1000) / 1000f) * packR;
@@ -865,14 +864,12 @@ public final class GameScreen extends ScreenAdapter {
 
         if (entities.spawn(t, sx, sy) >= 0) {
           spawned++;
-          placedAny = true;
         }
       }
 
       // If nothing could be placed, keep trying other centers.
-      if (!placedAny) {
-        continue;
-      }
+      // (No-op: this loop proceeds to the next center anyway; keep flag for clarity.)
+      // if (!placedAny) continue;
     }
   }
 
