@@ -4,7 +4,7 @@ package com.yourgame.survival;
 public final class GameSettings {
   // 0..1
   // Requirement: first run defaults to 25% for music + SFX (master stays at 100%).
-  public float masterVolume = 1.0f;
+  public float masterVolume = 0.50f;
   public float musicVolume = 0.25f;
   public float sfxVolume = 0.25f;
 
