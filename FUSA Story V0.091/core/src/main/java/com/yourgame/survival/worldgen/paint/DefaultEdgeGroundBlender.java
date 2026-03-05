@@ -6,7 +6,7 @@ import com.yourgame.survival.world.TileLayers;
 import com.yourgame.survival.worldgen.WorldGenContext;
 import com.yourgame.survival.worldgen.biome.BiomeClassifier;
 import com.yourgame.survival.worldgen.noise.NoiseSampler;
-import com.yourgame.survival.worldgen.util.GenMath;
+//import com.yourgame.survival.worldgen.util.GenMath;
 
 /** Default edge blender extracted from the legacy edge-ground override pass. */
 public final class DefaultEdgeGroundBlender implements EdgeGroundBlender {

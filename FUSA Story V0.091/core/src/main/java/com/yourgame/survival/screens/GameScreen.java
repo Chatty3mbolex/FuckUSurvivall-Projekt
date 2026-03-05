@@ -870,7 +870,7 @@ public final class GameScreen extends ScreenAdapter {
       }
 
       // If nothing could be placed, keep trying other centers.
-      if (placed <= 0) continue;
+      // (no-op: continue at end of loop is unnecessary)
     }
   }
 
@@ -1350,13 +1350,11 @@ public final class GameScreen extends ScreenAdapter {
         else dir = com.yourgame.survival.worldmap.Dir4.N;
       }
 
-      if (dir != null) {
-        boolean ok = areaTryTravelAtEdge(dir);
-        if (ok) {
-// Nicht fertiges Feature:           inVoid = false;
-// Nicht fertiges Feature:           voidTimer = 0f;
-// Nicht fertiges Feature:           voidStage = 0;
-        }
+      boolean ok = areaTryTravelAtEdge(dir);
+      if (ok) {
+// Nicht fertiges Feature:         inVoid = false;
+// Nicht fertiges Feature:         voidTimer = 0f;
+// Nicht fertiges Feature:         voidStage = 0;
       }
     }
 
@@ -2374,8 +2372,8 @@ public final class GameScreen extends ScreenAdapter {
       if (nightTrackFadeInT > TRACK_FADE_IN_SEC) nightTrackFadeInT = TRACK_FADE_IN_SEC;
     }
 
-    float inDay = (TRACK_FADE_IN_SEC <= 0f) ? 1f : (dayTrackFadeInT / TRACK_FADE_IN_SEC);
-    float inNight = (TRACK_FADE_IN_SEC <= 0f) ? 1f : (nightTrackFadeInT / TRACK_FADE_IN_SEC);
+    float inDay = dayTrackFadeInT / TRACK_FADE_IN_SEC;
+    float inNight = nightTrackFadeInT / TRACK_FADE_IN_SEC;
     if (inDay < 0f) inDay = 0f;
     if (inDay > 1f) inDay = 1f;
     if (inNight < 0f) inNight = 0f;
@@ -2752,9 +2750,9 @@ public final class GameScreen extends ScreenAdapter {
       float d2 = dx*dx + dy*dy;
       float r2 = r * r;
       if (d2 > r2 && d2 > 1e-6f) {
-        float inv = (float)(1.0 / Math.sqrt(d2));
-        wx = px + dx * inv * r;
-        wy = py + dy * inv * r;
+        float invLen = (float)(1.0 / Math.sqrt(d2));
+        wx = px + dx * invLen * r;
+        wy = py + dy * invLen * r;
 
         // Warp cursor back onto the ring so the player can never "aim" outside.
         Vector3 p = scratch.v3b;
@@ -2847,9 +2845,9 @@ public final class GameScreen extends ScreenAdapter {
     float len2 = dx * dx + dy * dy;
     if (len2 <= 1e-6f) return false;
 
-    float inv = (float) (1.0 / Math.sqrt(len2));
-    float ax = dx * inv;
-    float ay = dy * inv;
+    float invLen = (float) (1.0 / Math.sqrt(len2));
+    float ax = dx * invLen;
+    float ay = dy * invLen;
 
     // FOV check against facing
     float cosHalf = (float) Math.cos(Math.toRadians(fovDeg * 0.5));
@@ -2950,9 +2948,9 @@ public final class GameScreen extends ScreenAdapter {
     float len2 = dx * dx + dy * dy;
     if (len2 <= 1e-6f) return -1;
 
-    float inv = (float) (1.0 / Math.sqrt(len2));
-    float ax = dx * inv;
-    float ay = dy * inv;
+    float invLen = (float) (1.0 / Math.sqrt(len2));
+    float ax = dx * invLen;
+    float ay = dy * invLen;
     float segLen = (float) Math.sqrt(len2);
 
     int best = -1;
@@ -3007,9 +3005,9 @@ public final class GameScreen extends ScreenAdapter {
       float y = arrowY[i];
       float vx = arrowVx[i];
       float vy = arrowVy[i];
-      float inv = 1.0f / Math.max(1e-6f, (float) Math.sqrt(vx * vx + vy * vy));
-      float nx = vx * inv;
-      float ny = vy * inv;
+      float invLen = 1.0f / Math.max(1e-6f, (float) Math.sqrt(vx * vx + vy * vy));
+      float nx = vx * invLen;
+      float ny = vy * invLen;
       shape.line(x, y, x - nx * tail, y - ny * tail);
     }
     shape.end();
@@ -6906,16 +6904,16 @@ private void craftByOutput(int outItemId) {
     }
 
     if (pricingPresetPopup) {
-      float py = y0 + 120f;
+      float popupY = y0 + 120f;
       font.getData().setScale(1.3f);
-      font.draw(batch, "PRESET wählen (1..9) | ESC abbrechen", x, py);
+      font.draw(batch, "PRESET wählen (1..9) | ESC abbrechen", x, popupY);
       font.getData().setScale(1.0f * UI_FONT_SCALE);
-      py -= 24f;
+      popupY -= 24f;
       if (pricingPresetNames == null || pricingPresetNames.length == 0) {
-        font.draw(batch, "(keine Presets gefunden in: pricing_presets/*.json)", x, py);
+        font.draw(batch, "(keine Presets gefunden in: pricing_presets/*.json)", x, popupY);
       } else {
         for (int i = 0; i < pricingPresetNames.length; i++) {
-          font.draw(batch, (i + 1) + ") " + pricingPresetNames[i], x, py - i * 18f);
+          font.draw(batch, (i + 1) + ") " + pricingPresetNames[i], x, popupY - i * 18f);
         }
       }
     }
