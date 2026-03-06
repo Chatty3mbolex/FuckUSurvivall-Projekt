@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "nodeSpawner": {
+    "step": 8,
+    "nearbyRadius": 10.0,
+    "biomes": {
+      "FOREST": { "tree": 0.6, "rock": 0.26, "iron": 0.0 },
+      "GRASSLAND": { "tree": 0.3, "rock": 0.1, "iron": 0.0 },
+      "ISLANDS": { "tree": 0.1, "rock": 0.13, "iron": 0.0 },
+      "BEACH": { "tree": 0.06, "rock": 0.0, "iron": 0.0 },
+      "RIVERBANK": { "tree": 0.06, "rock": 0.0, "iron": 0.0 },
+      "SWAMP": { "tree": 0.5, "rock": 0.0, "iron": 0.0 },
+      "MOUNTAIN": { "tree": 0.01, "rock": 0.18, "iron": 0.22 },
+      "SNOWHIGHLAND": { "tree": 0.0, "rock": 0.18, "iron": 0.22 },
+      "VOLCANIC": { "tree": 0.0, "rock": 0.18, "iron": 0.22 },
+      "ASHFIELD": { "tree": 0.0, "rock": 0.18, "iron": 0.22 }
+    }
+  }
+}

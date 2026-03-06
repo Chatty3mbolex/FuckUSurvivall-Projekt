@@ -49,16 +49,12 @@ public final class AtlasLoader {
       }
     }
 
-    // 3) Legacy fallback: single-atlas game.atlas.
-    if (fh == null && !"game".equals(atlasBaseName)) {
-      try {
-        return loadPreferFs("game");
-      } catch (Throwable ignored) {
-        // continue
-      }
+    // 3) NO legacy fallback.
+    // If an atlas is missing, we fail fast so missing/incorrect asset pipelines are obvious.
+    if (fh == null) {
+      throw new IllegalStateException("Missing atlas: '" + atlasBaseName + "' (expected assets/atlas/" + atlasBaseName + ".atlas)");
     }
 
-    if (fh == null) return new TextureAtlas();
     return new TextureAtlas(fh);
   }
 }

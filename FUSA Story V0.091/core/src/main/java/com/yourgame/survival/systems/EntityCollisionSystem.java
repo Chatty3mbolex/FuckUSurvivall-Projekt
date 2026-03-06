@@ -123,8 +123,8 @@ public final class EntityCollisionSystem {
         }
 
         if (t == EntityType.NODE_STUMP) {
-          // Stump collider is near ground. Keep behavior, but the stump draw size was reduced in EntityMetrics.
-          cy = cy - (World.TILE_WORLD * 1.2f);
+          // Stump collider: fixed offset (NO formulas). Tuned to sit around the visible stump.
+          cy = cy - 6f;
         }
 
         // trunk AABB (square)

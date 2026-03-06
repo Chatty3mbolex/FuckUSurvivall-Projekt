@@ -123,7 +123,7 @@ public final class HarvestSystem {
         final float x = treeX;
         final float y = treeY;
         es.kill(i);
-        es.spawn(EntityType.NODE_STUMP, x, y);
+        es.spawn(EntityType.NODE_STUMP, x + 1f, y - 28f);
         return new HarvestEvent(0, 5, true, t, x, y);
       }
 
@@ -303,7 +303,7 @@ public final class HarvestSystem {
 
     if (t == EntityType.NODE_TREE) {
       es.kill(best);
-      es.spawn(EntityType.NODE_STUMP, x, y);
+      es.spawn(EntityType.NODE_STUMP, x + 1f, y - 28f);
       return new HarvestTick(true, new HarvestEvent(0, 5, true, t, x, y));
     }
 
@@ -413,7 +413,7 @@ public final class HarvestSystem {
       if (!below || !nearTrunk) return null;
 
       es.kill(best);
-      es.spawn(EntityType.NODE_STUMP, treeX, treeY);
+      es.spawn(EntityType.NODE_STUMP, treeX + 1f, treeY - 28f);
       return new HarvestEvent(0, 5, true, t, treeX, treeY);
     }
 

@@ -33,6 +33,7 @@ public final class EntityMetrics {
   public static float drawH(EntityType t) {
     return switch (t) {
       case NODE_TREE -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_NODE_TREE;
+      case NODE_STUMP -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_NODE_STUMP;
       case BUILD_LAMP -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_BUILD_LAMP;
 
       case LANDMARK_CASTLE -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_LANDMARK_CASTLE;

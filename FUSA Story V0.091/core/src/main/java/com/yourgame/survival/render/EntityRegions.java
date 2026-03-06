@@ -46,7 +46,9 @@ public final class EntityRegions {
 
 	    // props.png regions (pixel coords in the sheet)
 	    nodeTree = new TextureRegion(propsTex, 180, 38, 154, 199);
-	    nodeStump = new TextureRegion(propsTex, 255, 267, 70, 31);
+	    // IMPORTANT: stump must come from the STATIC atlas (src_static/node_stump.png)
+	    // so it matches the authored art and does not change with props.png edits.
+	    nodeStump = reqStatic("node_stump");
 	    nodeRock = new TextureRegion(propsTex, 250, 496, 36, 35);
 	    nodeOreIron = new TextureRegion(propsTex, 251, 535, 36, 35);
 	    nodeBush = new TextureRegion(propsTex, 121, 498, 46, 46);

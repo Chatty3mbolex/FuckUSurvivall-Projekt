@@ -23,8 +23,10 @@ public final class TuningEntities {
   public static final float DRAW_W_NODE_TREE = 72f;
   public static final float DRAW_H_NODE_TREE = 96f;
 
-  // Requested: stump same concept but 75% smaller than old 52f -> 13f.
-  public static final float DRAW_W_NODE_STUMP = 13f;
+  // Stump draw size (world units ~= pixels at current art scale).
+  // Requested: reduce by 60% from the previous tuned size.
+  public static final float DRAW_W_NODE_STUMP = 16.64f;
+  public static final float DRAW_H_NODE_STUMP = 15.36f;
 
   public static final float DRAW_W_NODE_ROCK = 30f;
   public static final float DRAW_W_NODE_ORE_IRON = 30f;

@@ -1,0 +1,34 @@
+{
+  "recipes": [
+    {"id":"r_workbench","output":{"itemId":40,"amount":1},"inputs":[{"itemId":0,"amount":30},{"itemId":1,"amount":10}],"tags":["itemsOnlyChain"]},
+    {"id":"r_campfire","output":{"itemId":41,"amount":1},"inputs":[{"itemId":0,"amount":12},{"itemId":1,"amount":12}],"tags":["itemsOnlyChain"]},
+    {"id":"r_chest","output":{"itemId":42,"amount":1},"inputs":[{"itemId":0,"amount":24},{"itemId":1,"amount":6}],"tags":["itemsOnlyChain"]},
+    {"id":"r_bed","output":{"itemId":43,"amount":1},"inputs":[{"itemId":0,"amount":16},{"itemId":8,"amount":8}],"tags":["itemsOnlyChain"]},
+    {"id":"r_anvil","output":{"itemId":44,"amount":1},"inputs":[{"itemId":10,"amount":8},{"itemId":1,"amount":12}],"tags":["itemsOnlyChain"]},
+    {"id":"r_smelter","output":{"itemId":45,"amount":1},"inputs":[{"itemId":1,"amount":25},{"itemId":9,"amount":10}],"tags":["itemsOnlyChain"]},
+
+    {"id":"r_iron_ingot","output":{"itemId":10,"amount":1},"inputs":[{"itemId":2,"amount":3},{"itemId":4,"amount":1}],"tags":["smelt","itemsOnlyChain"]},
+    {"id":"r_copper_ingot","output":{"itemId":11,"amount":1},"inputs":[{"itemId":3,"amount":3},{"itemId":4,"amount":1}],"tags":["smelt","itemsOnlyChain"]},
+    {"id":"r_silver_ingot","output":{"itemId":12,"amount":1},"inputs":[{"itemId":5,"amount":3},{"itemId":4,"amount":1}],"tags":["smelt","itemsOnlyChain"]},
+    {"id":"r_gold_ingot","output":{"itemId":13,"amount":1},"inputs":[{"itemId":6,"amount":3},{"itemId":4,"amount":1}],"tags":["smelt","itemsOnlyChain"]},
+
+    {"id":"r_axe","output":{"itemId":14,"amount":1},"inputs":[{"itemId":0,"amount":4},{"itemId":10,"amount":2}],"tags":["itemsOnlyChain"]},
+    {"id":"r_pickaxe","output":{"itemId":15,"amount":1},"inputs":[{"itemId":0,"amount":4},{"itemId":10,"amount":2}],"tags":["itemsOnlyChain"]},
+    {"id":"r_knife","output":{"itemId":16,"amount":1},"inputs":[{"itemId":10,"amount":1},{"itemId":0,"amount":1}],"tags":[]},
+    {"id":"r_hammer","output":{"itemId":17,"amount":1},"inputs":[{"itemId":0,"amount":3},{"itemId":10,"amount":3}],"tags":["itemsOnlyChain"]},
+    {"id":"r_climbing_tool","output":{"itemId":18,"amount":1},"inputs":[{"itemId":0,"amount":2},{"itemId":10,"amount":2}],"tags":[]},
+    {"id":"r_net","output":{"itemId":19,"amount":1},"inputs":[{"itemId":0,"amount":2},{"itemId":8,"amount":6}],"tags":[]},
+    {"id":"r_angel","output":{"itemId":36,"amount":1},"inputs":[{"itemId":0,"amount":3},{"itemId":10,"amount":2},{"itemId":8,"amount":4}],"tags":[]},
+
+    {"id":"r_sword","output":{"itemId":20,"amount":1},"inputs":[{"itemId":10,"amount":3},{"itemId":0,"amount":2}],"tags":["itemsOnlyChain"]},
+    {"id":"r_spear","output":{"itemId":21,"amount":1},"inputs":[{"itemId":0,"amount":3},{"itemId":10,"amount":2}],"tags":[]},
+    {"id":"r_bow","output":{"itemId":22,"amount":1},"inputs":[{"itemId":0,"amount":4},{"itemId":8,"amount":4}],"tags":["itemsOnlyChain"]},
+    {"id":"r_dagger","output":{"itemId":23,"amount":1},"inputs":[{"itemId":10,"amount":2},{"itemId":0,"amount":1}],"tags":[]},
+    {"id":"r_mace","output":{"itemId":24,"amount":1},"inputs":[{"itemId":0,"amount":2},{"itemId":10,"amount":4}],"tags":[]},
+    {"id":"r_battle_axe","output":{"itemId":25,"amount":1},"inputs":[{"itemId":0,"amount":3},{"itemId":10,"amount":5}],"tags":[]},
+    {"id":"r_crystal_staff","output":{"itemId":26,"amount":1},"inputs":[{"itemId":0,"amount":3},{"itemId":7,"amount":3},{"itemId":13,"amount":1}],"tags":[]},
+    {"id":"r_crossbow","output":{"itemId":27,"amount":1},"inputs":[{"itemId":0,"amount":4},{"itemId":10,"amount":3},{"itemId":8,"amount":2}],"tags":[]},
+
+    {"id":"r_cooked_meat","output":{"itemId":29,"amount":1},"inputs":[{"itemId":28,"amount":1}],"tags":["cook","itemsOnlyChain"]}
+  ]
+}
