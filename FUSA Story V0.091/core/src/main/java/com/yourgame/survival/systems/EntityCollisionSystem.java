@@ -124,7 +124,8 @@ public final class EntityCollisionSystem {
 
         if (t == EntityType.NODE_STUMP) {
           // Stump collider: fixed offset (NO formulas). Tuned to sit around the visible stump.
-          cy = cy - 6f;
+          // Adjusted: collision box 4px further UP than before.
+          cy = cy - 2f;
         }
 
         // trunk AABB (square)

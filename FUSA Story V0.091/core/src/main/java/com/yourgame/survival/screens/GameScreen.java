@@ -358,7 +358,13 @@ public final class GameScreen extends ScreenAdapter {
   // UI state
   private boolean shopOpen = false;
   private boolean craftOpen = false;
+
+  // Food effects (smooth over time): fill hunger first, then HP.
+  private float pendingFoodHunger = 0f;
+  private float pendingFoodHp = 0f;
   private boolean invOpen = false;
+  // Inventory panel placement: when opened while other panels are present, snap to next free spot.
+  private boolean invJustOpened = false;
   private boolean walletOpen = false;
   private int openMerchantE = -1;
 
@@ -1197,11 +1203,14 @@ public final class GameScreen extends ScreenAdapter {
             r0);
       }
 
-      // Starter items (requested)
-      // Start with an Axe + Pickaxe + 6 Meat.
-      inv.add(14, 1);
-      inv.add(15, 1);
-      inv.add(28, 6);
+      // Starter items (DEV): add 1 of every defined item so you can inspect sprites one by one.
+      // (Tools/weapons have stackMax=1, normal items stack.)
+      if (data != null && data.items != null) {
+        for (int itemId = 0; itemId < data.items.length; itemId++) {
+          if (data.items[itemId] == null) continue;
+          inv.add(itemId, 1);
+        }
+      }
 
       // DEV CHEAT (requested): set sprint skill to level 20 if present.
       if (SK_SPRINTING >= 0 && SK_SPRINTING < progress.skillLv.length) {
@@ -1504,14 +1513,14 @@ public final class GameScreen extends ScreenAdapter {
     if (!pricingOpen && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.I)) {
       invOpen = !invOpen;
       if (invOpen) {
-        craftOpen = false;
+        // Allow inventory to be opened together with other panels.
+        // If it would overlap, it will snap to the next free spot on first draw.
         buildMode = false;
         openChestE = -1;
-        // Initialize anchor on open (will be set precisely on first draw when panel size is known).
-        if (Float.isNaN(invAnchorX) || Float.isNaN(invAnchorY)) {
-          invAnchorX = 0f;
-          invAnchorY = 0f;
-        }
+        invJustOpened = true;
+        // Force re-placement on first draw (panel size is computed there).
+        invAnchorX = Float.NaN;
+        invAnchorY = Float.NaN;
       } else {
         invDrag = false;
       }
@@ -1553,18 +1562,18 @@ public final class GameScreen extends ScreenAdapter {
     int selectedTool = equippedFromHotbar();
     if (playerE >= 0) entities.data0[playerE] = selectedTool; // equipped tool/weapon for rendering
 
-    // Eat meat (SHIFT+J)
+    // Eat meat: fills Hunger first (+50 per meat, smooth), then when Hunger is full it heals HP (+25 per meat, smooth).
     boolean shiftPressed = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
-    if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && shiftPressed && Gdx.input.isKeyJustPressed(Input.Keys.J)) {
-       
-    }
+    boolean wantEat = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) &&
+        ((shiftPressed && Gdx.input.isKeyJustPressed(Input.Keys.J)) || Gdx.input.isKeyJustPressed(Input.Keys.H));
 
-    // Legacy quick-eat (H) kept for offline convenience.
-    if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isKeyJustPressed(Input.Keys.H) && true) {
+    if (wantEat) {
       if (inv.spend(28, 1)) {
-        needs.eat(20f);
-        needs.hp = Math.min(needs.hpMax, needs.hp + 50f);
+        pendingFoodHunger += 50f;
+        pendingFoodHp += 25f;
         game.audio.sfx("audio/sfx/eat.wav", game.audio.sfxVolume(game.settings));
+      } else {
+        game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
       }
     }
 
@@ -3144,6 +3153,38 @@ public final class GameScreen extends ScreenAdapter {
     if (needs.stamina > needs.staminaMax) needs.stamina = needs.staminaMax;
 
     needs.tick(dt);
+
+    // Apply smooth food effects AFTER drains for this tick.
+    if (pendingFoodHunger > 0f || pendingFoodHp > 0f) {
+      final float HUNGER_FILL_PER_SEC = 38f; // 50 hunger in ~1.3s
+      final float HP_FILL_PER_SEC = 28f;     // 25 hp in <1s
+
+      // 1) Hunger first
+      if (pendingFoodHunger > 0f && needs.hunger < needs.hungerMax - 1e-3f) {
+        float want = Math.min(pendingFoodHunger, HUNGER_FILL_PER_SEC * dt);
+        float space = (needs.hungerMax - needs.hunger);
+        float give = Math.min(want, space);
+        needs.hunger += give;
+        pendingFoodHunger -= give;
+      }
+
+      // If hunger is full, discard any remaining hunger gain (can't apply) and allow HP heal.
+      if (needs.hunger >= needs.hungerMax - 1e-3f) {
+        pendingFoodHunger = 0f;
+      }
+
+      // 2) HP only after hunger is full
+      if (pendingFoodHp > 0f && needs.hunger >= needs.hungerMax - 1e-3f && needs.hp < needs.hpMax - 1e-3f) {
+        float want = Math.min(pendingFoodHp, HP_FILL_PER_SEC * dt);
+        float space = (needs.hpMax - needs.hp);
+        float give = Math.min(want, space);
+        needs.hp += give;
+        pendingFoodHp -= give;
+      }
+
+      if (pendingFoodHunger < 0f) pendingFoodHunger = 0f;
+      if (pendingFoodHp < 0f) pendingFoodHp = 0f;
+    }
 
     // Respawn on death: always return to full HP + full hunger.
     // Requirement: must respawn at 100% hunger.
@@ -4777,6 +4818,46 @@ private void craftByOutput(int outItemId) {
   }
   */
 
+  private static boolean rectsOverlap(float ax, float ay, float aw, float ah, float bx, float by, float bw, float bh, float pad) {
+    float aL = ax - pad, aR = ax + aw + pad;
+    float aB = ay - pad, aT = ay + ah + pad;
+    float bL = bx - pad, bR = bx + bw + pad;
+    float bB = by - pad, bT = by + bh + pad;
+    return (aL < bR && aR > bL && aB < bT && aT > bB);
+  }
+
+  private void placePanelAvoiding(float panelW, float panelH, float prefX, float prefY,
+                                 float avoidX, float avoidY, float avoidW, float avoidH,
+                                 java.util.function.BiConsumer<Float, Float> out) {
+    float w = Gdx.graphics.getWidth();
+    float h = Gdx.graphics.getHeight();
+
+    // If preferred spot is fine, keep it.
+    float x0 = MathUtils.clamp(prefX, 0f, Math.max(0f, w - panelW));
+    float y0 = MathUtils.clamp(prefY, 0f, Math.max(0f, h - panelH));
+    if (!rectsOverlap(x0, y0, panelW, panelH, avoidX, avoidY, avoidW, avoidH, 8f)) {
+      out.accept(x0, y0);
+      return;
+    }
+
+    // Search a grid of candidate positions and pick the closest that doesn't overlap.
+    float step = 40f;
+    float bestD2 = Float.POSITIVE_INFINITY;
+    float bestX = x0, bestY = y0;
+
+    for (float yy = 0f; yy <= h - panelH; yy += step) {
+      for (float xx = 0f; xx <= w - panelW; xx += step) {
+        if (rectsOverlap(xx, yy, panelW, panelH, avoidX, avoidY, avoidW, avoidH, 8f)) continue;
+        float dx = xx - x0;
+        float dy = yy - y0;
+        float d2 = dx * dx + dy * dy;
+        if (d2 < bestD2) { bestD2 = d2; bestX = xx; bestY = yy; }
+      }
+    }
+
+    out.accept(bestX, bestY);
+  }
+
   private void ensurePanelAnchor(float panelW, float panelH, boolean forBuild, boolean forCraft, boolean forChest) {
     float w = Gdx.graphics.getWidth();
     float h = Gdx.graphics.getHeight();
@@ -5075,7 +5156,10 @@ private void craftByOutput(int outItemId) {
           if (hitRect(mx, my, qx, qy, qw, qh)) {
             craftQtyFocusIdx = idx;
             craftQtyBuffer = String.valueOf(Math.max(0, qv));
-            return; // avoid also pressing craft in same click
+            // IMPORTANT: never early-return while a scissor is pushed (would freeze the viewport/clip).
+            // Consume click so it can't also trigger crafting in the same frame.
+            click = false;
+            continue;
           }
 
           if (hitRect(mx, my, bx, by, bw, bh)) {
@@ -6665,9 +6749,30 @@ private void craftByOutput(int outItemId) {
     // anchored bottom-center (default) but movable by drag
     float x0Default = (Gdx.graphics.getWidth() - panelW) * 0.5f;
     float y0Default = 0f;
-    if (Float.isNaN(invAnchorX) || Float.isNaN(invAnchorY) || (invAnchorX == 0f && invAnchorY == 0f)) {
-      invAnchorX = x0Default;
-      invAnchorY = y0Default;
+
+    if (Float.isNaN(invAnchorX) || Float.isNaN(invAnchorY) || (invAnchorX == 0f && invAnchorY == 0f) || invJustOpened) {
+      float xPick = x0Default;
+      float yPick = y0Default;
+
+      // If craft panel is open, avoid placing inventory on top of it.
+      if (craftOpen) {
+        final float craftW = 1230f;
+        final float craftH = 540f;
+        final float cx = craftAnchorX;
+        final float cy = craftAnchorY;
+
+        final float[] outPos = new float[2];
+        placePanelAvoiding(panelW, panelH, x0Default, y0Default, cx, cy, craftW, craftH, (xx, yy) -> {
+          outPos[0] = xx;
+          outPos[1] = yy;
+        });
+        xPick = outPos[0];
+        yPick = outPos[1];
+      }
+
+      invAnchorX = xPick;
+      invAnchorY = yPick;
+      invJustOpened = false;
     }
 
     // Drag handling (panel header) - disabled while modal UI / drag&drop is active

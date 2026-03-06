@@ -19,6 +19,8 @@ public final class EntityRegions {
   private final TextureAtlas staticAtlas;
   private final Texture propsTex;
 
+  // Log_Drop is atlas-packed (assets/atlas/src_static/Log_Drop.png).
+
   // cached regions (static)
   private final TextureRegion nodeTree;
   private final TextureRegion nodeStump;
@@ -43,6 +45,8 @@ public final class EntityRegions {
 
 	    propsTex = new Texture(Gdx.files.internal("props.png"));
 	    propsTex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
+
+	    // Log_Drop.png is packed into the static atlas via packAtlasStatic.
 
 	    // props.png regions (pixel coords in the sheet)
 	    nodeTree = new TextureRegion(propsTex, 180, 38, 154, 199);
@@ -199,10 +203,15 @@ public final class EntityRegions {
       case LANDMARK_BRIDGE -> landmarkBridge;
 
       case ITEM_DROP -> {
-        // GENERISCH, MUSS GEWECHSELT WERDEN !!
-        // TexturePacker groups item_0..item_59.png as atlas base name "item" with indices.
+        // Tree harvest loot: itemId=0 should be Log_Drop.png (explicit request).
+        // Must be pulled from the static atlas like everything else.
+        if (itemId == 0) {
+          TextureAtlas.AtlasRegion r = staticAtlas.findRegion("Log_Drop");
+          if (r != null) yield r;
+        }
+
+        // Default: TexturePacker groups item_0..item_59.png as atlas base name "item" with indices.
         if (itemId >= 0) {
-          // GENERISCH, MUSS GEWECHSELT WERDEN !!
           TextureAtlas.AtlasRegion r = staticAtlas.findRegion("item", itemId);
           if (r != null) yield r;
         }
@@ -286,6 +295,7 @@ public final class EntityRegions {
   public void dispose() {
     try { livingAtlas.dispose(); } catch (Throwable ignored) {}
     try { staticAtlas.dispose(); } catch (Throwable ignored) {}
+    // Log_Drop is atlas-packed -> disposed with staticAtlas.
     propsTex.dispose();
   }
 }
