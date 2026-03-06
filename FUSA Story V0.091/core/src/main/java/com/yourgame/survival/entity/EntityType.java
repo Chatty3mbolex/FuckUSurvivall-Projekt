@@ -20,6 +20,8 @@ public enum EntityType {
   BUILD_CAMPFIRE,
   BUILD_LAMP,
 
+  POI_CHEST_HIDDEN,
+
   LANDMARK_CASTLE,
   LANDMARK_BRIDGE,
 

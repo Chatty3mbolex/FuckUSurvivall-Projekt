@@ -111,7 +111,7 @@ public final class Entities {
       case NODE_ORE_IRON -> 25f;
       case NODE_BUSH -> 10f;
       case NODE_FISH_SPOT -> 12f;
-      case BUILD_CHEST -> 20f;
+      case BUILD_CHEST, POI_CHEST_HIDDEN -> 20f;
       case BUILD_WORKBENCH -> 20f;
       case BUILD_BED -> 20f;
       case BUILD_CAMPFIRE -> 20f;

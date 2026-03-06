@@ -30,8 +30,11 @@ public final class EntityRenderer {
   private final int[] loStack = new int[64];
   private final int[] hiStack = new int[64];
 
-  // Swing FX tuning (purely visual). GameScreen drives the timer via entities.aiF0[playerE].
+  // Swing FX tuning (purely visual).
+  // PLAYER: GameScreen drives the timer via entities.aiF0[playerE].
   private static final float SWING_DUR = 0.18f;
+  // ORK: derive swing from attack cooldown (entities.data0[ork] in ms).
+  private static final float ORK_SWING_DUR = 0.78f;
 
   public EntityRenderer(EntityRegions regions) {
     this.regions = regions;
@@ -153,25 +156,41 @@ public final class EntityRenderer {
           originX = iw - originX;
         }
 
-        // Swing timer: GameScreen drives entities.aiF0[playerE] as remaining seconds.
-        float swingT = (t == EntityType.PLAYER) ? es.aiF0[i] : 0f;
-        boolean swinging = swingT > 0f;
+        // Swing timer:
+        // - PLAYER: GameScreen drives entities.aiF0[playerE] as remaining seconds.
+        // - ORK: derive from attack cooldown (data0 ms). This keeps the club visible longer after an attack.
+        float swingT = 0f;
+        float swingDur = SWING_DUR;
+        if (t == EntityType.PLAYER) {
+          swingT = es.aiF0[i];
+          swingDur = SWING_DUR;
+        } else if (t == EntityType.ORK_GRUNT) {
+          // Cooldown is set to 650ms on hit; we show a swing for ~0.78s max.
+          float cdSec = Math.max(0f, es.data0[i]) / 1000f;
+          swingT = Math.min(ORK_SWING_DUR, cdSec);
+          swingDur = ORK_SWING_DUR;
+        }
+        boolean swinging = swingT > 0.01f;
 
         // Swing effect (trail) — visible in all directions, including North.
         if (swinging) {
-          float p = 1f - (swingT / SWING_DUR);
+          float p = 1f - (swingT / swingDur);
           if (p < 0f) p = 0f;
           if (p > 1f) p = 1f;
 
-          // Arc sweep around the hand: -70° .. +70° (relative)
-          float sweep = -70f + 140f * p;
+          // Arc sweep around the hand.
+          // Player: quick -70..+70.
+          // Orc: heavier swing (-95..+95) so the club reads as a "schwung".
+          float sweep = (t == EntityType.ORK_GRUNT)
+              ? (-95f + 190f * p)
+              : (-70f + 140f * p);
 
           // Draw a small trail with decreasing alpha.
           for (int tstep = 0; tstep < 4; tstep++) {
             float tt = tstep / 3f;
             float trailRot = baseRotDeg + sweep - (18f * tt);
 
-            float alpha = 0.55f * (1f - tt);
+            float alpha = (t == EntityType.ORK_GRUNT ? 0.75f : 0.55f) * (1f - tt);
             batch.setColor(1f, 1f, 1f, alpha);
 
             float tx = x + ox;
@@ -190,7 +209,8 @@ public final class EntityRenderer {
         }
 
         // Base equipped weapon/tool in hand (suppressed when facing North).
-        if (drawBaseWeapon) {
+        // For ORKs: if a swing is active, always show the club/tool even when facing North.
+        if (drawBaseWeapon || (t == EntityType.ORK_GRUNT && swinging)) {
           float tx = x + ox;
           float ty = y + oy + bob;
 

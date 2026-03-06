@@ -188,23 +188,7 @@ public final class WorldNodeSpawner {
       float wx = (p.tx + 0.5f) * World.TILE_WORLD;
       float wy = (p.ty + 0.5f) * World.TILE_WORLD;
 
-      if ("TREASURE_CHEST".equalsIgnoreCase(p.key)) {
-        // Chest: no road requirement.
-        // Requirement (FUSA): where a chest stands, there should be NO automatic road to it.
-        // The road planner only targets POIs with requiresRoad=true, and TREASURE_CHEST is configured
-        // with requiresRoad=false + connectRadius=0 in assets/config/biomes.json.
-        // As an extra guardrail, we also avoid placing the chest on an already-generated road tile.
-        int lidx = (p.tx - baseTx) + (p.ty - baseTy) * World.CHUNK_SIZE;
-        boolean onRoad = (lidx >= 0 && lidx < layers.roadMask.length && layers.roadMask[lidx] != 0);
-        if (!onRoad) {
-          if (!hasNearbyAny(es, wx, wy, 24f, EntityType.BUILD_CHEST)) {
-            es.spawn(EntityType.BUILD_CHEST, wx, wy);
-          }
-        }
-      } else if ("OLD_MINE".equalsIgnoreCase(p.key)) {
-        // Mine: spawn a small ore/rock cluster plus a chest.
-        spawnMineCluster(es, nodes, p.tx, p.ty);
-      }
+      // POIs are no longer spawned from biome templates (FUSA Story: authored per-area).
     }
 
     return true;

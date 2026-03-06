@@ -30,6 +30,7 @@ public final class EntityRegions {
   private final TextureRegion nodeFishSpot;
 
   private final TextureRegion buildChest;
+  private final TextureRegion poiChestHidden;
   private final TextureRegion buildWorkbench;
   private final TextureRegion buildBed;
   private final TextureRegion buildCampfire;
@@ -62,6 +63,7 @@ public final class EntityRegions {
     // NOTE: build_chest.png is reserved for the multiplayer POI chest (server-spawned).
     // Player-buildable chest must never use that sprite.
     buildChest = reqStatic("build_crate_small");
+    poiChestHidden = reqStatic("Hidden_Chest");
     buildWorkbench = reqStatic("build_workbench");
     buildBed = reqStatic("build_bed");
     buildCampfire = reqStatic("build_campfire");
@@ -185,6 +187,7 @@ public final class EntityRegions {
       case NODE_FISH_SPOT -> nodeFishSpot;
 
       case BUILD_CHEST -> buildChest;
+      case POI_CHEST_HIDDEN -> poiChestHidden;
       case BUILD_WORKBENCH -> buildWorkbench;
       case BUILD_BED -> buildBed;
       case BUILD_CAMPFIRE ->

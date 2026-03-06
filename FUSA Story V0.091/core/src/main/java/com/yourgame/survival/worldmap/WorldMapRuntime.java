@@ -23,7 +23,7 @@ public final class WorldMapRuntime {
   public static final String T_HOME = "HOME";
   public static final String T_GRASS = "GEN_GRASSLAND";
   public static final String T_ROCKY = "GEN_ROCKY_FIELDS";
-  public static final String T_FOREST = "GEN_LIGHT_FOREST";
+  public static final String T_FOREST = "FOREST_01";
 
   private final AreaTemplateRegistry reg;
 
@@ -64,7 +64,7 @@ public final class WorldMapRuntime {
         .exit(new ExitSocket(Dir4.S, "field", true, false))
         .exit(new ExitSocket(Dir4.W, "field", true, false)));
 
-    r.register(new AreaTemplate(T_FOREST, "Light forest", true)
+    r.register(new AreaTemplate(T_FOREST, "Forest #1", true)
         .exit(new ExitSocket(Dir4.N, "field", true, false))
         .exit(new ExitSocket(Dir4.E, "field", true, false))
         .exit(new ExitSocket(Dir4.S, "field", true, false))

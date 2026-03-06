@@ -1161,11 +1161,51 @@ public final class GameScreen extends ScreenAdapter {
     // - We do NOT attempt to auto-travel/switch tilemaps yet; this is only the persistence + rules layer.
     worldMapRt.bootstrapIfEmpty(worldMap);
 
+    // FUSA Story: start a NEW game in the authored Forest area (keep HOME; only move spawn/current area).
+    // Guardrail: do not override existing savegames that already discovered/traveled.
+    if (AREA_MODE) {
+      try {
+        boolean looksNew = false;
+        if (worldMap != null) {
+          // After bootstrap, a fresh save has exactly one known area: HOME at (0,0), and current is HOME.
+          looksNew = (worldMap.knownAreas.size() == 1)
+              && "HOME".equals(worldMap.curTemplateId)
+              && worldMap.knownAreas.containsKey(new com.yourgame.survival.worldmap.AreaCoord(0, 0));
+        }
+
+        if (looksNew) {
+          // Put FOREST_01 one step north of HOME.
+          int fax = 0;
+          int fay = 1;
+          String ftid = com.yourgame.survival.worldmap.WorldMapRuntime.T_FOREST;
+
+          worldMap.knownAreas.put(new com.yourgame.survival.worldmap.AreaCoord(fax, fay), ftid);
+          worldMap.setCurrent(fax, fay, ftid);
+
+          // Add connectivity edge (optional UI).
+          worldMap.edges.add(new com.yourgame.survival.worldmap.WorldMapState.Edge(0, 0, fax, fay, "road"));
+
+          // Ensure exits exist for both.
+          com.yourgame.survival.worldmap.AreaCoord h0 = new com.yourgame.survival.worldmap.AreaCoord(0, 0);
+          if (!worldMap.exitsByArea.containsKey(h0)) {
+            worldMap.exitsByArea.put(h0, new com.yourgame.survival.worldmap.WorldMapState.AreaExits(true, true, true, true));
+          }
+          com.yourgame.survival.worldmap.AreaCoord f0 = new com.yourgame.survival.worldmap.AreaCoord(fax, fay);
+          if (!worldMap.exitsByArea.containsKey(f0)) {
+            worldMap.exitsByArea.put(f0, new com.yourgame.survival.worldmap.WorldMapState.AreaExits(true, true, true, true));
+          }
+
+          // Recompute frontier so UI is consistent.
+          worldMapRt.rebuildFrontier(worldMap);
+        }
+      } catch (Throwable ignored) {}
+    }
+
     // FUSA Areas-only mode: load the current area into the world BEFORE spawning the player.
     // This prevents any background biome/procedural world from being used as the visible world.
     if (AREA_MODE) {
       try {
-        // Ensure alpha exits exist for HOME (currently every side is an exit).
+        // Ensure alpha exits exist for current (currently every side is an exit).
         com.yourgame.survival.worldmap.AreaCoord c0 = new com.yourgame.survival.worldmap.AreaCoord(worldMap.curAx, worldMap.curAy);
         if (!worldMap.exitsByArea.containsKey(c0)) {
           worldMap.exitsByArea.put(c0, new com.yourgame.survival.worldmap.WorldMapState.AreaExits(true, true, true, true));
@@ -1765,6 +1805,24 @@ public final class GameScreen extends ScreenAdapter {
             if (ht != null && ht.event() != null) {
               var ev = ht.event();
               entities.spawnDrop(ev.dropItemId(), ev.dropAmount(), ev.x(), ev.y());
+
+              // FUSA Story: dense tile-trees must not respawn once cut.
+              try {
+                if (AREA_MODE && areaTreePresentBits != null && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+                  EntityType htType = ev.harvestedType();
+                  if (htType == EntityType.NODE_TREE) {
+                    int tx = (int) Math.floor(ev.x() / World.TILE_WORLD);
+                    int ty = (int) Math.floor(ev.y() / World.TILE_WORLD);
+                    if (tx >= 0 && ty >= 0 && tx < areaTreeW && ty < areaTreeH) {
+                      int bit = bitIndex(tx, ty, areaTreeW);
+                      if (bitGet(areaTreePresentBits, bit)) {
+                        bitSet(areaTreeCutBits, bit, true);
+                      }
+                    }
+                  }
+                }
+              } catch (Throwable ignored) {}
+
               game.audio.sfx("audio/sfx/pickup.wav", game.audio.sfxVolume(game.settings));
             }
           }
@@ -3423,6 +3481,232 @@ public final class GameScreen extends ScreenAdapter {
 
     // Areas-only: procedural encounter respawn removed.
     // TODO (story): spawn encounters via area templates or scripted events.
+
+    // Authored enemy zones (FUSA Story)
+    areaEnemyZonesTick(dt);
+
+    // Authored tile-tree streaming (FUSA Story)
+    areaTileTreesTick(dt);
+  }
+
+  private void areaEnemyZonesTick(float dt) {
+    if (enemyZones.size == 0) return;
+
+    final float tw = World.TILE_WORLD;
+
+    for (int zi = 0; zi < enemyZones.size; zi++) {
+      EnemyZone z = enemyZones.get(zi);
+      if (z == null) continue;
+
+      // Count orks currently inside (loose: within radius+2 tiles)
+      float cx = (z.cxTile + 0.5f) * tw;
+      float cy = (z.cyTile + 0.5f) * tw;
+      float rr = (z.rTiles + 2.0f) * tw;
+      float rr2 = rr * rr;
+
+      int count = 0;
+      for (int e = 0; e < Entities.MAX; e++) {
+        if (!entities.alive[e]) continue;
+        if (entities.type[e] != EntityType.ORK_GRUNT) continue;
+        float dx = entities.x[e] - cx;
+        float dy = entities.y[e] - cy;
+        if (dx * dx + dy * dy <= rr2) count++;
+      }
+
+      if (dayIndex < z.nextRespawnDayIndex) {
+        // Also keep orks pulled inside the zone boundary.
+        clampOrksTowardZone(cx, cy, z.rTiles * tw);
+        continue;
+      }
+
+      int want = Math.max(0, z.targetCount - count);
+      if (want <= 0) {
+        clampOrksTowardZone(cx, cy, z.rTiles * tw);
+        continue;
+      }
+
+      java.util.Random r = new java.util.Random(z.seed ^ (long) dayIndex * 0xD1B54A32D192ED03L);
+
+      // Spawn missing orks.
+      for (int k = 0; k < want; k++) {
+        // random point in circle
+        float ang = (float) (r.nextFloat() * Math.PI * 2.0);
+        float rad = (float) Math.sqrt(r.nextFloat()) * (z.rTiles * tw * 0.88f);
+        float wx = cx + (float) Math.cos(ang) * rad;
+        float wy = cy + (float) Math.sin(ang) * rad;
+
+        // Skip if blocked/water.
+        if (world.isWaterAtWorldPeek(wx, wy, true)) continue;
+        if (world.isBlockedAtWorldPeek(wx, wy, true)) continue;
+
+        entities.spawn(EntityType.ORK_GRUNT, wx, wy);
+      }
+
+      // Schedule next respawn window: 1..2 days (random)
+      int daysSpan = z.respawnDaysMin + (z.respawnDaysMax > z.respawnDaysMin ? r.nextInt(z.respawnDaysMax - z.respawnDaysMin + 1) : 0);
+      z.nextRespawnDayIndex = dayIndex + Math.max(1, daysSpan);
+
+      clampOrksTowardZone(cx, cy, z.rTiles * tw);
+    }
+  }
+
+  private void clampOrksTowardZone(float cx, float cy, float r) {
+    if (r <= 1e-3f) return;
+    float pullR = r * 1.06f;
+    float pullR2 = pullR * pullR;
+
+    for (int e = 0; e < Entities.MAX; e++) {
+      if (!entities.alive[e]) continue;
+      if (entities.type[e] != EntityType.ORK_GRUNT) continue;
+
+      float dx = entities.x[e] - cx;
+      float dy = entities.y[e] - cy;
+      float d2 = dx * dx + dy * dy;
+
+      if (d2 <= pullR2) continue;
+
+      // If the orc is currently alert/chasing the player, do NOT override its AI velocity.
+      // Requirement: stop wandering/clamping while chasing; resume wandering when shaken off.
+      if (entities.aiF1[e] > 0.15f) continue;
+
+      float inv = 1.0f / (float) Math.sqrt(Math.max(1e-6f, d2));
+      float vx = -dx * inv;
+      float vy = -dy * inv;
+
+      // Force a gentle pull back inside the zone.
+      float spd = 60f;
+      entities.vx[e] = vx * spd;
+      entities.vy[e] = vy * spd;
+      entities.rot[e] = (float) Math.atan2(entities.vy[e], entities.vx[e]);
+    }
+  }
+
+  /**
+   * Streams tree/stump entities based on a tile-level presence mask.
+   * This allows ultra-dense forests without exceeding Entities.MAX.
+   */
+  private void areaTileTreesTick(float dt) {
+    if (!AREA_MODE) return;
+    if (areaTreePresentBits == null || areaTreeCutBits == null) {
+      areaDebugToastOnce("TileTrees tick: missing bits (present=" + (areaTreePresentBits != null) + ", cut=" + (areaTreeCutBits != null) + ")");
+      return;
+    }
+    if (areaTreeW <= 0 || areaTreeH <= 0) {
+      areaDebugToastOnce("TileTrees tick: invalid size w=" + areaTreeW + " h=" + areaTreeH);
+      return;
+    }
+
+    // Debug: count currently alive trees/stumps in loaded window (once).
+    int aliveTrees = 0;
+    int aliveStumps = 0;
+
+    // 1) Remove far-away streamed tree/stump entities outside the loaded chunk window.
+    for (int e = 0; e < Entities.MAX; e++) {
+      if (!entities.alive[e]) continue;
+      EntityType t = entities.type[e];
+      if (t != EntityType.NODE_TREE && t != EntityType.NODE_STUMP) continue;
+
+      int ecx = (int) Math.floor((entities.x[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
+      int ecy = (int) Math.floor((entities.y[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
+      if (ecx < loadedMinCx || ecx > loadedMaxCx || ecy < loadedMinCy || ecy > loadedMaxCy) {
+        entities.kill(e);
+      } else {
+        if (t == EntityType.NODE_TREE) aliveTrees++; else aliveStumps++;
+      }
+    }
+
+    if (!areaTreeDebugToastOnce) {
+      toast = "TileTrees: alive treeEnt=" + aliveTrees + " stumpEnt=" + aliveStumps;
+      toastT = 3.6f;
+      areaTreeDebugToastOnce = true;
+    }
+
+    // 2) For each visible tile: ensure correct entity exists (tree vs stump vs none).
+    // Limit spawn attempts per tick to avoid spikes.
+    int budget = 220;
+
+    for (int cy = loadedMinCy; cy <= loadedMaxCy; cy++) {
+      for (int cx = loadedMinCx; cx <= loadedMaxCx; cx++) {
+        com.yourgame.survival.world.Chunk c = world.chunk(cx, cy);
+        if (c == null) continue;
+
+        int baseTx = cx * World.CHUNK_SIZE;
+        int baseTy = cy * World.CHUNK_SIZE;
+
+        for (int ly = 0; ly < World.CHUNK_SIZE; ly++) {
+          int ty = baseTy + ly;
+          if (ty < 0 || ty >= areaTreeH) continue;
+          for (int lx = 0; lx < World.CHUNK_SIZE; lx++) {
+            int tx = baseTx + lx;
+            if (tx < 0 || tx >= areaTreeW) continue;
+
+            int bit = bitIndex(tx, ty, areaTreeW);
+            boolean present = bitGet(areaTreePresentBits, bit);
+            if (!present) continue;
+
+            // Road/water tiles must stay tree-free.
+            int idx = lx + ly * World.CHUNK_SIZE;
+            if (c.layers.roadMask[idx] != 0) {
+              // Ensure we don't accidentally leave a blocking tile behind.
+              c.layers.collisionMask[idx] = 0;
+              continue;
+            }
+            if (c.layers.waterMask[idx] != 0) {
+              c.layers.collisionMask[idx] = 0;
+              continue;
+            }
+
+            boolean cut = bitGet(areaTreeCutBits, bit);
+            EntityType want = cut ? EntityType.NODE_STUMP : EntityType.NODE_TREE;
+
+            // Collision policy (FUSA):
+            // - Tree blocks movement.
+            // - Stump blocks lightly => we implement as NOT blocking (tile collision is binary).
+            c.layers.collisionMask[idx] = (byte) (cut ? 0 : 1);
+
+            // IMPORTANT: node sprites are drawn centered, but their "foot" must sit on the tile.
+            // Anchor Y so the visible trunk/base is on the ground (prevents "under the ground" look).
+            // Tree: bottom+14 should land on tile bottom => y = ty*T + (H/2 - 14) = ty*16 + 34
+            // Stump: bottom+10 should land on tile bottom => y = ty*16 + (H/2 - 10) ~= ty*16 + 2
+            float wx = (tx + 0.5f) * World.TILE_WORLD;
+            float wy = ty * World.TILE_WORLD + (cut ? 2.0f : 34.0f);
+
+            // Check if an entity already exists at this tile.
+            boolean exists = false;
+            for (int e = 0; e < Entities.MAX; e++) {
+              if (!entities.alive[e]) continue;
+              if (entities.type[e] != want) continue;
+              float dx = entities.x[e] - wx;
+              float dy = entities.y[e] - wy;
+              if (dx * dx + dy * dy <= 2.5f * 2.5f) { exists = true; break; }
+            }
+
+            if (!exists) {
+              // Also remove the opposite kind if it exists (e.g. stale tree after cut).
+              for (int e = 0; e < Entities.MAX; e++) {
+                if (!entities.alive[e]) continue;
+                EntityType ot = entities.type[e];
+                if (ot != EntityType.NODE_TREE && ot != EntityType.NODE_STUMP) continue;
+                float dx = entities.x[e] - wx;
+                float dy = entities.y[e] - wy;
+                if (dx * dx + dy * dy <= 2.5f * 2.5f) {
+                  if (ot != want) entities.kill(e);
+                }
+              }
+
+              entities.spawn(want, wx, wy);
+              if (!areaTreeDebugToastOnce) {
+                toast = "TileTrees: spawned first " + want.name() + " @(" + tx + "," + ty + ")";
+                toastT = 4.0f;
+                areaTreeDebugToastOnce = true;
+              }
+              budget--;
+              if (budget <= 0) return;
+            }
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -3549,7 +3833,7 @@ public final class GameScreen extends ScreenAdapter {
     for (int i = 0; i < Entities.MAX; i++) {
       if (!entities.alive[i]) continue;
       EntityType t = entities.type[i];
-      boolean ok = (t == EntityType.MERCHANT_ELF || t == EntityType.MERCHANT_WANDERING || t == EntityType.BUILD_CHEST || t == EntityType.ITEM_DROP);
+      boolean ok = (t == EntityType.MERCHANT_ELF || t == EntityType.MERCHANT_WANDERING || t == EntityType.BUILD_CHEST || t == EntityType.POI_CHEST_HIDDEN || t == EntityType.ITEM_DROP);
       if (!ok) continue;
 
       // Must be clickable on silhouette
@@ -3577,13 +3861,17 @@ public final class GameScreen extends ScreenAdapter {
     if (best < 0) return false;
 
     EntityType bt = entities.type[best];
-    if (bt == EntityType.BUILD_CHEST) {
+    if (bt == EntityType.BUILD_CHEST || bt == EntityType.POI_CHEST_HIDDEN) {
       openChestE = best;
       shopOpen = false;
       craftOpen = false;
       invOpen = false;
       buildMode = false;
       game.audio.sfx("audio/sfx/open_chest.wav", game.audio.sfxVolume(game.settings));
+      if (bt == EntityType.POI_CHEST_HIDDEN) {
+        toast = "Hidden Chest gefunden";
+        toastT = 15f;
+      }
       return true;
     }
 
@@ -3700,7 +3988,7 @@ public final class GameScreen extends ScreenAdapter {
     float r2 = r * r;
     for (int i=0;i<Entities.MAX;i++) {
       if (!entities.alive[i]) continue;
-      if (entities.type[i] != EntityType.BUILD_CHEST) continue;
+      if (entities.type[i] != EntityType.BUILD_CHEST && entities.type[i] != EntityType.POI_CHEST_HIDDEN) continue;
       float dx = entities.x[i] - px;
       float dy = entities.y[i] - py;
       if (dx*dx + dy*dy <= r2) {
@@ -3710,6 +3998,10 @@ public final class GameScreen extends ScreenAdapter {
         invOpen = false;
         buildMode = false;
         game.audio.sfx("audio/sfx/open_chest.wav", game.audio.sfxVolume(game.settings));
+        if (entities.type[i] == EntityType.POI_CHEST_HIDDEN) {
+          toast = "Hidden Chest gefunden";
+          toastT = 15f;
+        }
         return true;
       }
     }
@@ -3975,10 +4267,26 @@ private static float uiMouseYUp() {
 
   int e = pickEntityNear(mouseWorldX, mouseWorldY);
 
-  StringBuilder sb = new StringBuilder(128);
+  StringBuilder sb = new StringBuilder(192);
   sb.append("tile[").append(tx).append(',').append(ty).append("] biome=").append(biome);
   if (water) sb.append(" water");
   if (blocked) sb.append(" blocked");
+
+  // FUSA Story debug: show tile-tree presence/cut state at cursor.
+  if (AREA_MODE) {
+    sb.append(" | tid=").append(worldMap != null ? worldMap.curTemplateId : "");
+    if (areaTreePresentBits == null || areaTreeCutBits == null || areaTreeW <= 0 || areaTreeH <= 0) {
+      sb.append(" | tileTrees=OFF");
+    } else if (tx >= 0 && ty >= 0 && tx < areaTreeW && ty < areaTreeH) {
+      int bit = bitIndex(tx, ty, areaTreeW);
+      boolean presentT = bitGet(areaTreePresentBits, bit);
+      boolean cutT = bitGet(areaTreeCutBits, bit);
+      if (presentT) sb.append(cutT ? " | tree=STUMP" : " | tree=TREE");
+      else sb.append(" | tree=none");
+    } else {
+      sb.append(" | tree=oob");
+    }
+  }
 
   if (e >= 0) {
     sb.append("  |  e=").append(e).append(" ").append(entities.type[e]);
@@ -5297,9 +5605,10 @@ private void craftByOutput(int outItemId) {
     if (shift) amount = 10;
     if (ctrl) amount = 100;
 
-    // Three tracked resources: Wood(0), Stone(1), Coins(31)
-    int[] ids = {0, 1, 31};
-    String[] labels = {"Wood", "Stone", "Coins"};
+    // Tracked resources/items for chests (includes POI Hidden Chest loot).
+    // NOTE: kept fixed for UI simplicity (no scroll list yet).
+    int[] ids = {0, 1, 2, 47, 31, 33, 20};
+    String[] labels = {"Wood", "Stone", "Iron", "Arrows", "Copper", "Gold", "Sword"};
 
     float slot = 96f;
     float pad = 18f;
@@ -5375,6 +5684,26 @@ private void craftByOutput(int outItemId) {
             game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
           }
         }
+      }
+    }
+
+    // POI Hidden Chest: if empty after transfers, remove permanently.
+    if (openChestE >= 0 && entities.alive[openChestE] && entities.type[openChestE] == EntityType.POI_CHEST_HIDDEN) {
+      boolean empty = true;
+      for (int id = 0; id < chest.countsById.length; id++) {
+        if (chest.countsById[id] > 0) { empty = false; break; }
+      }
+      if (empty) {
+        // Mark consumed and remove the entity so it never comes back.
+        String tid = (worldMap != null) ? worldMap.curTemplateId : "";
+        int tx = (int) Math.floor(entities.x[openChestE] / World.TILE_WORLD);
+        int ty = (int) Math.floor(entities.y[openChestE] / World.TILE_WORLD);
+        String key = tid + "|HIDDEN_CHEST|" + tx + "|" + ty;
+        if (worldMap != null) worldMap.consumedPois.add(key);
+        entities.kill(openChestE);
+        openChestE = -1;
+        toast = "Die Truhe verschwindet...";
+        toastT = 15f;
       }
     }
   }
@@ -5668,6 +5997,15 @@ private void craftByOutput(int outItemId) {
 
       st.leftDayIndex = dayIndex;
       st.leftDayT = dayNight.t;
+
+      // Persist tile-tree cuts (so harvested trees do not respawn).
+      try {
+        if (AREA_MODE && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+          st.treeCutW = areaTreeW;
+          st.treeCutH = areaTreeH;
+          st.treeCutB64 = java.util.Base64.getEncoder().encodeToString(areaTreeCutBits);
+        }
+      } catch (Throwable ignored2) {}
 
       worldMap.areaStates.put(c, st);
     } catch (Throwable ignored) {}
@@ -6372,6 +6710,121 @@ private void craftByOutput(int outItemId) {
     return entities;
   }
 
+  /** @return persistent WorldMapState (per-save) used for one-time POIs and authored node removals. */
+  public com.yourgame.survival.worldmap.WorldMapState areaWorldMapState() {
+    return worldMap;
+  }
+
+  /** @return chest store used by both build-chests and POI chests. */
+  public com.yourgame.survival.data.ChestStore areaChestStore() {
+    return chestStore;
+  }
+
+  // ============================================================
+  // Authored enemy zones (FUSA Story)
+  // ============================================================
+
+  private static final class EnemyZone {
+    int cxTile;
+    int cyTile;
+    int rTiles;
+    int targetMin;
+    int targetMax;
+    int respawnDaysMin;
+    int respawnDaysMax;
+
+    int targetCount;
+    int nextRespawnDayIndex;
+
+    long seed;
+  }
+
+  private final com.badlogic.gdx.utils.Array<EnemyZone> enemyZones = new com.badlogic.gdx.utils.Array<>(8);
+
+  // ============================================================
+  // Authored tile-tree field (FUSA Story)
+  // ============================================================
+
+  // Presence mask: 1 bit per tile (384*384 bits => 18432 bytes). Generated deterministically on area load.
+  private byte[] areaTreePresentBits = null;
+  // Cut mask: 1 bit per tile. Persisted per-area state (so trees don't come back after save/load).
+  private byte[] areaTreeCutBits = null;
+  private int areaTreeW = 0;
+  private int areaTreeH = 0;
+  private boolean areaTreeDebugToastOnce = false;
+  private boolean areaTreeInitToastOnce = false;
+
+  public void areaSetTreePresentBits(int wTiles, int hTiles, byte[] bits) {
+    this.areaTreeW = Math.max(0, wTiles);
+    this.areaTreeH = Math.max(0, hTiles);
+    this.areaTreePresentBits = bits;
+    this.areaTreeDebugToastOnce = false;
+  }
+
+  public void areaSetTreeCutBits(int wTiles, int hTiles, byte[] bits) {
+    this.areaTreeW = Math.max(0, wTiles);
+    this.areaTreeH = Math.max(0, hTiles);
+    this.areaTreeCutBits = bits;
+  }
+
+  // One-shot debug toast helper for diagnosing area load/spawn issues.
+  public void areaDebugToastOnce(String msg) {
+    if (msg == null || msg.isEmpty()) return;
+    if (areaTreeInitToastOnce) return;
+    toast = msg;
+    toastT = 6.0f;
+    areaTreeInitToastOnce = true;
+  }
+
+  private static int bitIndex(int tx, int ty, int wTiles) {
+    return tx + ty * wTiles;
+  }
+
+  private static boolean bitGet(byte[] bits, int bit) {
+    if (bits == null || bit < 0) return false;
+    int i = bit >>> 3;
+    if (i < 0 || i >= bits.length) return false;
+    int m = 1 << (bit & 7);
+    return (bits[i] & m) != 0;
+  }
+
+  private static void bitSet(byte[] bits, int bit, boolean on) {
+    if (bits == null || bit < 0) return;
+    int i = bit >>> 3;
+    if (i < 0 || i >= bits.length) return;
+    int m = 1 << (bit & 7);
+    if (on) bits[i] = (byte) (bits[i] | m);
+    else bits[i] = (byte) (bits[i] & ~m);
+  }
+
+  public void areaClearEnemyZones() {
+    enemyZones.clear();
+  }
+
+  public void areaAddEnemyZone(int cxTile, int cyTile, int rTiles, int min, int max, int respawnDaysMin, int respawnDaysMax) {
+    EnemyZone z = new EnemyZone();
+    z.cxTile = cxTile;
+    z.cyTile = cyTile;
+    z.rTiles = Math.max(1, rTiles);
+    z.targetMin = Math.max(0, min);
+    z.targetMax = Math.max(z.targetMin, max);
+    z.respawnDaysMin = Math.max(1, respawnDaysMin);
+    z.respawnDaysMax = Math.max(z.respawnDaysMin, respawnDaysMax);
+
+    // Deterministic per-zone seed
+    long s = worldSeed;
+    s ^= (long) cxTile * 0x9E3779B97F4A7C15L;
+    s ^= (long) cyTile * 0xC2B2AE3D27D4EB4FL;
+    s ^= (long) z.rTiles * 0x165667B19E3779F9L;
+    z.seed = s;
+
+    java.util.Random r = new java.util.Random(z.seed ^ 0xA11CE55EL);
+    z.targetCount = z.targetMin + (z.targetMax > z.targetMin ? r.nextInt(z.targetMax - z.targetMin + 1) : 0);
+    z.nextRespawnDayIndex = dayIndex; // allow spawn immediately
+
+    enemyZones.add(z);
+  }
+
   /**
    * Resets the World instance to a clean state using the provided seed.
    *
@@ -6405,7 +6858,8 @@ private void craftByOutput(int outItemId) {
           || t == com.yourgame.survival.entity.EntityType.BUILD_WORKBENCH
           || t == com.yourgame.survival.entity.EntityType.BUILD_BED
           || t == com.yourgame.survival.entity.EntityType.BUILD_CAMPFIRE
-          || t == com.yourgame.survival.entity.EntityType.BUILD_LAMP) {
+          || t == com.yourgame.survival.entity.EntityType.BUILD_LAMP
+          || t == com.yourgame.survival.entity.EntityType.POI_CHEST_HIDDEN) {
         continue;
       }
 
@@ -6466,6 +6920,8 @@ private void craftByOutput(int outItemId) {
       worldMap.edges.clear();
       worldMap.exitsByArea.clear();
       worldMap.areaStates.clear();
+      worldMap.consumedPois.clear();
+      worldMap.removedAuthoredNodes.clear();
       worldMap.setCurrent(0, 0, "");
     } catch (Throwable ignored) {}
 

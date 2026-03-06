@@ -458,11 +458,7 @@ d.edgeWidthTiles = 6;
         }
       }
 
-      // POI templates
-      if (b == Biome.MOUNTAIN || b == Biome.VOLCANIC || b == Biome.ASHFIELD) {
-        d.poiTemplates.add(new PoiTemplate("OLD_MINE", 0.35f, 0, 1, true, "service", 28));
-      }
-      d.poiTemplates.add(new PoiTemplate("TREASURE_CHEST", 0.65f, 0, 2, false, "none", 0));
+      // POI templates are authored per-area (FUSA Story).
 
       return d;
     }
@@ -668,11 +664,11 @@ d.edgeWidthTiles = 6;
         }
       }
 
-      // Fail-safe: if lists empty, add defaults so biomes are not barren.
-      if (d.spawnRules.isEmpty() && d.poiTemplates.isEmpty()) {
+      // Fail-safe: if spawnRules empty, add defaults so biomes are not barren.
+      // NOTE (FUSA): POIs are now authored per-area; do NOT auto-inject default POI templates here.
+      if (d.spawnRules.isEmpty()) {
         BiomeDef def = defaultsFor(biome);
         d.spawnRules.addAll(def.spawnRules);
-        d.poiTemplates.addAll(def.poiTemplates);
       }
 
       // Derive node stamp rules into spawn rules (MASK:<name>). Remove previously derived ones first.

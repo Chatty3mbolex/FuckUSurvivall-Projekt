@@ -58,23 +58,141 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
       applyWater(gs.areaWorld(), w, h, water);
     }
 
-    // 5) Spawn area-local content.
+    // Optional: authored road mask layer.
+    JsonValue road = root.get("layers") != null ? root.get("layers").get("road") : null;
+    if (road != null) {
+      applyRoad(gs.areaWorld(), w, h, road);
+    }
+
+    // 5) Spawn area-local content (legacy procedural fillers).
+    // NOTE (FUSA Story): authored templates like FOREST_01 must not spawn random filler here.
     if (WorldMapRuntime.T_HOME.equals(templateId)) {
       beautifyHome(gs, w, h, areaSeed);
     }
-    if (WorldMapRuntime.T_FOREST.equals(templateId)) {
+    // Legacy generator template (random filler). Must NOT run for authored FOREST_01.
+    if ("GEN_LIGHT_FOREST".equals(templateId)) {
       spawnForestTreesAndDeer(gs, w, h, areaSeed);
     }
 
-    // 6) Move player to spawn marker (if present).
+    // 6) Apply authored markers: playerSpawn, nodes, enemy zones, POIs.
     JsonValue markers = root.get("markers");
     if (markers != null) {
+      // Enemy zones
+      gs.areaClearEnemyZones();
+      JsonValue ez = markers.get("enemyZones");
+      if (ez != null) {
+        for (JsonValue z = ez.child; z != null; z = z.next) {
+          int cx = z.getInt("cx", -1);
+          int cy = z.getInt("cy", -1);
+          int r = z.getInt("r", 0);
+          int min = z.getInt("min", 0);
+          int max = z.getInt("max", 0);
+          int dmin = z.getInt("respawnDaysMin", 1);
+          int dmax = z.getInt("respawnDaysMax", 2);
+          if (cx < 0 || cy < 0 || r <= 0) continue;
+          gs.areaAddEnemyZone(cx, cy, r, min, max, dmin, dmax);
+        }
+      }
+
+      // Authored nodes (non-tree). Trees are streamed from a dense tile mask.
+      JsonValue ns = markers.get("nodes");
+      if (ns != null) {
+        Entities es = gs.areaEntities();
+        var wm = gs.areaWorldMapState();
+        for (JsonValue n = ns.child; n != null; n = n.next) {
+          String tn = n.getString("t", "");
+          int tx = n.getInt("x", -1);
+          int ty = n.getInt("y", -1);
+          if (tx < 0 || ty < 0) continue;
+          EntityType t;
+          try { t = EntityType.valueOf(tn); } catch (Throwable ignored) { continue; }
+          if (t == EntityType.NODE_TREE) continue;
+
+          String key = templateId + "|" + t.name() + "|" + tx + "|" + ty;
+          if (wm != null && wm.removedAuthoredNodes.contains(key)) continue;
+          float wx = (tx + 0.5f) * World.TILE_WORLD;
+          float wy = (ty + 0.5f) * World.TILE_WORLD;
+          es.spawn(t, wx, wy);
+        }
+      }
+
+      // Dense tile-trees (60% coverage) for FOREST_01.
+      if ("FOREST_01".equalsIgnoreCase(templateId)) {
+        byte[] present = buildForest01TreePresence(gs.areaWorld(), w, h, areaSeed);
+        gs.areaSetTreePresentBits(w, h, present);
+
+        // DEBUG: report presence bit count once.
+        try {
+          int set = 0;
+          if (present != null) {
+            for (int i = 0; i < present.length; i++) set += Integer.bitCount(present[i] & 0xFF);
+          }
+          gs.areaDebugToastOnce("TileTrees init: presentBits=" + set + "/" + (w * h) + " templateId=" + templateId);
+        } catch (Throwable ignored) {}
+
+        // Load (or init) cut mask from per-area state.
+        byte[] cut = loadOrInitTreeCutBits(gs, w, h);
+        gs.areaSetTreeCutBits(w, h, cut);
+
+        try {
+          int set2 = 0;
+          if (cut != null) {
+            for (int i = 0; i < cut.length; i++) set2 += Integer.bitCount(cut[i] & 0xFF);
+          }
+          gs.areaDebugToastOnce("TileTrees init: cutBits=" + set2);
+        } catch (Throwable ignored) {}
+      }
+
+      // POIs
+      JsonValue pois = markers.get("poi");
+      if (pois != null) {
+        Entities es = gs.areaEntities();
+        var wm = gs.areaWorldMapState();
+        for (JsonValue p = pois.child; p != null; p = p.next) {
+          String kind = p.getString("kind", "");
+          int tx = p.getInt("x", -1);
+          int ty = p.getInt("y", -1);
+          if (tx < 0 || ty < 0) continue;
+
+          String poiKey = templateId + "|" + kind + "|" + tx + "|" + ty;
+          if (wm != null && wm.consumedPois.contains(poiKey)) continue;
+
+          if ("HIDDEN_CHEST".equalsIgnoreCase(kind)) {
+            float wx = (tx + 0.5f) * World.TILE_WORLD;
+            float wy = (ty + 0.5f) * World.TILE_WORLD;
+
+            // If a persistent POI chest already exists (from save snapshot), do not duplicate.
+            boolean exists = false;
+            for (int i = 0; i < Entities.MAX; i++) {
+              if (!es.alive[i]) continue;
+              if (es.type[i] != EntityType.POI_CHEST_HIDDEN) continue;
+              float dx = es.x[i] - wx;
+              float dy = es.y[i] - wy;
+              if (dx * dx + dy * dy <= (24f * 24f)) { exists = true; break; }
+            }
+
+            if (!exists) {
+              int e = es.spawn(EntityType.POI_CHEST_HIDDEN, wx, wy);
+              if (e >= 0) {
+                int idx = gs.areaChestStore().createChest();
+                es.data0[e] = idx;
+                fillHiddenChestLoot(gs, templateId, areaSeed, tx, ty, idx);
+              }
+            }
+          }
+        }
+      }
+
+      // Player spawn last (so entities exist when we place player, if needed)
       JsonValue sp = markers.get("playerSpawn");
       if (sp != null) {
         int tx = sp.getInt("x", 64);
         int ty = sp.getInt("y", 64);
         gs.areaSetPlayerWorldPos((tx + 0.5f) * World.TILE_WORLD, (ty + 0.5f) * World.TILE_WORLD);
       }
+    } else {
+      // Markers absent: clear zones to avoid leaking previous area state.
+      gs.areaClearEnemyZones();
     }
 
     return true;
@@ -135,21 +253,51 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
             L.overlayId[idx] = 0;
             L.decoId[idx] = 0;
             L.decoVar[idx] = 0;
+
+            // FUSA Story: authored areas must not carry procedural biome/generator fields.
+            // Keep everything flat + neutral so no "mixed biomes" or jitter occurs.
+            L.biomeId[idx] = 0;
+            L.height[idx] = 0;
+            L.moisture[idx] = 0;
+            L.heat[idx] = 0;
+            L.vegetation[idx] = 0;
+            L.rockiness[idx] = 0;
+            L.pathField[idx] = 0;
+            L.heightLevel[idx] = 0;
+            L.waterDist[idx] = (byte) 255;
+
+            L.shoreMask4[idx] = 0;
+            L.roadMask4[idx] = 0;
+            L.grassCornerMask16[idx] = 0;
+            L.dirtCornerMask16[idx] = 0;
+            L.sandCornerMask16[idx] = 0;
+            L.rockCornerMask16[idx] = 0;
+            L.snowCornerMask16[idx] = 0;
           }
         }
       }
     }
 
     // 3) Apply rectangle fills.
+    // Supported formats:
+    // A) { "rect": {x,y,w,h}, "id": <tileId> }
+    // B) { "x":x, "y":y, "w":w, "h":h, "id": <tileId> }  (used by offline layout converter)
     JsonValue fills = (ground != null) ? ground.get("fills") : null;
     if (fills != null) {
       for (JsonValue f = fills.child; f != null; f = f.next) {
         JsonValue r = f.get("rect");
-        if (r == null) continue;
-        int x0 = r.getInt("x", 0);
-        int y0 = r.getInt("y", 0);
-        int w = r.getInt("w", 0);
-        int h = r.getInt("h", 0);
+        int x0, y0, w, h;
+        if (r != null) {
+          x0 = r.getInt("x", 0);
+          y0 = r.getInt("y", 0);
+          w = r.getInt("w", 0);
+          h = r.getInt("h", 0);
+        } else {
+          x0 = f.getInt("x", 0);
+          y0 = f.getInt("y", 0);
+          w = f.getInt("w", 0);
+          h = f.getInt("h", 0);
+        }
         int id = f.getInt("id", defaultId);
         fillRect(world, areaW, areaH, x0, y0, w, h, id);
       }
@@ -218,6 +366,96 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
         setWaterTile(world, areaW, areaH, x, y);
       }
     }
+  }
+
+  private static void applyRoad(World world, int areaW, int areaH, JsonValue road) {
+    if (world == null || road == null) return;
+
+    // clear existing road mask inside area
+    for (int ty = 0; ty < areaH; ty++) {
+      for (int tx = 0; tx < areaW; tx++) {
+        int cx = tx / World.CHUNK_SIZE;
+        int cy = ty / World.CHUNK_SIZE;
+        Chunk c = world.peekChunk(cx, cy);
+        if (c == null) continue;
+        int lx = tx - cx * World.CHUNK_SIZE;
+        int ly = ty - cy * World.CHUNK_SIZE;
+        int idx = lx + ly * World.CHUNK_SIZE;
+        c.layers.roadMask[idx] = 0;
+      }
+    }
+
+    JsonValue fills = road.get("fills");
+    if (fills != null) {
+      for (JsonValue f = fills.child; f != null; f = f.next) {
+        int x0 = f.getInt("x", 0);
+        int y0 = f.getInt("y", 0);
+        int w = f.getInt("w", 0);
+        int h = f.getInt("h", 0);
+        int v = f.getInt("v", 1);
+        fillRoadRect(world, areaW, areaH, x0, y0, w, h, v != 0);
+      }
+    }
+
+    JsonValue patches = road.get("patches");
+    if (patches != null) {
+      for (JsonValue p = patches.child; p != null; p = p.next) {
+        int x = p.getInt("x", 0);
+        int y = p.getInt("y", 0);
+        int v = p.getInt("v", 1);
+        setRoadTile(world, areaW, areaH, x, y, v != 0);
+      }
+    }
+  }
+
+  private static void fillRoadRect(World world, int areaW, int areaH, int x0, int y0, int w, int h, boolean on) {
+    int x1 = Math.min(areaW, x0 + Math.max(0, w));
+    int y1 = Math.min(areaH, y0 + Math.max(0, h));
+    for (int y = Math.max(0, y0); y < y1; y++) {
+      for (int x = Math.max(0, x0); x < x1; x++) {
+        setRoadTile(world, areaW, areaH, x, y, on);
+      }
+    }
+  }
+
+  private static void setRoadTile(World world, int areaW, int areaH, int tx, int ty, boolean on) {
+    if (tx < 0 || ty < 0 || tx >= areaW || ty >= areaH) return;
+    int cx = tx / World.CHUNK_SIZE;
+    int cy = ty / World.CHUNK_SIZE;
+    if (cx < 0 || cy < 0) return;
+    Chunk c = world.peekChunk(cx, cy);
+    if (c == null) return;
+    int lx = tx - cx * World.CHUNK_SIZE;
+    int ly = ty - cy * World.CHUNK_SIZE;
+    int idx = lx + ly * World.CHUNK_SIZE;
+    c.layers.roadMask[idx] = (byte) (on ? 1 : 0);
+  }
+
+  private static void fillHiddenChestLoot(GameScreen gs, String templateId, long areaSeed, int tx, int ty, int chestIdx) {
+    if (gs == null) return;
+    com.yourgame.survival.data.Inventory c = gs.areaChestStore().get(chestIdx);
+    if (c == null) return;
+
+    // Deterministic RNG: stable per save + template + tile location.
+    long seed = areaSeed ^ (long) (templateId != null ? templateId.hashCode() : 0) * 0x9E3779B97F4A7C15L;
+    seed ^= (long) tx * 0xC2B2AE3D27D4EB4FL;
+    seed ^= (long) ty * 0x165667B19E3779F9L;
+    Random r = new Random(seed);
+
+    // Always random amount (can be 0), per spec.
+    int arrows = r.nextInt(21);      // 0..20
+    int copper = r.nextInt(501);     // 0..500
+    int iron = r.nextInt(21);        // 0..20
+
+    // Very rare: 0..1
+    int gold = (r.nextFloat() < 0.03f) ? 1 : 0;
+    int sword = (r.nextFloat() < 0.02f) ? 1 : 0;
+
+    if (arrows > 0) c.add(47, arrows);
+    if (copper > 0) c.add(31, copper);
+    if (iron > 0) c.add(2, iron);
+    if (gold > 0) c.add(33, gold);
+    if (sword > 0) c.add(20, sword);
   }
 
   private static void fillWaterRect(World world, int areaW, int areaH, int x0, int y0, int w, int h) {
@@ -729,6 +967,174 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
     h = (h ^ (h >>> 33)) * 0xc4ceb9fe1a85ec53L;
     h = (h ^ (h >>> 33));
     return ((h >>> 40) & 0xFFFFFF) / (float) 0x1000000;
+  }
+
+  private static int bitIndex(int tx, int ty, int wTiles) {
+    return tx + ty * wTiles;
+  }
+
+  private static boolean bitGet(byte[] bits, int bit) {
+    if (bits == null || bit < 0) return false;
+    int i = bit >>> 3;
+    if (i < 0 || i >= bits.length) return false;
+    int m = 1 << (bit & 7);
+    return (bits[i] & m) != 0;
+  }
+
+  private static void bitSet(byte[] bits, int bit, boolean on) {
+    if (bits == null || bit < 0) return;
+    int i = bit >>> 3;
+    if (i < 0 || i >= bits.length) return;
+    int m = 1 << (bit & 7);
+    if (on) bits[i] = (byte) (bits[i] | m);
+    else bits[i] = (byte) (bits[i] & ~m);
+  }
+
+  /** Build a deterministic 60% tree presence mask for FOREST_01, excluding roads/water. */
+  private static byte[] buildForest01TreePresence(World world, int areaW, int areaH, long seed) {
+    int w = Math.max(0, areaW);
+    int h = Math.max(0, areaH);
+    int n = w * h;
+    int bytes = (n + 7) >>> 3;
+    byte[] out = new byte[bytes];
+
+    // Targets: 60% of ALL tiles (as requested), but we will not place on road/water.
+    int targetTotal = (int) Math.round(n * 0.60);
+
+    // Define 4 zones by nearest enemy-zone centers (hardcoded to the authored layout).
+    // These centers match the circles in FOREST_01.area.json.
+    int[] zcx = {279, 74, 287, 71};
+    int[] zcy = {83, 89, 290, 294};
+    int zones = 4;
+
+    // Collect candidates per zone.
+    java.util.ArrayList<int[]> cand = new java.util.ArrayList<>(zones);
+    java.util.ArrayList<long[]> keys = new java.util.ArrayList<>(zones);
+
+    int[] counts = new int[zones];
+    for (int i = 0; i < zones; i++) counts[i] = 0;
+
+    // First pass: count candidates.
+    for (int ty = 0; ty < h; ty++) {
+      for (int tx = 0; tx < w; tx++) {
+        int cx = tx / World.CHUNK_SIZE;
+        int cy = ty / World.CHUNK_SIZE;
+        // IMPORTANT: ensure chunk exists (area reset creates a clean world; chunks are created on-demand).
+        Chunk c = world.chunk(cx, cy);
+        if (c == null) continue;
+        int lx = tx - cx * World.CHUNK_SIZE;
+        int ly = ty - cy * World.CHUNK_SIZE;
+        int idx = lx + ly * World.CHUNK_SIZE;
+        if (c.layers.waterMask[idx] != 0) continue;
+        if (c.layers.roadMask[idx] != 0) continue;
+
+        // Assign to nearest zone center.
+        int best = 0;
+        int bestD2 = Integer.MAX_VALUE;
+        for (int z = 0; z < zones; z++) {
+          int dx = tx - zcx[z];
+          int dy = ty - zcy[z];
+          int d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) { bestD2 = d2; best = z; }
+        }
+        counts[best]++;
+      }
+    }
+
+    // Allocate arrays.
+    for (int z = 0; z < zones; z++) {
+      cand.add(new int[counts[z]]);
+      keys.add(new long[counts[z]]);
+      counts[z] = 0; // reuse as write cursor
+    }
+
+    // Second pass: fill arrays with hash keys for deterministic selection.
+    for (int ty = 0; ty < h; ty++) {
+      for (int tx = 0; tx < w; tx++) {
+        int cx = tx / World.CHUNK_SIZE;
+        int cy = ty / World.CHUNK_SIZE;
+        // IMPORTANT: ensure chunk exists (area reset creates a clean world; chunks are created on-demand).
+        Chunk c = world.chunk(cx, cy);
+        if (c == null) continue;
+        int lx = tx - cx * World.CHUNK_SIZE;
+        int ly = ty - cy * World.CHUNK_SIZE;
+        int idx = lx + ly * World.CHUNK_SIZE;
+        if (c.layers.waterMask[idx] != 0) continue;
+        if (c.layers.roadMask[idx] != 0) continue;
+
+        int best = 0;
+        int bestD2 = Integer.MAX_VALUE;
+        for (int z = 0; z < zones; z++) {
+          int dx = tx - zcx[z];
+          int dy = ty - zcy[z];
+          int d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) { bestD2 = d2; best = z; }
+        }
+
+        int pos = counts[best]++;
+        int tile = bitIndex(tx, ty, w);
+        cand.get(best)[pos] = tile;
+
+        // 24-bit hash + tile id packed into a long for sorting.
+        int h24 = (int) (hash01(seed ^ 0xC0FFEE1234L, tx, ty) * 16777216.0f) & 0xFFFFFF;
+        keys.get(best)[pos] = (((long) h24) << 32) | (tile & 0xFFFFFFFFL);
+      }
+    }
+
+    // Targets per zone: equal split as requested, with spillover if a zone lacks candidates.
+    int base = targetTotal / zones;
+    int rem = targetTotal - base * zones;
+    int[] want = new int[zones];
+    for (int z = 0; z < zones; z++) want[z] = base + (z < rem ? 1 : 0);
+
+    // Place trees.
+    int placed = 0;
+    for (int z = 0; z < zones; z++) {
+      long[] ks = keys.get(z);
+      java.util.Arrays.sort(ks);
+
+      int take = Math.min(want[z], ks.length);
+      for (int i = 0; i < take; i++) {
+        int tile = (int) (ks[i] & 0xFFFFFFFFL);
+        bitSet(out, tile, true);
+      }
+      placed += take;
+      want[z] -= take;
+    }
+
+    // Spillover: if we couldn't place enough in a zone (should be rare), fill from other zones.
+    if (placed < targetTotal) {
+      for (int z = 0; z < zones && placed < targetTotal; z++) {
+        long[] ks = keys.get(z);
+        for (int i = 0; i < ks.length && placed < targetTotal; i++) {
+          int tile = (int) (ks[i] & 0xFFFFFFFFL);
+          if (bitGet(out, tile)) continue;
+          bitSet(out, tile, true);
+          placed++;
+        }
+      }
+    }
+
+    return out;
+  }
+
+  private static byte[] loadOrInitTreeCutBits(GameScreen gs, int areaW, int areaH) {
+    int n = Math.max(0, areaW) * Math.max(0, areaH);
+    int bytes = (n + 7) >>> 3;
+
+    byte[] out = new byte[bytes];
+    try {
+      if (gs == null) return out;
+      var wm = gs.areaWorldMapState();
+      if (wm == null) return out;
+      com.yourgame.survival.worldmap.AreaCoord c = new com.yourgame.survival.worldmap.AreaCoord(wm.curAx, wm.curAy);
+      var st = wm.areaStates.get(c);
+      if (st == null || st.treeCutB64 == null || st.treeCutB64.isEmpty()) return out;
+      if (st.treeCutW != areaW || st.treeCutH != areaH) return out;
+      byte[] raw = java.util.Base64.getDecoder().decode(st.treeCutB64);
+      if (raw != null && raw.length == out.length) return raw;
+    } catch (Throwable ignored) {}
+    return out;
   }
 
   private static void spawnForestTreesAndDeer(GameScreen gs, int areaW, int areaH, long seed) {

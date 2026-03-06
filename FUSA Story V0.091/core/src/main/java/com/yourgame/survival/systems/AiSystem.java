@@ -570,13 +570,13 @@ public final class AiSystem {
     d = Math.atan2(Math.sin(d), Math.cos(d));
 
     // Need to exceed half-sector + extra (in radians)
-    final double hysteresis = Math.toRadians(12.0); // tuneable
+    final double hysteresis = Math.toRadians(18.0); // tuneable (higher = less jitter)
     if (Math.abs(d) <= (step * 0.5 + hysteresis)) {
       return last;
     }
 
     // 5) Accept switch and set lock.
-    lock[i] = 0.14f; // tuneable min hold seconds
+    lock[i] = 0.26f; // tuneable min hold seconds (higher = smoother facing)
     return desired;
   }
 

@@ -52,6 +52,6 @@
     {"id":34,"name":"Beeren","type":"food","stackMax":99,"value":3,"icon":"item_34","tags":["food","forage"]},
     {"id":35,"name":"Fisch","type":"food","stackMax":99,"value":5,"icon":"item_35","tags":["food","fish"]},
 
-    {"id":47,"name":"Arrow","type":"resource","stackMax":999,"value":1,"icon":"item_8","tags":["ammo","arrow"]}
+    {"id":47,"name":"Arrow","type":"resource","stackMax":999,"value":1,"icon":"item_47","tags":["ammo","arrow"]}
   ]
 }

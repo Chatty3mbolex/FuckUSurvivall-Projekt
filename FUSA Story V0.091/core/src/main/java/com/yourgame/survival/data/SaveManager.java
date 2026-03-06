@@ -92,6 +92,8 @@ public final class SaveManager {
   private static final String K_WM_W = "w";
 
   private static final String K_WM_AREA_STATES = "areaStates";
+  private static final String K_WM_CONSUMED_POIS = "consumedPois";
+  private static final String K_WM_REMOVED_AUTHORED_NODES = "removedAuthoredNodes";
   private static final String K_WM_MINI_W = "miniW";
   private static final String K_WM_MINI_H = "miniH";
   private static final String K_WM_MINI_SCALE = "miniScale";
@@ -105,6 +107,9 @@ public final class SaveManager {
 
   private static final String K_WM_LEFT_DAY_INDEX = "leftDayIndex";
   private static final String K_WM_LEFT_DAY_T = "leftDayT";
+  private static final String K_WM_TREECUT_W = "treeCutW";
+  private static final String K_WM_TREECUT_H = "treeCutH";
+  private static final String K_WM_TREECUT_B64 = "treeCutB64";
 
   public static String slotPath(int slot) {
     return "saves/slot" + slot + ".json";
@@ -265,8 +270,8 @@ public final class SaveManager {
       sb.append('"').append("itemId").append('"').append(':').append(entities.itemId[e]).append(',');
       sb.append('"').append("itemAmount").append('"').append(':').append(entities.itemAmount[e]);
 
-      // chest payload for builds
-      if (t == EntityType.BUILD_CHEST) {
+      // chest payload for chests (build + POI)
+      if (t == EntityType.BUILD_CHEST || t == EntityType.POI_CHEST_HIDDEN) {
         int idx = entities.data0[e];
         Inventory c = chestStore.get(idx);
         if (c != null) {
@@ -437,8 +442,35 @@ public final class SaveManager {
         sb.append('"').append(K_WM_FOG_B64).append('"').append(':').append('"').append(escapeJson(st.fogBitsB64)).append('"').append(',');
 
         sb.append('"').append(K_WM_LEFT_DAY_INDEX).append('"').append(':').append(st.leftDayIndex).append(',');
-        sb.append('"').append(K_WM_LEFT_DAY_T).append('"').append(':').append(st.leftDayT);
+        sb.append('"').append(K_WM_LEFT_DAY_T).append('"').append(':').append(st.leftDayT).append(',');
+
+        sb.append('"').append(K_WM_TREECUT_W).append('"').append(':').append(st.treeCutW).append(',');
+        sb.append('"').append(K_WM_TREECUT_H).append('"').append(':').append(st.treeCutH).append(',');
+        sb.append('"').append(K_WM_TREECUT_B64).append('"').append(':').append('"').append(escapeJson(st.treeCutB64)).append('"');
+
         sb.append('}');
+      }
+      sb.append(']').append(',');
+
+      // consumed POIs (v6)
+      sb.append('"').append(K_WM_CONSUMED_POIS).append('"').append(':').append('[');
+      boolean firstCP = true;
+      for (String k : worldMap.consumedPois) {
+        if (k == null) continue;
+        if (!firstCP) sb.append(',');
+        firstCP = false;
+        sb.append('"').append(escapeJson(k)).append('"');
+      }
+      sb.append(']').append(',');
+
+      // removed authored nodes (v6)
+      sb.append('"').append(K_WM_REMOVED_AUTHORED_NODES).append('"').append(':').append('[');
+      boolean firstRN = true;
+      for (String k : worldMap.removedAuthoredNodes) {
+        if (k == null) continue;
+        if (!firstRN) sb.append(',');
+        firstRN = false;
+        sb.append('"').append(escapeJson(k)).append('"');
       }
       sb.append(']');
 
@@ -605,7 +637,7 @@ public final class SaveManager {
         int itemId = b.getInt("itemId", -1);
         int itemAmount = b.getInt("itemAmount", 0);
 
-        if (t == EntityType.BUILD_CHEST) {
+        if (t == EntityType.BUILD_CHEST || t == EntityType.POI_CHEST_HIDDEN) {
           // re-allocate chest index
           d0 = chestStore.createChest();
         }
@@ -628,7 +660,7 @@ public final class SaveManager {
           entities.itemId[e] = itemId;
           entities.itemAmount[e] = itemAmount;
 
-          if (t == EntityType.BUILD_CHEST) {
+          if (t == EntityType.BUILD_CHEST || t == EntityType.POI_CHEST_HIDDEN) {
             Inventory c = chestStore.get(d0);
             com.badlogic.gdx.utils.JsonValue chest = b.get(K_CHEST);
             if (c != null && chest != null) {
@@ -653,7 +685,7 @@ public final class SaveManager {
           float rot = b.getFloat(K_ROT, 0f);
           int d0 = b.getInt(K_D0, -1);
 
-          if (t == EntityType.BUILD_CHEST) {
+          if (t == EntityType.BUILD_CHEST || t == EntityType.POI_CHEST_HIDDEN) {
             d0 = chestStore.createChest();
           }
 
@@ -662,7 +694,7 @@ public final class SaveManager {
             entities.rot[e] = rot;
             entities.data0[e] = d0;
 
-            if (t == EntityType.BUILD_CHEST) {
+            if (t == EntityType.BUILD_CHEST || t == EntityType.POI_CHEST_HIDDEN) {
               Inventory c = chestStore.get(d0);
               com.badlogic.gdx.utils.JsonValue chest = b.get(K_CHEST);
               if (c != null && chest != null) {
@@ -686,6 +718,8 @@ public final class SaveManager {
         outWorldMap.edges.clear();
         outWorldMap.exitsByArea.clear();
         outWorldMap.areaStates.clear();
+        outWorldMap.consumedPois.clear();
+        outWorldMap.removedAuthoredNodes.clear();
         outWorldMap.curAx = 0;
         outWorldMap.curAy = 0;
         outWorldMap.curTemplateId = "";
@@ -771,7 +805,30 @@ public final class SaveManager {
 
               s0.leftDayIndex = a.getInt(K_WM_LEFT_DAY_INDEX, 0);
               s0.leftDayT = a.getFloat(K_WM_LEFT_DAY_T, 0f);
+
+              s0.treeCutW = a.getInt(K_WM_TREECUT_W, 0);
+              s0.treeCutH = a.getInt(K_WM_TREECUT_H, 0);
+              s0.treeCutB64 = a.getString(K_WM_TREECUT_B64, "");
+
               outWorldMap.areaStates.put(c, s0);
+            }
+          }
+
+          // consumed POIs (v6) (optional)
+          com.badlogic.gdx.utils.JsonValue cp = wm.get(K_WM_CONSUMED_POIS);
+          if (cp != null) {
+            for (com.badlogic.gdx.utils.JsonValue k = cp.child; k != null; k = k.next) {
+              String s = k.asString();
+              if (s != null && !s.isEmpty()) outWorldMap.consumedPois.add(s);
+            }
+          }
+
+          // removed authored nodes (v6) (optional)
+          com.badlogic.gdx.utils.JsonValue ran = wm.get(K_WM_REMOVED_AUTHORED_NODES);
+          if (ran != null) {
+            for (com.badlogic.gdx.utils.JsonValue k = ran.child; k != null; k = k.next) {
+              String s = k.asString();
+              if (s != null && !s.isEmpty()) outWorldMap.removedAuthoredNodes.add(s);
             }
           }
         }

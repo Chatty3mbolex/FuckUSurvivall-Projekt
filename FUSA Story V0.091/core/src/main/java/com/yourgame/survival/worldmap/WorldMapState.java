@@ -18,6 +18,23 @@ public final class WorldMapState {
   /** Unknown but visible slots on the map (question marks). */
   public final Set<AreaCoord> frontier = new HashSet<>();
 
+  /**
+   * One-time POIs that were consumed/removed (e.g. Hidden Chest vanished after being emptied).
+   *
+   * Key format (stable string): <templateId>|<kind>|<tx>|<ty>
+   * Example: FOREST_01|HIDDEN_CHEST|302|68
+   */
+  public final Set<String> consumedPois = new HashSet<>();
+
+  /**
+   * Authored area nodes that were harvested/removed and must not respawn.
+   *
+   * We cannot reuse WorldNodes.removed globally because areas reuse the same 0..383 tile space.
+   * Key format (stable string): <templateId>|<entityType>|<tx>|<ty>
+   * Example: FOREST_01|NODE_TREE|120|55
+   */
+  public final Set<String> removedAuthoredNodes = new HashSet<>();
+
   /** Connectivity edges between areas (line on map). */
   public final ArrayList<Edge> edges = new ArrayList<>();
 
@@ -109,6 +126,11 @@ public final class WorldMapState {
     // Optional: when we left the area (day/night system)
     public int leftDayIndex;
     public float leftDayT;
+
+    // Tile-tree persistence (v6): 1 bit per tile (w*h bits), base64 of raw bytes.
+    public int treeCutW;
+    public int treeCutH;
+    public String treeCutB64;
 
     public AreaState() {}
   }

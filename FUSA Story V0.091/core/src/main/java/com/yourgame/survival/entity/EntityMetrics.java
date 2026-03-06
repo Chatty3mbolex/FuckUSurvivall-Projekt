@@ -19,7 +19,7 @@ public final class EntityMetrics {
       case NODE_BUSH -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_NODE_BUSH;
       case NODE_FISH_SPOT -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_NODE_FISH_SPOT;
 
-      case BUILD_CHEST -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_BUILD_CHEST;
+      case BUILD_CHEST, POI_CHEST_HIDDEN -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_BUILD_CHEST;
       case BUILD_WORKBENCH -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_BUILD_WORKBENCH;
       case BUILD_BED -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_BUILD_BED;
       case BUILD_CAMPFIRE -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_BUILD_CAMPFIRE;
