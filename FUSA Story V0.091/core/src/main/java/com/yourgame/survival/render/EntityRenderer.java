@@ -49,8 +49,12 @@ public final class EntityRenderer {
     for (int i = 0; i < Entities.MAX; i++) {
       if (!es.alive[i]) continue;
       if (!es.isAlwaysActive(i)) {
+        // IMPORTANT: chunk culling must use the entity's *ground contact* Y, not its sprite center.
+        // Tall sprites (trees) have yCenter well above the tile and can otherwise get mis-bucketed
+        // into the next chunk near chunk borders => invisible despite being spawned.
+        float gy = groundY(es.type[i], es.y[i]);
         int ecx = (int) Math.floor((es.x[i] / com.yourgame.survival.world.World.TILE_WORLD) / com.yourgame.survival.world.World.CHUNK_SIZE);
-        int ecy = (int) Math.floor((es.y[i] / com.yourgame.survival.world.World.TILE_WORLD) / com.yourgame.survival.world.World.CHUNK_SIZE);
+        int ecy = (int) Math.floor((gy / com.yourgame.survival.world.World.TILE_WORLD) / com.yourgame.survival.world.World.CHUNK_SIZE);
         if (ecx < minCx || ecx > maxCx || ecy < minCy || ecy > maxCy) continue;
       }
       order[n++] = i;

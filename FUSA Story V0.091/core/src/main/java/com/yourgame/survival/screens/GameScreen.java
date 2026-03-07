@@ -3606,8 +3606,21 @@ public final class GameScreen extends ScreenAdapter {
       EntityType t = entities.type[e];
       if (t != EntityType.NODE_TREE && t != EntityType.NODE_STUMP) continue;
 
+      // IMPORTANT: chunk checks must use the *ground contact* Y, not sprite center.
+      // Otherwise tall sprites (trees) can be classified into the wrong chunk near borders and get
+      // culled/killed even though the underlying tile is loaded.
+      float h = com.yourgame.survival.entity.EntityMetrics.drawH(t);
+      float bottom = entities.y[e] - h * 0.5f;
+      float gy = switch (t) {
+        case NODE_TREE -> bottom + 14f;
+        case NODE_STUMP -> bottom + 10f;
+        case NODE_BUSH -> bottom + 8f;
+        case NODE_FISH_SPOT -> bottom + 6f;
+        default -> bottom + 6f;
+      };
+
       int ecx = (int) Math.floor((entities.x[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
-      int ecy = (int) Math.floor((entities.y[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
+      int ecy = (int) Math.floor((gy / World.TILE_WORLD) / World.CHUNK_SIZE);
       if (ecx < loadedMinCx || ecx > loadedMaxCx || ecy < loadedMinCy || ecy > loadedMaxCy) {
         entities.kill(e);
       } else {
