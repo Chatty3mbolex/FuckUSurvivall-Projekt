@@ -49,8 +49,9 @@ public final class EntityRegions {
 
 	    // Log_Drop.png is packed into the static atlas via packAtlasStatic.
 
-	    // props.png regions (pixel coords in the sheet)
-	    nodeTree = new TextureRegion(propsTex, 180, 38, 154, 199);
+	    // Tree must come from the STATIC atlas (src_static/node_tree.png)
+	    // so it matches the authored art and does not change with props.png edits.
+	    nodeTree = reqStatic("node_tree");
 	    // IMPORTANT: stump must come from the STATIC atlas (src_static/node_stump.png)
 	    // so it matches the authored art and does not change with props.png edits.
 	    nodeStump = reqStatic("node_stump");
