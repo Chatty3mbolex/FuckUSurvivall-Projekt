@@ -105,6 +105,9 @@ public final class GameScreen extends ScreenAdapter {
   // Debug: show hovered IDs at cursor (toggle with F3)
   boolean debugHoverIds = true;
 
+  // Debug: make road tiles blocking so we can detect invisible roadMask areas.
+  private boolean debugRoadBlocksMovement = false;
+
   // ===== Ranged combat: Bow arrows (projectile) =====
   private static final int ARROW_MAX = 64;
   // Ammo item id (must match items.json)
@@ -1977,6 +1980,14 @@ public final class GameScreen extends ScreenAdapter {
       toastT = 2.0f;
     }
 
+    // DEBUG (Shift+Q): make ROAD tiles blocking so we can "feel" invisible roads.
+    if (Gdx.input.isKeyJustPressed(Input.Keys.Q)
+      && (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT))) {
+      debugRoadBlocksMovement = !debugRoadBlocksMovement;
+      toast = (debugRoadBlocksMovement ? "DEBUG: Road blocks movement ON" : "DEBUG: Road blocks movement OFF");
+      toastT = 2.0f;
+    }
+
     // Interact / pickup (E)
     if (!pricingOpen && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
       if (tryToggleShop()) {
@@ -3344,11 +3355,26 @@ public final class GameScreen extends ScreenAdapter {
     // - Player movement is clamped to the Area bounds (no VOID walking).
     //
     // We use *peek* queries with safe defaults.
-    final boolean coll;
+    boolean coll;
 
     // Areas-only: use *peek* queries.
     // Outside loaded chunks => defaults are NOT blocking.
     coll = world.isBlockedAtWorldPeek(nx, ny, false);
+
+    // DEBUG: optionally treat roadMask as blocking to visualize (in movement) where roads exist.
+    if (!coll && debugRoadBlocksMovement) {
+      int tx = (int) Math.floor(nx / World.TILE_WORLD);
+      int ty = (int) Math.floor(ny / World.TILE_WORLD);
+      com.yourgame.survival.world.Chunk c = world.peekChunk(tx / World.CHUNK_SIZE, ty / World.CHUNK_SIZE);
+      if (c != null && c.layers != null) {
+        int lx = tx - (tx / World.CHUNK_SIZE) * World.CHUNK_SIZE;
+        int ly = ty - (ty / World.CHUNK_SIZE) * World.CHUNK_SIZE;
+        if (lx >= 0 && ly >= 0 && lx < World.CHUNK_SIZE && ly < World.CHUNK_SIZE) {
+          int idx = lx + ly * World.CHUNK_SIZE;
+          if (c.layers.roadMask[idx] != 0) coll = true;
+        }
+      }
+    }
 
     boolean blocked = false;
     if (coll) blocked = true;
