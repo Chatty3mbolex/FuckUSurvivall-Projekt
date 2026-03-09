@@ -132,27 +132,17 @@ public final class AiSystem {
     final float dy = py - es.y[i];
     final float d2 = dx * dx + dy * dy;
 
-    // --- Idle scan (look left/right) ---
-    // Use `rot[i]` as a look-angle (radians). When the orc is idle, it slowly scans.
-    // When the player is detected, we lock the look to the target.
+    // Orc wandering (FUSA): when not engaged with the player, orks must roam inside their zone
+    // and avoid getting stuck walking "in a line" along obstacles.
+    //
+    // We reuse:
+    // - aiT   : wander direction timer
+    // - aiT2  : wander speed timer
+    // - aiF0  : wander speed
+    // (Old idle scan is removed; it conflicted with purposeful roaming.)
     final float v2 = es.vx[i] * es.vx[i] + es.vy[i] * es.vy[i];
-    if (v2 < 1e-4f) {
-      es.aiT2[i] -= dt;
-      if (es.aiT2[i] <= 0f || es.aiF0[i] == 0f) {
-        // choose a new scan omega (+/-) much less often (zäher): every ~10.9..12.4s
-        es.aiT2[i] = 10.9f + nextFloat01() * 1.5f;
-        float omega = 0.55f + nextFloat01() * 0.55f; // rad/s
-        if (nextFloat01() < 0.5f) omega = -omega;
-        es.aiF0[i] = omega;
-      }
-      es.rot[i] += es.aiF0[i] * dt;
-
-      // Keep visual facing in sync with look direction while scanning.
-      es.dir[i] = dir4FromAngle(es.rot[i]);
-    } else {
-      // Moving: look where you're going.
+    if (v2 > 1e-4f) {
       es.rot[i] = (float) Math.atan2(es.vy[i], es.vx[i]);
-      es.dir[i] = dir4FromAngle(es.rot[i]);
     }
 
     boolean see = false;
@@ -256,6 +246,41 @@ public final class AiSystem {
           desiredVy = vy * speed;
         }
       }
+    } else {
+      // --- Roam / wander ---
+      // Speed changes in a random rhythm.
+      es.aiT2[i] -= dt;
+      if (es.aiT2[i] <= 0f || es.aiF0[i] <= 0f) {
+        es.aiT2[i] = 6.0f + nextFloat01() * 18.0f; // 6..24s
+        final float minWander = 16f;
+        final float maxWander = 42f;
+        es.aiF0[i] = minWander + nextFloat01() * (maxWander - minWander);
+      }
+
+      // Keep a direction for a while, then change.
+      es.aiT[i] -= dt;
+      if (es.aiT[i] <= 0f) {
+        // Less zig-zag: keep direction more often.
+        final boolean keep = nextFloat01() < 0.72f;
+        if (!keep) {
+          final int pick = nextInt(4);
+          es.dir[i] = (byte) switch (pick) {
+            case 0 -> 0; // N
+            case 1 -> 1; // E
+            case 2 -> 2; // S
+            default -> 3; // W
+          };
+        }
+        es.aiT[i] = 1.6f + nextFloat01() * 3.2f; // 1.6..4.8s
+      }
+
+      final float spd = es.aiF0[i];
+      switch (es.dir[i]) {
+        case 0 -> { desiredVx = 0f; desiredVy = spd; }
+        case 1 -> { desiredVx = spd; desiredVy = 0f; }
+        case 2 -> { desiredVx = 0f; desiredVy = -spd; }
+        default -> { desiredVx = -spd; desiredVy = 0f; }
+      }
     }
 
     // Accel fast, decel gently (eases out instead of snapping back to idle).
@@ -295,6 +320,29 @@ public final class AiSystem {
       // Brake if blocked
       es.vx[i] = es.vx[i] * 0.40f;
       es.vy[i] = es.vy[i] * 0.40f;
+
+      // IMPORTANT (wander quality): when we hit an obstacle, force a direction change soon.
+      if (!see) {
+        es.aiT[i] = 0f;
+        // Small deterministic turn bias: left/right based on RNG.
+        if (nextFloat01() < 0.5f) {
+          // turn left
+          es.dir[i] = (byte) switch (es.dir[i]) {
+            case 0 -> 3;
+            case 1 -> 0;
+            case 2 -> 1;
+            default -> 2;
+          };
+        } else {
+          // turn right
+          es.dir[i] = (byte) switch (es.dir[i]) {
+            case 0 -> 1;
+            case 1 -> 2;
+            case 2 -> 3;
+            default -> 0;
+          };
+        }
+      }
     }
   }
 

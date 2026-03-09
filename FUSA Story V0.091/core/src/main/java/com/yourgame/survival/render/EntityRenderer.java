@@ -294,4 +294,165 @@ public final class EntityRenderer {
       }
     }
   }
+
+  // ============================================================
+  // Tile-tree rendering (FUSA Story)
+  // ============================================================
+
+  private static int bitIndex(int tx, int ty, int wTiles) {
+    return tx + ty * wTiles;
+  }
+
+  private static boolean bitGet(byte[] bits, int bit) {
+    if (bits == null || bit < 0) return false;
+    int i = bit >>> 3;
+    if (i < 0 || i >= bits.length) return false;
+    int m = 1 << (bit & 7);
+    return (bits[i] & m) != 0;
+  }
+
+  /**
+   * Draws dense tile-trees directly from presence/cut bitmasks.
+   *
+   * This avoids allocating Entities slots for forests.
+   */
+  public void drawTileTrees(
+      SpriteBatch batch,
+      com.yourgame.survival.world.World world,
+      byte[] presentBits,
+      byte[] cutBits,
+      int areaW,
+      int areaH,
+      float camX,
+      float camY,
+      int radiusChunks,
+      boolean drawTrees,
+      boolean drawStumps,
+      boolean ignoreCutBits
+  ) {
+    if (batch == null || world == null) return;
+    if (presentBits == null || cutBits == null) return;
+    if (areaW <= 0 || areaH <= 0) return;
+
+    // Ensure we don't inherit a tinted/transparent color state from other renderers.
+    batch.setColor(1f, 1f, 1f, 1f);
+
+    // Draw around the camera center so we don't waste budget on offscreen chunks.
+    int ccx = (int) Math.floor((camX / com.yourgame.survival.world.World.TILE_WORLD) / com.yourgame.survival.world.World.CHUNK_SIZE);
+    int ccy = (int) Math.floor((camY / com.yourgame.survival.world.World.TILE_WORLD) / com.yourgame.survival.world.World.CHUNK_SIZE);
+    int rChunks = Math.max(0, radiusChunks);
+
+    // Safety/perf: cap how many trees we draw per frame.
+    // Dense masks can easily mean 10k+ trees in view; that will tank FPS.
+    int budget = 20000;
+
+    // Iterate chunks from center outward so budget is spent on the visible area first.
+    for (int rr = 0; rr <= rChunks; rr++) {
+      // top/bottom rows of the ring
+      for (int dx = -rr; dx <= rr; dx++) {
+        int cx = ccx + dx;
+        int cyTop = ccy + rr;
+        int cyBot = ccy - rr;
+
+        // top
+        {
+          com.yourgame.survival.world.Chunk c = world.peekChunk(cx, cyTop);
+          if (c != null && c.layers != null) {
+            budget = drawTileTreesChunk(batch, c, presentBits, cutBits, areaW, areaH, cx, cyTop, budget, drawTrees, drawStumps, ignoreCutBits);
+            if (budget <= 0) return;
+          }
+        }
+
+        // bottom (avoid duplicate when rr==0)
+        if (rr != 0) {
+          com.yourgame.survival.world.Chunk c = world.peekChunk(cx, cyBot);
+          if (c != null && c.layers != null) {
+            budget = drawTileTreesChunk(batch, c, presentBits, cutBits, areaW, areaH, cx, cyBot, budget, drawTrees, drawStumps, ignoreCutBits);
+            if (budget <= 0) return;
+          }
+        }
+      }
+
+      // left/right columns of the ring (excluding corners already drawn)
+      for (int dy = -(rr - 1); dy <= (rr - 1); dy++) {
+        if (rr == 0) break;
+        int cy = ccy + dy;
+        int cxR = ccx + rr;
+        int cxL = ccx - rr;
+
+        {
+          com.yourgame.survival.world.Chunk c = world.peekChunk(cxR, cy);
+          if (c != null && c.layers != null) {
+            budget = drawTileTreesChunk(batch, c, presentBits, cutBits, areaW, areaH, cxR, cy, budget, drawTrees, drawStumps, ignoreCutBits);
+            if (budget <= 0) return;
+          }
+        }
+
+        {
+          com.yourgame.survival.world.Chunk c = world.peekChunk(cxL, cy);
+          if (c != null && c.layers != null) {
+            budget = drawTileTreesChunk(batch, c, presentBits, cutBits, areaW, areaH, cxL, cy, budget, drawTrees, drawStumps, ignoreCutBits);
+            if (budget <= 0) return;
+          }
+        }
+      }
+    }
+  }
+
+  private int drawTileTreesChunk(
+      SpriteBatch batch,
+      com.yourgame.survival.world.Chunk c,
+      byte[] presentBits,
+      byte[] cutBits,
+      int areaW,
+      int areaH,
+      int cx,
+      int cy,
+      int budget,
+      boolean drawTrees,
+      boolean drawStumps,
+      boolean ignoreCutBits
+  ) {
+    if (budget <= 0) return 0;
+
+    int baseTx = cx * com.yourgame.survival.world.World.CHUNK_SIZE;
+    int baseTy = cy * com.yourgame.survival.world.World.CHUNK_SIZE;
+
+    // Draw higher tiles first so lower tiles end up on top.
+    for (int ly = com.yourgame.survival.world.World.CHUNK_SIZE - 1; ly >= 0; ly--) {
+      int ty = baseTy + ly;
+      if (ty < 0 || ty >= areaH) continue;
+      for (int lx = 0; lx < com.yourgame.survival.world.World.CHUNK_SIZE; lx++) {
+        int tx = baseTx + lx;
+        if (tx < 0 || tx >= areaW) continue;
+
+        int bit = bitIndex(tx, ty, areaW);
+        if (!bitGet(presentBits, bit)) continue;
+
+        int idx = lx + ly * com.yourgame.survival.world.World.CHUNK_SIZE;
+        if ((c.layers.roadMask[idx] & 0xFF) != 0) continue;
+        if ((c.layers.waterMask[idx] & 0xFF) != 0) continue;
+
+        boolean cut = (!ignoreCutBits) && bitGet(cutBits, bit);
+        if (cut) {
+          if (!drawStumps) continue;
+        } else {
+          if (!drawTrees) continue;
+        }
+        EntityType want = cut ? EntityType.NODE_STUMP : EntityType.NODE_TREE;
+
+        float wx = (tx + 0.5f) * com.yourgame.survival.world.World.TILE_WORLD;
+        float wy = (ty * com.yourgame.survival.world.World.TILE_WORLD) + (cut ? 2.0f : 34.0f);
+
+        TextureRegion r = regions.forEntity(want, stateTime, -1, 0f, 0f, (byte) 2);
+        float w = EntityMetrics.drawW(want);
+        float h = EntityMetrics.drawH(want);
+        batch.draw(r, wx - w / 2f, wy - h / 2f, w, h);
+
+        budget--;
+        if (budget <= 0) return 0;
+      }
+    }
+    return budget;
+  }
 }

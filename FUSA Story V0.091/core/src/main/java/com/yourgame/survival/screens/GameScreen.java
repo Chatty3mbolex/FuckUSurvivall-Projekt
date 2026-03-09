@@ -320,6 +320,35 @@ public final class GameScreen extends ScreenAdapter {
   // Guardrail: we must NOT stream/generate biomes/chunks in the background during play.
   private static final boolean AREA_MODE = true;
 
+  // ============================================================
+  // Debug toggles (dev)
+  // ============================================================
+
+  // F10: verbose tile-tree streaming debug overlay via toast.
+  private boolean dbgTileTrees = false;
+  private float dbgTileTreesToastCooldown = 0f;
+
+  // Tile-tree harvest progress cache (tile-based; avoids using Entities slots).
+  private int tileTreeHitTx = -1;
+  private int tileTreeHitTy = -1;
+  private float tileTreeHitHp = 0f;
+  private float tileTreeHitUiT = 0f;
+
+  // Runtime seconds since this GameScreen instance started (used for simple cooldowns).
+  private float runtimeSec = 0f;
+
+  // Tile-tree policy:
+  // - false: trees never get cut/removed and never leave stumps (harvest yields drops only).
+  // - true: trees are cut persistently via areaTreeCutBits (stumps).
+  private static final boolean TILE_TREES_FELL_ON_HARVEST = true;
+
+  // Anti-exploit: cooldown before the same tile-tree can yield drops again.
+  private static final float TILE_TREE_HARVEST_COOLDOWN_SEC = 35f;
+  private final com.badlogic.gdx.utils.IntFloatMap tileTreeNextHarvestAtSec = new com.badlogic.gdx.utils.IntFloatMap();
+
+  // One-shot cleanup: if older builds spawned NODE_TREE/NODE_STUMP entities, kill them once.
+  private boolean tileTreeEntitiesPurged = false;
+
   // Area bounds state (computed from player position)
   private boolean inRedZone = false;
 // Nicht fertiges Feature:   private boolean inVoid = false;
@@ -773,8 +802,26 @@ public final class GameScreen extends ScreenAdapter {
   }
 
   private void spawnInitialEncounters(int orcsTarget, int deerTarget, int streamRadius) {
-    int ccx = (int) Math.floor((px / World.TILE_WORLD) / World.CHUNK_SIZE);
-    int ccy = (int) Math.floor((py / World.TILE_WORLD) / World.CHUNK_SIZE);
+    // IMPORTANT (FUSA / Areas-only): entity streaming + culling must be based on the CAMERA center,
+    // not the player position.
+    // Reason: in AREA_MODE the camera is clamped near edges, so cam.center != player.
+    // If we stream/cull around the player we can end up with "no trees visible" near borders.
+    float camCenterX = px;
+    float camCenterY = py;
+    if (AREA_MODE) {
+      float tw = World.TILE_WORLD;
+      float areaW = com.yourgame.survival.tuning.TuningAreas.AREA_W_TILES * tw;
+      float areaH = com.yourgame.survival.tuning.TuningAreas.AREA_H_TILES * tw;
+
+      float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+      float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+
+      camCenterX = MathUtils.clamp(px, halfW, areaW - halfW);
+      camCenterY = MathUtils.clamp(py, halfH, areaH - halfH);
+    }
+
+    int ccx = (int) Math.floor((camCenterX / World.TILE_WORLD) / World.CHUNK_SIZE);
+    int ccy = (int) Math.floor((camCenterY / World.TILE_WORLD) / World.CHUNK_SIZE);
 
     int r = Math.max(0, streamRadius);
     int minCx = ccx - r;
@@ -1375,6 +1422,8 @@ public final class GameScreen extends ScreenAdapter {
     if (Gdx.input.isKeyJustPressed(Input.Keys.F1)) hasBoat = !hasBoat;
     if (Gdx.input.isKeyJustPressed(Input.Keys.F2)) hasClimb = !hasClimb;
 
+    // (DBG TileTrees hotkey handled in tick(); render() input can be blocked by the boot overlay.)
+
     // SHIFT helper (used by multiple debug/editor hotkeys below)
     boolean shiftHeld = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
 
@@ -1778,15 +1827,30 @@ public final class GameScreen extends ScreenAdapter {
           // Continuous harvest tick (LMB hold). If we hit nothing, only 10% stamina cost.
           if (harvestDt > 0f) {
             float fovDeg = actionFovDeg();
-            com.yourgame.survival.systems.HarvestSystem.HarvestTick ht = harvest.tickHarvestFov(
-                entities,
-                px, py,
-                mouseWorldX, mouseWorldY,
-                fovFx, fovFy,
-                fovDeg,
-                REACH_HARVEST,
-                selectedTool,
-                harvestDt);
+            // Areas-only: tile-trees are NOT Entities (prevents hitting Entities.MAX=2048).
+            // Try harvesting a tile-tree first; if none is hit, fall back to entity-based harvesting.
+            com.yourgame.survival.systems.HarvestSystem.HarvestTick ht = null;
+            if (AREA_MODE && selectedTool == 14) {
+              ht = tryHarvestTileTreeFov(
+                  px, py,
+                  mouseWorldX, mouseWorldY,
+                  fovFx, fovFy,
+                  fovDeg,
+                  REACH_HARVEST,
+                  selectedTool,
+                  harvestDt);
+            }
+            if (ht == null || !ht.didWork()) {
+              ht = harvest.tickHarvestFov(
+                  entities,
+                  px, py,
+                  mouseWorldX, mouseWorldY,
+                  fovFx, fovFy,
+                  fovDeg,
+                  REACH_HARVEST,
+                  selectedTool,
+                  harvestDt);
+            }
 
             boolean didWork = (ht != null && ht.didWork());
 
@@ -1809,13 +1873,20 @@ public final class GameScreen extends ScreenAdapter {
               var ev = ht.event();
               entities.spawnDrop(ev.dropItemId(), ev.dropAmount(), ev.x(), ev.y());
 
-              // FUSA Story: dense tile-trees must not respawn once cut.
+              // FUSA Story: tile-tree persistence (optional)
               try {
                 if (AREA_MODE && areaTreePresentBits != null && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
                   EntityType htType = ev.harvestedType();
-                  if (htType == EntityType.NODE_TREE) {
+                  if (TILE_TREES_FELL_ON_HARVEST && htType == EntityType.NODE_TREE && ev.replaceWithStump()) {
+                    // NOTE: tile-tree events use a custom Y anchor (ty*TILE_WORLD + 34) so the sprite foot sits on the tile.
+                    // If we floor(y / TILE_WORLD) we'd mark the wrong tile (typically +2 tiles).
                     int tx = (int) Math.floor(ev.x() / World.TILE_WORLD);
-                    int ty = (int) Math.floor(ev.y() / World.TILE_WORLD);
+
+                    int ty = (int) Math.floor((ev.y() - 34.0f) / World.TILE_WORLD);
+                    // Fallback (safety) if the adjusted form produces nonsense.
+                    if (ty < 0 || ty >= areaTreeH) {
+                      ty = (int) Math.floor(ev.y() / World.TILE_WORLD);
+                    }
                     if (tx >= 0 && ty >= 0 && tx < areaTreeW && ty < areaTreeH) {
                       int bit = bitIndex(tx, ty, areaTreeW);
                       if (bitGet(areaTreePresentBits, bit)) {
@@ -2106,6 +2177,9 @@ public final class GameScreen extends ScreenAdapter {
 
     batch.setProjectionMatrix(cam.combined);
     batch.begin();
+    // Guardrail: ensure batch state is sane. Some render paths (entities/fog) change blending/color.
+    batch.enableBlending();
+    batch.setColor(1f, 1f, 1f, 1f);
     // Areas-only: always draw enough chunks to fully cover the camera viewport (+margin).
     float chunkWorld = World.TILE_WORLD * World.CHUNK_SIZE;
     float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
@@ -2117,9 +2191,27 @@ public final class GameScreen extends ScreenAdapter {
     chunkRenderer.draw(batch, world, cam.position.x, cam.position.y, r);
     entityRenderer.tick(delta);
 
+    // FUSA Story: dense forests are drawn from tile bitmasks (NOT as Entities).
+    // Layering policy:
+    // - Stumps: draw BELOW entities (player should not be hidden by stumps).
+    // - Trees: draw ABOVE entities (player walks "under" the canopy).
+    if (AREA_MODE && areaTreePresentBits != null && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+      entityRenderer.drawTileTrees(batch, world, areaTreePresentBits, areaTreeCutBits, areaTreeW, areaTreeH,
+          cam.position.x, cam.position.y, r,
+          false, true,
+          !TILE_TREES_FELL_ON_HARVEST);
+    }
+
     boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || openChestE >= 0;
     entityRenderer.setPlayerHandVisible(!uiBlocksHand);
     entityRenderer.draw(batch, entities, loadedMinCx, loadedMaxCx, loadedMinCy, loadedMaxCy);
+
+    if (AREA_MODE && areaTreePresentBits != null && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+      entityRenderer.drawTileTrees(batch, world, areaTreePresentBits, areaTreeCutBits, areaTreeW, areaTreeH,
+          cam.position.x, cam.position.y, r,
+          true, false,
+          !TILE_TREES_FELL_ON_HARVEST);
+    }
     batch.end();
 
     // ============================================================
@@ -2872,6 +2964,33 @@ public final class GameScreen extends ScreenAdapter {
 
     // 1) bars (filled)
     shape.begin(ShapeRenderer.ShapeType.Filled);
+
+    // Tile-tree harvest HP bar (AREA_MODE)
+    try {
+      if (AREA_MODE && tileTreeHitUiT > 0f && tileTreeHitHp > 0f && tileTreeHitTx >= 0 && tileTreeHitTy >= 0) {
+        float hpMax = 20f;
+        float p = MathUtils.clamp(tileTreeHitHp / hpMax, 0f, 1f);
+
+        float x = (tileTreeHitTx + 0.5f) * World.TILE_WORLD;
+        float y = (tileTreeHitTy * World.TILE_WORLD) + 34.0f;
+        float w = com.yourgame.survival.entity.EntityMetrics.drawW(EntityType.NODE_TREE);
+        float h = com.yourgame.survival.entity.EntityMetrics.drawH(EntityType.NODE_TREE);
+
+        float barW = Math.max(10f, w * 0.85f);
+        float barH = 3f;
+        float bx = x - barW * 0.5f;
+        float by = y + h * 0.5f + 6f;
+
+        shape.setColor(0f, 0f, 0f, 0.65f);
+        shape.rect(bx - 1f, by - 1f, barW + 2f, barH + 2f);
+
+        float rr = (1f - p);
+        float gg = p;
+        shape.setColor(rr, gg, 0.1f, 0.90f);
+        shape.rect(bx, by, barW * p, barH);
+      }
+    } catch (Throwable ignored) {}
+
     for (int e = 0; e < Entities.MAX; e++) {
       if (!entities.alive[e]) continue;
       float hpMax = entities.hpMax[e];
@@ -3175,6 +3294,19 @@ public final class GameScreen extends ScreenAdapter {
     // toast
     if (toastT > 0f) toastT -= dt;
 
+    runtimeSec += dt;
+
+    if (tileTreeHitUiT > 0f) tileTreeHitUiT = Math.max(0f, tileTreeHitUiT - dt);
+
+    // Debug: tile-tree streaming (F10)
+    // NOTE: This MUST live in tick(), because the boot overlay can block input handling in render().
+    if (Gdx.input.isKeyJustPressed(Input.Keys.F10)) {
+      dbgTileTrees = !dbgTileTrees;
+      toast = "DBG TileTrees=" + (dbgTileTrees ? "ON" : "OFF") + " (F10)";
+      toastT = 2.5f;
+      dbgTileTreesToastCooldown = 0f;
+    }
+
     // Streaming warmup: defer heavy chunk generation for a few frames right after entering gameplay.
     if (streamWarmupFrames > 0) streamWarmupFrames--;
     final int streamR = AREA_MODE ? 0 : ((streamWarmupFrames > 0) ? 0 : streamRadiusChunks);
@@ -3414,21 +3546,25 @@ public final class GameScreen extends ScreenAdapter {
     int ccy = (int) Math.floor((py / World.TILE_WORLD) / World.CHUNK_SIZE);
 
     // In story-world (area) we still want ALL entities in the visible screen area rendered,
-    // so we use a view-based radius here (plus 1 chunk margin).
+    // so we use a view-based radius here.
     int viewR = streamR;
     if (AREA_MODE) {
       float chunkWorld = World.TILE_WORLD * World.CHUNK_SIZE;
       float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
       float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
-      int rx = (int) Math.ceil(halfW / chunkWorld) + 1;
-      int ry = (int) Math.ceil(halfH / chunkWorld) + 1;
-      viewR = Math.max(rx, ry);
+      // Keep in sync with renderWorld() chunk draw radius (+margin), plus one extra chunk
+      // so tile-tree streaming doesn't lag behind camera motion.
+      int rx = (int) Math.ceil(halfW / chunkWorld) + 2;
+      int ry = (int) Math.ceil(halfH / chunkWorld) + 2;
+      viewR = Math.max(rx, ry) + 1;
     }
 
     loadedMinCx = ccx - viewR;
     loadedMaxCx = ccx + viewR;
     loadedMinCy = ccy - viewR;
     loadedMaxCy = ccy + viewR;
+
+    // (Entity pool guardrails: tree entities are no longer spawned; drops are capped elsewhere if needed.)
 
     // ============================================================
     // Area bounds logic: red zone + void timer + penalties
@@ -3475,6 +3611,12 @@ public final class GameScreen extends ScreenAdapter {
 
     // Prevent player/orc/animal overlap (simple separation)
     entityCollision.resolve(entities, loadedMinCx, loadedMaxCx, loadedMinCy, loadedMaxCy);
+
+    // Tile-tree trunk collision (AREA_MODE): prevent entities from sliding into the trunk while allowing
+    // walking "under" the canopy. (Stumps are excluded.)
+    if (AREA_MODE) {
+      resolveTileTreeTrunksInLoadedWindow();
+    }
     if (playerE >= 0) {
       px = entities.x[playerE];
       py = entities.y[playerE];
@@ -3513,6 +3655,94 @@ public final class GameScreen extends ScreenAdapter {
 
     // Authored tile-tree streaming (FUSA Story)
     areaTileTreesTick(dt);
+  }
+
+  private static int clampInt(int v, int lo, int hi) {
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+  }
+
+  /** Tile-tree harvest (AREA_MODE): apply DPS to the focused tree tile and produce a HarvestEvent when felled. */
+  private com.yourgame.survival.systems.HarvestSystem.HarvestTick tryHarvestTileTreeFov(
+      float px, float py,
+      float aimX, float aimY,
+      float fwdX, float fwdY,
+      float fovDeg,
+      float range,
+      int toolItemId,
+      float dt
+  ) {
+    if (!AREA_MODE) return null;
+    if (toolItemId != 14) return null; // Axe only
+    if (dt <= 0f) return null;
+    if (areaTreePresentBits == null || areaTreeCutBits == null || areaTreeW <= 0 || areaTreeH <= 0) return null;
+
+    // FOV gate (same principle as HarvestSystem)
+    float adx = aimX - px;
+    float ady = aimY - py;
+    float al2 = adx * adx + ady * ady;
+    if (al2 <= 1e-6f) return null;
+    float ainv = (float) (1.0 / Math.sqrt(al2));
+    float ax = adx * ainv;
+    float ay = ady * ainv;
+    float cosHalf = (float) Math.cos(Math.toRadians(fovDeg * 0.5));
+    if (fwdX * ax + fwdY * ay < cosHalf) return null;
+
+    // Target tile at aim point.
+    int tx = (int) Math.floor(aimX / World.TILE_WORLD);
+    int ty = (int) Math.floor(aimY / World.TILE_WORLD);
+    if (tx < 0 || ty < 0 || tx >= areaTreeW || ty >= areaTreeH) return null;
+
+    int bit = bitIndex(tx, ty, areaTreeW);
+    if (!bitGet(areaTreePresentBits, bit)) return null;
+    if (TILE_TREES_FELL_ON_HARVEST && bitGet(areaTreeCutBits, bit)) return null;
+
+    // Cooldown: limit how often a single tile-tree can yield drops.
+    float nextAt = tileTreeNextHarvestAtSec.get(bit, -1f);
+    if (nextAt > 0f && runtimeSec < nextAt) return null;
+
+    // Range gate
+    float treeX = (tx + 0.5f) * World.TILE_WORLD;
+    float treeY = (ty * World.TILE_WORLD) + 34.0f;
+    float dx = treeX - px;
+    float dy = treeY - py;
+    float eff = range + com.yourgame.survival.entity.EntityMetrics.radius(EntityType.NODE_TREE);
+    if (dx * dx + dy * dy > eff * eff) return null;
+
+    // "Below" + "near trunk" gate (mirrors HarvestSystem feel)
+    float treeW = com.yourgame.survival.entity.EntityMetrics.drawW(EntityType.NODE_TREE);
+    float treeH = com.yourgame.survival.entity.EntityMetrics.drawH(EntityType.NODE_TREE);
+    boolean below = py <= (treeY - treeH * 0.10f);
+    boolean nearTrunk = Math.abs(dx) <= (treeW * 0.35f);
+    if (!below || !nearTrunk) return null;
+
+    // DPS + HP model (simple, tile-local cache)
+    float dps = com.yourgame.survival.tuning.TuningGameplay.DPS_TREE_AXE;
+    float maxHp = 20f; // matches Entities.defaultHp(NODE_TREE)
+
+    if (tileTreeHitTx != tx || tileTreeHitTy != ty || tileTreeHitHp <= 0f) {
+      tileTreeHitTx = tx;
+      tileTreeHitTy = ty;
+      tileTreeHitHp = maxHp;
+    }
+
+    tileTreeHitHp -= dps * dt;
+    if (tileTreeHitHp > 0f) {
+      tileTreeHitUiT = 0.55f;
+      return new com.yourgame.survival.systems.HarvestSystem.HarvestTick(true, null);
+    }
+
+    // Harvest complete:
+    // - If TILE_TREES_FELL_ON_HARVEST=false: tree stays, no stump, yields drops on cooldown.
+    // - If true: caller will mark cutBit and render stump.
+    tileTreeHitHp = 0f;
+    tileTreeHitUiT = 0.75f;
+    tileTreeNextHarvestAtSec.put(bit, runtimeSec + TILE_TREE_HARVEST_COOLDOWN_SEC);
+
+    com.yourgame.survival.systems.HarvestSystem.HarvestEvent ev =
+        new com.yourgame.survival.systems.HarvestSystem.HarvestEvent(0, 5, TILE_TREES_FELL_ON_HARVEST, EntityType.NODE_TREE, treeX, treeY);
+    return new com.yourgame.survival.systems.HarvestSystem.HarvestTick(true, ev);
   }
 
   private void areaEnemyZonesTick(float dt) {
@@ -3608,8 +3838,10 @@ public final class GameScreen extends ScreenAdapter {
   }
 
   /**
-   * Streams tree/stump entities based on a tile-level presence mask.
-   * This allows ultra-dense forests without exceeding Entities.MAX.
+   * Tile-tree streaming (FUSA Story):
+   * - Trees/stumps are NOT spawned as Entities (prevents Entities.MAX exhaustion).
+   * - Instead, we update tile collision based on presence/cut bits.
+   * - Rendering uses EntityRenderer.drawTileTrees() directly from bitmasks.
    */
   private void areaTileTreesTick(float dt) {
     if (!AREA_MODE) return;
@@ -3622,52 +3854,30 @@ public final class GameScreen extends ScreenAdapter {
       return;
     }
 
-    // Debug: count currently alive trees/stumps in loaded window (once).
-    int aliveTrees = 0;
-    int aliveStumps = 0;
-
-    // 1) Remove far-away streamed tree/stump entities outside the loaded chunk window.
-    for (int e = 0; e < Entities.MAX; e++) {
-      if (!entities.alive[e]) continue;
-      EntityType t = entities.type[e];
-      if (t != EntityType.NODE_TREE && t != EntityType.NODE_STUMP) continue;
-
-      // IMPORTANT: chunk checks must use the *ground contact* Y, not sprite center.
-      // Otherwise tall sprites (trees) can be classified into the wrong chunk near borders and get
-      // culled/killed even though the underlying tile is loaded.
-      float h = com.yourgame.survival.entity.EntityMetrics.drawH(t);
-      float bottom = entities.y[e] - h * 0.5f;
-      float gy = switch (t) {
-        case NODE_TREE -> bottom + 14f;
-        case NODE_STUMP -> bottom + 10f;
-        case NODE_BUSH -> bottom + 8f;
-        case NODE_FISH_SPOT -> bottom + 6f;
-        default -> bottom + 6f;
-      };
-
-      int ecx = (int) Math.floor((entities.x[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
-      int ecy = (int) Math.floor((gy / World.TILE_WORLD) / World.CHUNK_SIZE);
-      if (ecx < loadedMinCx || ecx > loadedMaxCx || ecy < loadedMinCy || ecy > loadedMaxCy) {
-        entities.kill(e);
-      } else {
-        if (t == EntityType.NODE_TREE) aliveTrees++; else aliveStumps++;
+    // One-shot purge: older versions spawned NODE_TREE/NODE_STUMP as Entities and could hit Entities.MAX.
+    if (!tileTreeEntitiesPurged) {
+      for (int e = 0; e < Entities.MAX; e++) {
+        if (!entities.alive[e]) continue;
+        EntityType t = entities.type[e];
+        if (t == EntityType.NODE_TREE || t == EntityType.NODE_STUMP) {
+          entities.kill(e);
+        }
       }
+      tileTreeEntitiesPurged = true;
     }
 
-    if (!areaTreeDebugToastOnce) {
-      toast = "TileTrees: alive treeEnt=" + aliveTrees + " stumpEnt=" + aliveStumps;
-      toastT = 3.6f;
-      areaTreeDebugToastOnce = true;
-    }
+    // Debug telemetry (cheap counters; shown via toast)
+    int dbgPresentTiles = 0;
+    int dbgSkipRoad = 0;
+    int dbgSkipWater = 0;
+    int dbgBlockTiles = 0;
+    int dbgCutTiles = 0;
 
-    // 2) For each visible tile: ensure correct entity exists (tree vs stump vs none).
-    // Limit spawn attempts per tick to avoid spikes.
-    int budget = 220;
-
+    // Update collision mask for visible tiles.
     for (int cy = loadedMinCy; cy <= loadedMaxCy; cy++) {
       for (int cx = loadedMinCx; cx <= loadedMaxCx; cx++) {
-        com.yourgame.survival.world.Chunk c = world.chunk(cx, cy);
-        if (c == null) continue;
+        com.yourgame.survival.world.Chunk c = world.peekChunk(cx, cy);
+        if (c == null || c.layers == null) continue;
 
         int baseTx = cx * World.CHUNK_SIZE;
         int baseTy = cy * World.CHUNK_SIZE;
@@ -3680,71 +3890,188 @@ public final class GameScreen extends ScreenAdapter {
             if (tx < 0 || tx >= areaTreeW) continue;
 
             int bit = bitIndex(tx, ty, areaTreeW);
-            boolean present = bitGet(areaTreePresentBits, bit);
-            if (!present) continue;
+            if (!bitGet(areaTreePresentBits, bit)) continue;
+            dbgPresentTiles++;
+
+            int idx = lx + ly * World.CHUNK_SIZE;
 
             // Road/water tiles must stay tree-free.
-            int idx = lx + ly * World.CHUNK_SIZE;
             if (c.layers.roadMask[idx] != 0) {
-              // Ensure we don't accidentally leave a blocking tile behind.
               c.layers.collisionMask[idx] = 0;
+              dbgSkipRoad++;
               continue;
             }
             if (c.layers.waterMask[idx] != 0) {
               c.layers.collisionMask[idx] = 0;
+              dbgSkipWater++;
               continue;
             }
 
             boolean cut = bitGet(areaTreeCutBits, bit);
-            EntityType want = cut ? EntityType.NODE_STUMP : EntityType.NODE_TREE;
+            // IMPORTANT: allow movement under the canopy.
+            // Trunk collision is handled separately (AABB around trunk center), so we do NOT block the whole tile.
+            c.layers.collisionMask[idx] = 0;
+            if (cut) dbgCutTiles++; else dbgBlockTiles++;
+          }
+        }
+      }
+    }
 
-            // Collision policy (FUSA):
-            // - Tree blocks movement.
-            // - Stump blocks lightly => we implement as NOT blocking (tile collision is binary).
-            c.layers.collisionMask[idx] = (byte) (cut ? 0 : 1);
+    // Debug toast (rate-limited)
+    if (dbgTileTrees) {
+      dbgTileTreesToastCooldown -= dt;
+      if (dbgTileTreesToastCooldown <= 0f) {
+        dbgTileTreesToastCooldown = 0.75f;
+        toast = "DBG TileTrees: w=" + areaTreeW + " h=" + areaTreeH
+            + " presentTiles=" + dbgPresentTiles
+            + " skip(road=" + dbgSkipRoad + ",water=" + dbgSkipWater + ")"
+            + " coll(block=" + dbgBlockTiles + ",cut=" + dbgCutTiles + ")";
+        toastT = 0.90f;
+      }
+    }
+  }
 
-            // IMPORTANT: node sprites are drawn centered, but their "foot" must sit on the tile.
-            // Anchor Y so the visible trunk/base is on the ground (prevents "under the ground" look).
-            // Tree: bottom+14 should land on tile bottom => y = ty*T + (H/2 - 14) = ty*16 + 34
-            // Stump: bottom+10 should land on tile bottom => y = ty*16 + (H/2 - 10) ~= ty*16 + 2
-            float wx = (tx + 0.5f) * World.TILE_WORLD;
-            float wy = ty * World.TILE_WORLD + (cut ? 2.0f : 34.0f);
+  /**
+   * Resolves trunk-only collision against tile-trees inside the loaded chunk window.
+   *
+   * This matches the previous feel of NODE_TREE entity collisions:
+   * - only a small trunk box blocks
+   * - canopy is passable (player can walk "under" it)
+   */
+  private void resolveTileTreeTrunksInLoadedWindow() {
+    if (!AREA_MODE) return;
+    if (areaTreePresentBits == null || areaTreeCutBits == null || areaTreeW <= 0 || areaTreeH <= 0) return;
+    if (world == null || entities == null) return;
 
-            // Check if an entity already exists at this tile.
-            boolean exists = false;
-            for (int e = 0; e < Entities.MAX; e++) {
-              if (!entities.alive[e]) continue;
-              if (entities.type[e] != want) continue;
-              float dx = entities.x[e] - wx;
-              float dy = entities.y[e] - wy;
-              if (dx * dx + dy * dy <= 2.5f * 2.5f) { exists = true; break; }
-            }
+    final float treeTrunkHalf = com.yourgame.survival.tuning.TuningEntities.TREE_TRUNK_HALF;
+    final float treeTrunkCenterFromBottom = com.yourgame.survival.tuning.TuningEntities.TREE_TRUNK_CENTER_FROM_BOTTOM_PX;
+    final float treeH = com.yourgame.survival.entity.EntityMetrics.drawH(EntityType.NODE_TREE);
+    final float treeBottomOffset = 34.0f - (treeH * 0.5f); // yCenter=ty*16+34
 
-            if (!exists) {
-              // Also remove the opposite kind if it exists (e.g. stale tree after cut).
-              for (int e = 0; e < Entities.MAX; e++) {
-                if (!entities.alive[e]) continue;
-                EntityType ot = entities.type[e];
-                if (ot != EntityType.NODE_TREE && ot != EntityType.NODE_STUMP) continue;
-                float dx = entities.x[e] - wx;
-                float dy = entities.y[e] - wy;
-                if (dx * dx + dy * dy <= 2.5f * 2.5f) {
-                  if (ot != want) entities.kill(e);
-                }
-              }
+    final float stumpHalfW = com.yourgame.survival.tuning.TuningEntities.STUMP_COLLIDER_HALF_W;
+    final float stumpHalfH = com.yourgame.survival.tuning.TuningEntities.STUMP_COLLIDER_HALF_H;
+    final float stumpCenterFromBottom = com.yourgame.survival.tuning.TuningEntities.STUMP_COLLIDER_CENTER_FROM_BOTTOM_PX;
+    final float stumpH = com.yourgame.survival.entity.EntityMetrics.drawH(EntityType.NODE_STUMP);
+    final float stumpBottomOffset = 2.0f - (stumpH * 0.5f); // yCenter=ty*16+2
 
-              entities.spawn(want, wx, wy);
-              if (!areaTreeDebugToastOnce) {
-                toast = "TileTrees: spawned first " + want.name() + " @(" + tx + "," + ty + ")";
-                toastT = 4.0f;
-                areaTreeDebugToastOnce = true;
-              }
-              budget--;
-              if (budget <= 0) return;
+    for (int e = 0; e < Entities.MAX; e++) {
+      if (!entities.alive[e]) continue;
+      EntityType t = entities.type[e];
+      if (t != EntityType.PLAYER && t != EntityType.ORK_GRUNT && t != EntityType.ANIMAL_DEER) continue;
+
+      // Respect the loaded window for non-always-active entities.
+      if (!entities.isAlwaysActive(e)) {
+        int ecx = (int) Math.floor((entities.x[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
+        int ecy = (int) Math.floor((entities.y[e] / World.TILE_WORLD) / World.CHUNK_SIZE);
+        if (ecx < loadedMinCx || ecx > loadedMaxCx || ecy < loadedMinCy || ecy > loadedMaxCy) continue;
+      }
+
+      float px = entities.x[e];
+      float py = entities.y[e];
+      final float ox = px;
+      final float oy = py;
+
+      float moverHalf = Math.max(3f, com.yourgame.survival.entity.EntityMetrics.collisionRadius(t));
+
+      int tx0 = (int) Math.floor(px / World.TILE_WORLD);
+      int ty0 = (int) Math.floor(py / World.TILE_WORLD);
+
+      // Only need a tiny neighborhood (trunk extents < 1 tile).
+      for (int ty = ty0 - 1; ty <= ty0 + 1; ty++) {
+        if (ty < 0 || ty >= areaTreeH) continue;
+        for (int tx = tx0 - 1; tx <= tx0 + 1; tx++) {
+          if (tx < 0 || tx >= areaTreeW) continue;
+
+          int bit = bitIndex(tx, ty, areaTreeW);
+          if (!bitGet(areaTreePresentBits, bit)) continue;
+          boolean cut = TILE_TREES_FELL_ON_HARVEST && bitGet(areaTreeCutBits, bit);
+
+          // Ignore road/water tiles to match render/selection rules.
+          int cx = tx / World.CHUNK_SIZE;
+          int cy = ty / World.CHUNK_SIZE;
+          com.yourgame.survival.world.Chunk c = world.peekChunk(cx, cy);
+          if (c == null || c.layers == null) continue;
+          int lx = tx - cx * World.CHUNK_SIZE;
+          int ly = ty - cy * World.CHUNK_SIZE;
+          int idx = lx + ly * World.CHUNK_SIZE;
+          if (c.layers.roadMask[idx] != 0) continue;
+          if (c.layers.waterMask[idx] != 0) continue;
+
+          float colCx = (tx + 0.5f) * World.TILE_WORLD;
+          float colCy;
+          float halfW;
+          float halfH;
+
+          if (!cut) {
+            // TREE trunk collider (small box)
+            float bottom = (ty * World.TILE_WORLD) + treeBottomOffset;
+            colCy = bottom + treeTrunkCenterFromBottom;
+            halfW = treeTrunkHalf;
+            halfH = treeTrunkHalf;
+          } else {
+            // STUMP silhouette collider (AABB around stump body)
+            float bottom = (ty * World.TILE_WORLD) + stumpBottomOffset;
+            colCy = bottom + stumpCenterFromBottom;
+            halfW = stumpHalfW;
+            halfH = stumpHalfH;
+          }
+
+          float dx = px - colCx;
+          float dy = py - colCy;
+
+          float overlapX = (moverHalf + halfW) - Math.abs(dx);
+          if (overlapX <= 0f) continue;
+          float overlapY = (moverHalf + halfH) - Math.abs(dy);
+          if (overlapY <= 0f) continue;
+
+          // Resolve along least penetration.
+          if (overlapX < overlapY) {
+            float sx = (dx < 0f) ? -1f : 1f;
+            px += sx * overlapX;
+          } else {
+            float sy = (dy < 0f) ? -1f : 1f;
+            py += sy * overlapY;
+          }
+        }
+      }
+
+      // If we got pushed by a trunk, also steer wandering orks away from the obstacle.
+      // Otherwise they can "slide" along dense trunk lines and look like they march on a border.
+      if (t == EntityType.ORK_GRUNT) {
+        float mdx = px - ox;
+        float mdy = py - oy;
+        if (mdx * mdx + mdy * mdy > 1e-6f) {
+          // Only apply when not actively chasing/alert.
+          if (entities.aiF1[e] <= 0.15f) {
+            // Force a direction refresh soon in the AI.
+            entities.aiT[e] = 0f;
+            // Dampen velocity so it doesn't keep pushing into the same trunk line.
+            entities.vx[e] *= 0.20f;
+            entities.vy[e] *= 0.20f;
+            // Turn left/right deterministically.
+            if (((e ^ dayIndex) & 1) == 0) {
+              // left
+              entities.dir[e] = (byte) switch (entities.dir[e]) {
+                case 0 -> 3;
+                case 1 -> 0;
+                case 2 -> 1;
+                default -> 2;
+              };
+            } else {
+              // right
+              entities.dir[e] = (byte) switch (entities.dir[e]) {
+                case 0 -> 1;
+                case 1 -> 2;
+                case 2 -> 3;
+                default -> 0;
+              };
             }
           }
         }
       }
+
+      entities.x[e] = px;
+      entities.y[e] = py;
     }
   }
 
@@ -6039,7 +6366,7 @@ private void craftByOutput(int outItemId) {
 
       // Persist tile-tree cuts (so harvested trees do not respawn).
       try {
-        if (AREA_MODE && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+        if (TILE_TREES_FELL_ON_HARVEST && AREA_MODE && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
           st.treeCutW = areaTreeW;
           st.treeCutH = areaTreeH;
           st.treeCutB64 = java.util.Base64.getEncoder().encodeToString(areaTreeCutBits);

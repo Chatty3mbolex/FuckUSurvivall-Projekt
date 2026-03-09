@@ -65,7 +65,8 @@ public final class TuningEntities {
   // Tree trunk collider center offset from sprite bottom (px).
   // Requested: collision box up by ~10px (relative to the previous tuned state).
   // Old tuned state: bottom+12. New: bottom+22.
-  public static final float TREE_TRUNK_CENTER_FROM_BOTTOM_PX = 22f;
+  // Update (2026-03-09): move trunk collision down by 6px total => bottom+16.
+  public static final float TREE_TRUNK_CENTER_FROM_BOTTOM_PX = 16f;
 
   // Requested: tree collider about 10% smaller.
   // Old baseline trunkHalf: 6f*0.85f = 5.10 -> 10% smaller => 4.59.
@@ -78,4 +79,17 @@ public final class TuningEntities {
   // Harvest: make the trunk hit window larger again so trees are easier to chop.
   // Baseline was ~25.20 (72*0.35). We go slightly above baseline for feel.
   public static final float TREE_HARVEST_NEAR_TRUNK_HALF_W = 28.0f;
+
+  // ------------------------------------------------------------
+  // Stump collider (tile-trees)
+  // ------------------------------------------------------------
+
+  // Stump collider center offset from sprite bottom (px).
+  // Tuned so the collider hugs the visible stump silhouette without shifting the sprite.
+  public static final float STUMP_COLLIDER_CENTER_FROM_BOTTOM_PX = 10f;
+
+  // Stump collider half-extents (AABB). Sized to approximate the stump silhouette.
+  // Reduced by 2f in each axis (requested): tighter stump collision.
+  public static final float STUMP_COLLIDER_HALF_W = 6.8f;
+  public static final float STUMP_COLLIDER_HALF_H = 4.8f;
 }

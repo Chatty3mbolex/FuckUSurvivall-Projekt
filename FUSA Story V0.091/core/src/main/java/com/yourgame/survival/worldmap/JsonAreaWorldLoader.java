@@ -25,6 +25,9 @@ import java.util.Random;
  */
 public final class JsonAreaWorldLoader implements AreaWorldLoader {
 
+  // Keep in sync with GameScreen tile-tree policy.
+  private static final boolean TILE_TREES_FELL_ON_HARVEST = true;
+
   /** Folder under assets/ (internal). */
   private static final String AREA_DIR = "areas";
 
@@ -998,8 +1001,9 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
     int bytes = (n + 7) >>> 3;
     byte[] out = new byte[bytes];
 
-    // Targets: 60% of ALL tiles (as requested), but we will not place on road/water.
-    int targetTotal = (int) Math.round(n * 0.60);
+    // Targets: 1.5% of ALL tiles, but we will not place on road/water.
+    // (Reduced to 10% of the previous 15% density.)
+    int targetTotal = (int) Math.round(n * 0.015);
 
     // Define 4 zones by nearest enemy-zone centers (hardcoded to the authored layout).
     // These centers match the circles in FOREST_01.area.json.
