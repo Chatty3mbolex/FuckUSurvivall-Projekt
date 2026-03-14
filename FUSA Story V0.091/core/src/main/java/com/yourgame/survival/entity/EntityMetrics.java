@@ -34,6 +34,12 @@ public final class EntityMetrics {
     return switch (t) {
       case NODE_TREE -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_NODE_TREE;
       case NODE_STUMP -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_NODE_STUMP;
+      case NODE_ROCK -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_NODE_ROCK;
+      case NODE_ORE_IRON -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_NODE_ORE_IRON;
+      case BUILD_CHEST, POI_CHEST_HIDDEN -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_BUILD_CHEST;
+      case BUILD_WORKBENCH -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_BUILD_WORKBENCH;
+      case BUILD_BED -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_BUILD_BED;
+      case BUILD_CAMPFIRE -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_BUILD_CAMPFIRE;
       case BUILD_LAMP -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_BUILD_LAMP;
 
       case LANDMARK_CASTLE -> com.yourgame.survival.tuning.TuningEntities.DRAW_H_LANDMARK_CASTLE;

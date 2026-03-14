@@ -40,6 +40,11 @@ public final class Entities {
   public final int[] itemId = new int[MAX];
   public final int[] itemAmount = new int[MAX];
 
+  // Home position for zone-bound wandering (set at spawn, used by AI to stay in zone)
+  public final float[] homeX = new float[MAX];
+  public final float[] homeY = new float[MAX];
+  public final float[] wanderRadius = new float[MAX]; // 0 = unlimited (legacy behavior)
+
   // Entity flags (bitmask)
   public static final byte FLAG_ALWAYS_ACTIVE = 1;
   public final byte[] flags = new byte[MAX];
@@ -66,6 +71,9 @@ public final class Entities {
         data0[i] = -1;
         itemId[i] = -1;
         itemAmount[i] = 0;
+        homeX[i] = px;
+        homeY[i] = py;
+        wanderRadius[i] = 0f;
         return i;
       }
     }

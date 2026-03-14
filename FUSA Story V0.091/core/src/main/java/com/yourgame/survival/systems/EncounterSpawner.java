@@ -239,8 +239,18 @@ public final class EncounterSpawner {
       }
       if (nearOther) continue;
 
-      final boolean ok = es.spawn(t, wx, wy) >= 0;
-      return ok ? attempts : -attempts;
+      final int slot = es.spawn(t, wx, wy);
+      if (slot >= 0) {
+        // Anchor the entity to its spawn point so AI keeps it in zone.
+        es.homeX[slot] = wx;
+        es.homeY[slot] = wy;
+        // Default wander radius: ~8 tiles. If a rule defines a zone mask,
+        // entities are already mask-constrained at spawn, so the radius
+        // keeps them from drifting out after spawn.
+        es.wanderRadius[slot] = 8f * World.TILE_WORLD;
+        return attempts;
+      }
+      return -attempts;
     }
 
     return -attempts;

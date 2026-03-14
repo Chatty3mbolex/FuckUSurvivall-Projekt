@@ -247,7 +247,7 @@ public final class AiSystem {
         }
       }
     } else {
-      // --- Roam / wander ---
+      // --- Roam / wander (zone-aware) ---
       // Speed changes in a random rhythm.
       es.aiT2[i] -= dt;
       if (es.aiT2[i] <= 0f || es.aiF0[i] <= 0f) {
@@ -257,29 +257,76 @@ public final class AiSystem {
         es.aiF0[i] = minWander + nextFloat01() * (maxWander - minWander);
       }
 
-      // Keep a direction for a while, then change.
-      es.aiT[i] -= dt;
-      if (es.aiT[i] <= 0f) {
-        // Less zig-zag: keep direction more often.
-        final boolean keep = nextFloat01() < 0.72f;
-        if (!keep) {
-          final int pick = nextInt(4);
-          es.dir[i] = (byte) switch (pick) {
-            case 0 -> 0; // N
-            case 1 -> 1; // E
-            case 2 -> 2; // S
-            default -> 3; // W
-          };
-        }
-        es.aiT[i] = 1.6f + nextFloat01() * 3.2f; // 1.6..4.8s
-      }
-
       final float spd = es.aiF0[i];
-      switch (es.dir[i]) {
-        case 0 -> { desiredVx = 0f; desiredVy = spd; }
-        case 1 -> { desiredVx = spd; desiredVy = 0f; }
-        case 2 -> { desiredVx = 0f; desiredVy = -spd; }
-        default -> { desiredVx = -spd; desiredVy = 0f; }
+
+      // Zone leash: if the orc has a wander radius, check distance to home.
+      final float wr = es.wanderRadius[i];
+      final float hdx = es.x[i] - es.homeX[i];
+      final float hdy = es.y[i] - es.homeY[i];
+      final float homeDist2 = hdx * hdx + hdy * hdy;
+
+      if (wr > 0f && homeDist2 > wr * wr * 0.64f) {
+        // Past 80% of wander radius — steer back toward home.
+        // The further out, the stronger the pull.
+        final float homeDist = (float) Math.sqrt(homeDist2);
+        final float pull = Math.min(1f, (homeDist / wr - 0.6f) / 0.4f); // 0 at 60%, 1 at 100%
+
+        // Direction toward home (normalized)
+        final float invH = invLen(-hdx, -hdy);
+        final float toHomeX = -hdx * invH;
+        final float toHomeY = -hdy * invH;
+
+        // Blend between random wander and home-pull based on how far out we are.
+        // Still pick random directions sometimes for natural movement.
+        es.aiT[i] -= dt;
+        if (es.aiT[i] <= 0f) {
+          es.aiT[i] = 1.6f + nextFloat01() * 3.2f;
+          if (nextFloat01() > 0.72f) {
+            final int pick = nextInt(4);
+            es.dir[i] = (byte) switch (pick) {
+              case 0 -> 0;
+              case 1 -> 1;
+              case 2 -> 2;
+              default -> 3;
+            };
+          }
+        }
+
+        // Random component from current dir
+        float randVx = 0f, randVy = 0f;
+        switch (es.dir[i]) {
+          case 0 -> { randVx = 0f; randVy = spd; }
+          case 1 -> { randVx = spd; randVy = 0f; }
+          case 2 -> { randVx = 0f; randVy = -spd; }
+          default -> { randVx = -spd; randVy = 0f; }
+        }
+
+        // Blend: more pull the further out
+        desiredVx = randVx * (1f - pull) + toHomeX * spd * pull;
+        desiredVy = randVy * (1f - pull) + toHomeY * spd * pull;
+      } else {
+        // Inside safe zone — normal random wandering.
+        es.aiT[i] -= dt;
+        if (es.aiT[i] <= 0f) {
+          final boolean keep = nextFloat01() < 0.72f;
+          if (!keep) {
+            final int pick = nextInt(4);
+            es.dir[i] = (byte) switch (pick) {
+              case 0 -> 0;
+              case 1 -> 1;
+              case 2 -> 2;
+              default -> 3;
+            };
+          }
+          es.aiT[i] = 1.6f + nextFloat01() * 3.2f;
+        }
+
+        switch (es.dir[i]) {
+          case 0 -> { desiredVx = 0f; desiredVy = spd; }
+          case 1 -> { desiredVx = spd; desiredVy = 0f; }
+          case 2 -> { desiredVx = 0f; desiredVy = -spd; }
+          default -> { desiredVx = -spd; desiredVy = 0f; }
+        }
       }
     }
 

@@ -120,7 +120,8 @@ public final class ChunkRenderer {
 
               // Terraced cliffs (placeholder): draw a dark wall on edges to lower neighbors.
               // This is purely visual for now. Gameplay collision will be added later.
-              {
+              // IMPORTANT: Skip cliff shadows on road tiles (fixes "floating road" visual bug).
+              if (c.layers.roadMask[idx] == 0) {
                 int h0 = c.layers.heightLevel[idx] & 0xFF;
                 if (h0 > 0) {
                   // sample 4-neighbors (cross-chunk via World peek)

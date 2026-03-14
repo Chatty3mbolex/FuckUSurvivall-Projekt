@@ -11,51 +11,79 @@ public final class TuningEntities {
   private TuningEntities() {}
 
   // ------------------------------------------------------------
-  // Draw sizes (pixels / world units) – copied from the current live code
+  // Draw sizes (world units)
+  //
+  // Reference scale: Player sprite is 64x64 px, drawn at 34 WU.
+  // Ratio: ~0.53 WU per pixel. All sizes derived from actual sprite
+  // dimensions using this ratio to maintain consistent proportions.
+  //
+  // Confirmed good: Player (34), Ork (34), Tree (72x96).
   // ------------------------------------------------------------
 
   public static final float DRAW_W_PLAYER = 34f;
   public static final float DRAW_W_ORK_GRUNT = 34f;
-  public static final float DRAW_W_ANIMAL_DEER = 30f;
+  public static final float DRAW_W_ANIMAL_DEER = 17f;   // was 30 — 32px sprite, deer is half player size
   public static final float DRAW_W_MERCHANT = 34f;
-  public static final float DRAW_W_ITEM_DROP = 16f;
+  public static final float DRAW_W_ITEM_DROP = 14f;     // was 16 — small ground item
 
   public static final float DRAW_W_NODE_TREE = 72f;
   public static final float DRAW_H_NODE_TREE = 96f;
 
-  // Stump draw size (world units ~= pixels at current art scale).
-  // Requested: +30% compared to the current tuned size (FIXED numbers, no formulas).
-  public static final float DRAW_W_NODE_STUMP = 25.9584f;
-  public static final float DRAW_H_NODE_STUMP = 23.9616f;
+  // Stump: 55x48 canvas, but only 48x36 visible (35% transparent border) → ~24x18 WU
+  public static final float DRAW_W_NODE_STUMP = 24f;
+  public static final float DRAW_H_NODE_STUMP = 18f;
 
-  public static final float DRAW_W_NODE_ROCK = 30f;
-  public static final float DRAW_W_NODE_ORE_IRON = 30f;
-  public static final float DRAW_W_NODE_BUSH = 34f;
-  public static final float DRAW_W_NODE_FISH_SPOT = 34f;
+  // Rock: 77x33 px → ~39x17 WU (wide and flat, not square)
+  public static final float DRAW_W_NODE_ROCK = 39f;
+  public static final float DRAW_H_NODE_ROCK = 17f;
 
-  public static final float DRAW_W_BUILD_CHEST = 30f;
-  public static final float DRAW_W_BUILD_WORKBENCH = 34f;
-  public static final float DRAW_W_BUILD_BED = 21f;
-  public static final float DRAW_W_BUILD_CAMPFIRE = 30f;
-  public static final float DRAW_W_BUILD_LAMP = 26f;
-  public static final float DRAW_H_BUILD_LAMP = 40f;
+  // Iron ore: 67x39 px → ~34x20 WU (wide and flat)
+  public static final float DRAW_W_NODE_ORE_IRON = 34f;
+  public static final float DRAW_H_NODE_ORE_IRON = 20f;
 
-  // Landmarks (HOME): big static sprites (world units ~= pixels at current art scale)
-  public static final float DRAW_W_LANDMARK_CASTLE = 576f;
-  public static final float DRAW_H_LANDMARK_CASTLE = 476f;
-  public static final float DRAW_W_LANDMARK_BRIDGE = 463f;
-  public static final float DRAW_H_LANDMARK_BRIDGE = 197f;
+  // Bush: 48x48 px → ~25x25 WU (smaller than player)
+  public static final float DRAW_W_NODE_BUSH = 25f;
+
+  // Fish spot: 32x32 px → ~16x16 WU (one tile)
+  public static final float DRAW_W_NODE_FISH_SPOT = 16f;
+
+  // Chest: 48x24 px → ~24x12 WU (wide and low)
+  public static final float DRAW_W_BUILD_CHEST = 24f;
+  public static final float DRAW_H_BUILD_CHEST = 12f;
+
+  // Workbench: 32x27 px → ~16x14 WU (one tile, compact)
+  public static final float DRAW_W_BUILD_WORKBENCH = 16f;
+  public static final float DRAW_H_BUILD_WORKBENCH = 14f;
+
+  // Bed: 75x103 canvas, but only 48x83 visible (48% transparent border) → ~24x42 WU
+  public static final float DRAW_W_BUILD_BED = 24f;
+  public static final float DRAW_H_BUILD_BED = 42f;
+
+  // Campfire: 32x19 px → ~16x10 WU (small, flat)
+  public static final float DRAW_W_BUILD_CAMPFIRE = 16f;
+  public static final float DRAW_H_BUILD_CAMPFIRE = 10f;
+
+  // Lamp: 32x148 px → ~16x74 WU (thin and VERY tall — it's a lamp post!)
+  public static final float DRAW_W_BUILD_LAMP = 16f;
+  public static final float DRAW_H_BUILD_LAMP = 74f;
+
+  // Landmarks (HOME): large sprites, scaled at ~0.50 WU/px (slightly smaller
+  // than entity scale so they don't overwhelm the area)
+  public static final float DRAW_W_LANDMARK_CASTLE = 450f;   // was 576
+  public static final float DRAW_H_LANDMARK_CASTLE = 372f;   // was 476
+  public static final float DRAW_W_LANDMARK_BRIDGE = 362f;   // was 463
+  public static final float DRAW_H_LANDMARK_BRIDGE = 154f;   // was 197
 
   // ------------------------------------------------------------
   // Collision / Hit radii (tight per-sprite tuning)
   // ------------------------------------------------------------
 
   public static final float COLLISION_RADIUS_PLAYER = 6.7f;
-  public static final float COLLISION_RADIUS_DEER = 6.4f;
+  public static final float COLLISION_RADIUS_DEER = 3.6f;    // was 6.4 — scaled to new smaller deer
   public static final float COLLISION_RADIUS_ORK = 6.7f;
 
   public static final float HIT_RADIUS_PLAYER = 9.8f;
-  public static final float HIT_RADIUS_DEER = 9.5f;
+  public static final float HIT_RADIUS_DEER = 5.4f;          // was 9.5 — scaled to new smaller deer
   public static final float HIT_RADIUS_ORK = 9.8f;
 
   // ------------------------------------------------------------

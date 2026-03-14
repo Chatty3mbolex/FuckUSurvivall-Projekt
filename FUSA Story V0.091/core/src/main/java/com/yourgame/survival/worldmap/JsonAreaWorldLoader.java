@@ -67,6 +67,18 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
       applyRoad(gs.areaWorld(), w, h, road);
     }
 
+    // 4b) Apply pre-baked corner masks from JSON (V2 schema), OR compute them from ground grid.
+    JsonValue cornerMasks = root.get("layers") != null ? root.get("layers").get("cornerMasks") : null;
+    if (cornerMasks != null) {
+      applyCornerMasksFromJson(gs.areaWorld(), w, h, cornerMasks);
+    } else {
+      // Fallback: compute corner masks from the ground grid (V1 schema or HOME).
+      bakeCornerMasksFromGround(gs.areaWorld(), w, h);
+    }
+
+    // 4c) Bake road adjacency (roadMask4) + fix road heightLevel.
+    bakeRoadAdjacencyAndFixHeight(gs.areaWorld(), w, h);
+
     // 5) Spawn area-local content (legacy procedural fillers).
     // NOTE (FUSA Story): authored templates like FOREST_01 must not spawn random filler here.
     if (WorldMapRuntime.T_HOME.equals(templateId)) {
@@ -1204,5 +1216,178 @@ public final class JsonAreaWorldLoader implements AreaWorldLoader {
       int e = es.spawn(EntityType.ANIMAL_DEER, wx, wy);
       if (e >= 0) deerSpawned++;
     }
+  }
+
+  // ============================================================
+  // Corner-mask baking (Area-based: from ground grid, no noise)
+  // ============================================================
+
+  /**
+   * Compute corner masks for all 5 edge types from the ground grid.
+   * This replaces DefaultTransitionMaskBuilder for area-based worlds.
+   */
+  private static void bakeCornerMasksFromGround(World world, int areaW, int areaH) {
+    if (world == null) return;
+
+    for (int ty = 0; ty < areaH; ty++) {
+      for (int tx = 0; tx < areaW; tx++) {
+        int cx = tx / World.CHUNK_SIZE;
+        int cy = ty / World.CHUNK_SIZE;
+        Chunk c = world.peekChunk(cx, cy);
+        if (c == null) continue;
+        int lx = tx - cx * World.CHUNK_SIZE;
+        int ly = ty - cy * World.CHUNK_SIZE;
+        int idx = lx + ly * World.CHUNK_SIZE;
+
+        if (c.layers.waterMask[idx] != 0) {
+          c.layers.grassCornerMask16[idx] = 0;
+          c.layers.dirtCornerMask16[idx] = 0;
+          c.layers.sandCornerMask16[idx] = 0;
+          c.layers.rockCornerMask16[idx] = 0;
+          c.layers.snowCornerMask16[idx] = 0;
+          continue;
+        }
+
+        short base = (short) (c.layers.groundId[idx] & 0xFF);
+
+        c.layers.grassCornerMask16[idx] = (base == TileIds.GROUND_GRASS
+            || !com.yourgame.survival.world.TransitionRules.allowTransition(base, TileIds.GROUND_GRASS))
+            ? 0 : (byte) computeCornerMask(world, tx, ty, TileIds.GROUND_GRASS);
+
+        c.layers.dirtCornerMask16[idx] = (base == TileIds.GROUND_DIRT
+            || !com.yourgame.survival.world.TransitionRules.allowTransition(base, TileIds.GROUND_DIRT))
+            ? 0 : (byte) computeCornerMask(world, tx, ty, TileIds.GROUND_DIRT);
+
+        c.layers.sandCornerMask16[idx] = (base == TileIds.GROUND_SAND
+            || !com.yourgame.survival.world.TransitionRules.allowTransition(base, TileIds.GROUND_SAND))
+            ? 0 : (byte) computeCornerMask(world, tx, ty, TileIds.GROUND_SAND);
+
+        c.layers.rockCornerMask16[idx] = (base == TileIds.GROUND_ROCK
+            || !com.yourgame.survival.world.TransitionRules.allowTransition(base, TileIds.GROUND_ROCK))
+            ? 0 : (byte) computeCornerMask(world, tx, ty, TileIds.GROUND_ROCK);
+
+        c.layers.snowCornerMask16[idx] = (base == TileIds.GROUND_SNOW
+            || !com.yourgame.survival.world.TransitionRules.allowTransition(base, TileIds.GROUND_SNOW))
+            ? 0 : (byte) computeCornerMask(world, tx, ty, TileIds.GROUND_SNOW);
+      }
+    }
+  }
+
+  private static int computeCornerMask(World world, int tx, int ty, short targetGid) {
+    int nw = cornerInside(world, tx, ty + 1, targetGid);
+    int ne = cornerInside(world, tx + 1, ty + 1, targetGid);
+    int se = cornerInside(world, tx + 1, ty, targetGid);
+    int sw = cornerInside(world, tx, ty, targetGid);
+    return nw | (ne << 1) | (se << 2) | (sw << 3);
+  }
+
+  private static int cornerInside(World world, int cornerX, int cornerY, short targetGid) {
+    int count = 0;
+    for (int dy = 0; dy >= -1; dy--) {
+      for (int dx = 0; dx >= -1; dx--) {
+        int gid = peekGroundAt(world, cornerX + dx, cornerY + dy);
+        if (gid == (targetGid & 0xFF)) count++;
+      }
+    }
+    return count >= 2 ? 1 : 0;
+  }
+
+  private static int peekGroundAt(World world, int tx, int ty) {
+    if (world == null) return TileIds.GROUND_GRASS;
+    int cx = floorDiv(tx, World.CHUNK_SIZE);
+    int cy = floorDiv(ty, World.CHUNK_SIZE);
+    Chunk c = world.peekChunk(cx, cy);
+    if (c == null) return TileIds.GROUND_GRASS;
+    int lx = mod(tx, World.CHUNK_SIZE);
+    int ly = mod(ty, World.CHUNK_SIZE);
+    return c.layers.groundId[lx + ly * World.CHUNK_SIZE] & 0xFF;
+  }
+
+  /**
+   * Apply pre-baked corner masks from V2 JSON (patches format).
+   */
+  private static void applyCornerMasksFromJson(World world, int areaW, int areaH, JsonValue cornerMasks) {
+    if (world == null || cornerMasks == null) return;
+
+    applyCornerMaskLayer(world, areaW, areaH, cornerMasks.get("grass"), "grass");
+    applyCornerMaskLayer(world, areaW, areaH, cornerMasks.get("dirt"), "dirt");
+    applyCornerMaskLayer(world, areaW, areaH, cornerMasks.get("sand"), "sand");
+    applyCornerMaskLayer(world, areaW, areaH, cornerMasks.get("rock"), "rock");
+    applyCornerMaskLayer(world, areaW, areaH, cornerMasks.get("snow"), "snow");
+  }
+
+  private static void applyCornerMaskLayer(World world, int areaW, int areaH, JsonValue patches, String type) {
+    if (patches == null) return;
+
+    for (JsonValue p = patches.child; p != null; p = p.next) {
+      int tx = p.getInt("x", -1);
+      int ty = p.getInt("y", -1);
+      int m = p.getInt("m", 0);
+      if (tx < 0 || ty < 0 || tx >= areaW || ty >= areaH) continue;
+      if (m == 0) continue;
+
+      int cx = tx / World.CHUNK_SIZE;
+      int cy = ty / World.CHUNK_SIZE;
+      Chunk c = world.peekChunk(cx, cy);
+      if (c == null) continue;
+      int lx = tx - cx * World.CHUNK_SIZE;
+      int ly = ty - cy * World.CHUNK_SIZE;
+      int idx = lx + ly * World.CHUNK_SIZE;
+
+      switch (type) {
+        case "grass" -> c.layers.grassCornerMask16[idx] = (byte) m;
+        case "dirt" -> c.layers.dirtCornerMask16[idx] = (byte) m;
+        case "sand" -> c.layers.sandCornerMask16[idx] = (byte) m;
+        case "rock" -> c.layers.rockCornerMask16[idx] = (byte) m;
+        case "snow" -> c.layers.snowCornerMask16[idx] = (byte) m;
+      }
+    }
+  }
+
+  // ============================================================
+  // Road adjacency baking + height fix
+  // ============================================================
+
+  /**
+   * Compute roadMask4 (4-neighbor adjacency) for all road tiles,
+   * and reset heightLevel to 0 on road tiles to fix the "floating road" visual bug.
+   */
+  private static void bakeRoadAdjacencyAndFixHeight(World world, int areaW, int areaH) {
+    if (world == null) return;
+
+    for (int ty = 0; ty < areaH; ty++) {
+      for (int tx = 0; tx < areaW; tx++) {
+        int cx = tx / World.CHUNK_SIZE;
+        int cy = ty / World.CHUNK_SIZE;
+        Chunk c = world.peekChunk(cx, cy);
+        if (c == null) continue;
+        int lx = tx - cx * World.CHUNK_SIZE;
+        int ly = ty - cy * World.CHUNK_SIZE;
+        int idx = lx + ly * World.CHUNK_SIZE;
+
+        if (c.layers.roadMask[idx] == 0) continue;
+
+        // Fix height: road tiles must be flat (no cliff shadows).
+        c.layers.heightLevel[idx] = 0;
+
+        // Compute 4-neighbor road adjacency.
+        boolean n = peekRoad(world, tx, ty + 1);
+        boolean e = peekRoad(world, tx + 1, ty);
+        boolean s = peekRoad(world, tx, ty - 1);
+        boolean w = peekRoad(world, tx - 1, ty);
+        c.layers.roadMask4[idx] = (byte) ((n ? 1 : 0) | (e ? 2 : 0) | (s ? 4 : 0) | (w ? 8 : 0));
+      }
+    }
+  }
+
+  private static boolean peekRoad(World world, int tx, int ty) {
+    if (world == null) return false;
+    int cx = floorDiv(tx, World.CHUNK_SIZE);
+    int cy = floorDiv(ty, World.CHUNK_SIZE);
+    Chunk c = world.peekChunk(cx, cy);
+    if (c == null) return false;
+    int lx = mod(tx, World.CHUNK_SIZE);
+    int ly = mod(ty, World.CHUNK_SIZE);
+    return c.layers.roadMask[lx + ly * World.CHUNK_SIZE] != 0;
   }
 }

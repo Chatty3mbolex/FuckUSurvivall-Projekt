@@ -104,95 +104,87 @@ public final class EntityRenderer {
         float iw = 18f;
         float ih = 18f;
 
-        // Base hand position (world units)
-        // IMPORTANT: Offsets are now hard numbers (no World.TILE_WORLD coupling).
+        // --- Hand position offsets per direction ---
+        // All offsets are relative to entity center. Positive X = right, Positive Y = up.
+        // East and West are mirrors of each other. South is in front.
         float ox, oy;
         switch (dir) {
-          case 1 -> { // E
-            // Right: hand offset
+          case 1 -> { // E (right hand, right side)
             ox = 7.2f;
             oy = 2f;
           }
-          case 2 -> { // S
-            // Down: mirrored + slightly more left
-            ox = 4.4f;
-            oy = 2f;
+          case 2 -> { // S (hand in front, slightly right)
+            ox = 5f;
+            oy = -2f;
           }
-          case 3 -> { // W
-            // Left: MUST stay in front of the body (not behind the back).
-            // Mirror is handled below via scaleX.
-            ox = -17.2f;
+          case 3 -> { // W (left hand, left side — mirror of East)
+            ox = -7.2f;
             oy = 2f;
           }
           default -> { // N (hidden base)
-            ox = 0f; oy = 10f;
+            ox = 0f;
+            oy = 10f;
           }
         }
 
-        // Per-item fine tuning must always be relative to the shared base offsets.
-        // Default: no per-item shift (keeps all weapons/tools aligned the same).
-        float addOx = 0f;
-        float addOy = 0f;
-        ox += addOx;
-        oy += addOy;
-
         float bob = (float) Math.sin(stateTime * 12f + i * 0.1f) * 2.0f;
 
-        // Rotation (degrees). Icon art is treated as "pointing right".
-        // Request: when facing LEFT and when facing DOWN, the icon must be horizontally mirrored.
-        // For LEFT we use mirroring instead of 180° rotation.
+        // --- Rotation per direction ---
+        // Icon art is "pointing right" by default.
+        // E = 0° (default), N = 90° (point up), S = -90° (point down), W = 0° (mirrored)
         float baseRotDeg = switch (dir) {
-          case 0 -> 90f;   // N
-          case 1 -> 0f;    // E
-          case 2 -> -90f;  // S
-          case 3 -> 0f;    // W (mirrored)
+          case 0 -> 90f;   // N: point up
+          case 1 -> 0f;    // E: point right (default)
+          case 2 -> -90f;  // S: point down
+          case 3 -> 0f;    // W: mirrored, so 0° + flip = point left
           default -> 0f;
         };
 
+        // Rotation origin: grip point near the handle end of the icon.
         float originX = iw * 0.2f;
         float originY = ih * 0.5f;
         float scaleX = 1f;
 
-        // Mirror when looking LEFT or DOWN.
-        if (dir == 3 || dir == 2) {
+        // Mirror ONLY when facing West (left). NOT when facing South.
+        // South uses rotation (-90°) which is correct on its own.
+        if (dir == 3) {
           scaleX = -1f;
-          // keep the "hand grip" point consistent when mirrored
-          originX = iw - originX;
+        }
+
+        // --- Swing direction per facing ---
+        // The swing arc must go in the natural direction for each facing.
+        // E: sweep left-to-right (positive). W: sweep right-to-left (negative, but mirrored = positive visual).
+        // S: sweep left-to-right. N: sweep left-to-right.
+        float swingSign = 1f; // default: counter-clockwise arc
+        if (dir == 3) {
+          swingSign = -1f; // West: reverse arc (mirror handles visual direction)
         }
 
         // Swing timer:
-        // - PLAYER: GameScreen drives entities.aiF0[playerE] as remaining seconds.
-        // - ORK: derive from attack cooldown (data0 ms). This keeps the club visible longer after an attack.
         float swingT = 0f;
         float swingDur = SWING_DUR;
         if (t == EntityType.PLAYER) {
           swingT = es.aiF0[i];
           swingDur = SWING_DUR;
         } else if (t == EntityType.ORK_GRUNT) {
-          // Cooldown is set to 650ms on hit; we show a swing for ~0.78s max.
           float cdSec = Math.max(0f, es.data0[i]) / 1000f;
           swingT = Math.min(ORK_SWING_DUR, cdSec);
           swingDur = ORK_SWING_DUR;
         }
         boolean swinging = swingT > 0.01f;
 
-        // Swing effect (trail) — visible in all directions, including North.
+        // Swing effect (trail)
         if (swinging) {
           float p = 1f - (swingT / swingDur);
           if (p < 0f) p = 0f;
           if (p > 1f) p = 1f;
 
-          // Arc sweep around the hand.
-          // Player: quick -70..+70.
-          // Orc: heavier swing (-95..+95) so the club reads as a "schwung".
-          float sweep = (t == EntityType.ORK_GRUNT)
-              ? (-95f + 190f * p)
-              : (-70f + 140f * p);
+          float halfArc = (t == EntityType.ORK_GRUNT) ? 95f : 70f;
+          float sweep = swingSign * (-halfArc + 2f * halfArc * p);
 
-          // Draw a small trail with decreasing alpha.
           for (int tstep = 0; tstep < 4; tstep++) {
             float tt = tstep / 3f;
-            float trailRot = baseRotDeg + sweep - (18f * tt);
+            float trailRot = baseRotDeg + sweep - (swingSign * 18f * tt);
 
             float alpha = (t == EntityType.ORK_GRUNT ? 0.75f : 0.55f) * (1f - tt);
             batch.setColor(1f, 1f, 1f, alpha);
@@ -212,8 +204,7 @@ public final class EntityRenderer {
           batch.setColor(1f, 1f, 1f, 1f);
         }
 
-        // Base equipped weapon/tool in hand (suppressed when facing North).
-        // For ORKs: if a swing is active, always show the club/tool even when facing North.
+        // Base equipped weapon/tool in hand
         if (drawBaseWeapon || (t == EntityType.ORK_GRUNT && swinging)) {
           float tx = x + ox;
           float ty = y + oy + bob;
