@@ -1,9 +1,0 @@
-{
-  "pages": [
-    {"id":"p1","title":"Movement","text":"WASD to move. Hold wings later to fly."},
-    {"id":"p2","title":"Combat","text":"Left mouse attacks. Right mouse uses tool / interact."},
-    {"id":"p3","title":"Inventory","text":"I opens inventory. C opens crafting."},
-    {"id":"p4","title":"Build","text":"B enters build mode. Q/E rotates."},
-    {"id":"p5","title":"Pause","text":"ESC opens pause menu."}
-  ]
-}

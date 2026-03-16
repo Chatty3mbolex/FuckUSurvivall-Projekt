@@ -1,6 +1,0 @@
-dependencies {
-  // Offline build: use bundled jars in /libs
-  api fileTree(dir: "${rootProject.projectDir}/libs", include: ['*.jar'])
-}
-
-sourceSets.main.java.srcDirs = [ 'src/main/java' ]
