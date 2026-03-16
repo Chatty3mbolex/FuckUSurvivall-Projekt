@@ -1,0 +1,49 @@
+{
+  "schema": "zqs.blueprints.v1",
+  "version": 1,
+  "note": "Blueprints sind Vorlagen. Sie definieren Questart/Subtype/AllowedTargetKinds/AmountRules/RepeatRules/TextProfileId/RewardProfileId. (Flow 4)",
+  "blueprints": [
+    {
+      "blueprintId": "bp_collect_resource_basic",
+      "objectiveFamily": "NQ",
+      "questType": "sammeln",
+      "questSubtype": "sammeln.item",
+      "allowedTargetKinds": ["item"],
+      "amountRules": {
+        "min": 1,
+        "max": 10
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_collect_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_collect_harvestable_basic",
+      "objectiveFamily": "NQ",
+      "questType": "sammeln",
+      "questSubtype": "sammeln.harvestable",
+      "allowedTargetKinds": ["harvestable"],
+      "amountRules": {
+        "min": 1,
+        "max": 6
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_collect_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    }
+  ]
+}

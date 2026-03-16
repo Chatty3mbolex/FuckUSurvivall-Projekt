@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "noise": {
+    "height": { "freq": 0.006,  "octaves": 2 },
+    "heat":   { "freq": 0.006,  "octaves": 2 },
+    "moist":  { "freq": 0.0085, "octaves": 2 },
+    "veg":    { "freq": 0.020,  "octaves": 2 },
+    "rock":   { "freq": 0.030,  "octaves": 2 },
+    "path":   { "freq": 0.040,  "octaves": 1 }
+  },
+  "water": {
+    "waterDistMaxR": 6
+  },
+  "edgeBlend": {
+    "edgeWidthCapTiles": 32
+  },
+  "roads": {
+    "maxTargetsPerChunk": 6,
+    "maxNodesPerChunk": 12,
+    "maxAStarCallsPerChunk": 8,
+    "maxAStarItersPerCall": 2048,
+    "maxReconstructSteps": 2048
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "zqs.catalog.runtime.v1",
+  "version": 1,
+  "note": "Generator darf nur auf Runtime-Katalog arbeiten. Asset-Katalog bleibt separat. (Flow 4 / Master Alignment)",
+  "resources": [
+    {"id":0,"name":"Wood","valueCopper":1,"tags":["resource","wood"],"slIdMax":0,"knownRequired":false},
+    {"id":1,"name":"Stone","valueCopper":1,"tags":["resource","stone"],"slIdMax":0,"knownRequired":false},
+    {"id":2,"name":"Iron Ore","valueCopper":3,"tags":["ore","iron"],"slIdMax":0,"knownRequired":false},
+    {"id":3,"name":"Copper Ore","valueCopper":3,"tags":["ore","copper"],"slIdMax":0,"knownRequired":false},
+    {"id":4,"name":"Coal","valueCopper":2,"tags":["ore","coal"],"slIdMax":0,"knownRequired":false},
+    {"id":5,"name":"Silver Ore","valueCopper":6,"tags":["ore","silver"],"slIdMax":0,"knownRequired":false},
+    {"id":6,"name":"Gold Ore","valueCopper":8,"tags":["ore","gold"],"slIdMax":0,"knownRequired":false},
+    {"id":7,"name":"Crystal","valueCopper":10,"tags":["resource","crystal"],"slIdMax":0,"knownRequired":false},
+    {"id":8,"name":"Herbs","valueCopper":2,"tags":["resource","herb"],"slIdMax":0,"knownRequired":false},
+    {"id":9,"name":"Clay","valueCopper":2,"tags":["resource","clay"],"slIdMax":0,"knownRequired":false},
+    {"id":47,"name":"Arrow","valueCopper":1,"tags":["ammo","arrow"],"slIdMax":0,"knownRequired":false}
+  ],
+  "items": [
+    {"id":10,"name":"Iron Ingot","valueCopper":7,"tags":["material","ingot","iron"],"slIdMax":0,"knownRequired":false},
+    {"id":11,"name":"Copper Ingot","valueCopper":6,"tags":["material","ingot","copper"],"slIdMax":0,"knownRequired":false},
+    {"id":12,"name":"Silver Ingot","valueCopper":12,"tags":["material","ingot","silver"],"slIdMax":0,"knownRequired":false},
+    {"id":13,"name":"Gold Ingot","valueCopper":16,"tags":["material","ingot","gold"],"slIdMax":0,"knownRequired":false},
+
+    {"id":14,"name":"Axe","valueCopper":25,"tags":["tool","axe"],"slIdMax":0,"knownRequired":false},
+    {"id":15,"name":"Pickaxe","valueCopper":25,"tags":["tool","pickaxe"],"slIdMax":0,"knownRequired":false},
+    {"id":16,"name":"Knife","valueCopper":20,"tags":["tool","knife"],"slIdMax":0,"knownRequired":false},
+    {"id":17,"name":"Hammer","valueCopper":30,"tags":["tool","hammer"],"slIdMax":0,"knownRequired":false},
+    {"id":18,"name":"Climbing Tool","valueCopper":40,"tags":["tool","climb"],"slIdMax":0,"knownRequired":false},
+    {"id":19,"name":"Net","valueCopper":18,"tags":["tool","net"],"slIdMax":0,"knownRequired":false},
+    {"id":36,"name":"Angel","valueCopper":35,"tags":["tool","fishing","rod"],"slIdMax":0,"knownRequired":false},
+
+    {"id":20,"name":"Sword","valueCopper":60,"tags":["weapon","melee"],"slIdMax":0,"knownRequired":false},
+    {"id":21,"name":"Spear","valueCopper":55,"tags":["weapon","melee"],"slIdMax":0,"knownRequired":false},
+    {"id":22,"name":"Bow","valueCopper":70,"tags":["weapon","ranged"],"slIdMax":0,"knownRequired":false},
+    {"id":23,"name":"Dagger","valueCopper":45,"tags":["weapon","melee"],"slIdMax":0,"knownRequired":false},
+    {"id":24,"name":"Mace","valueCopper":65,"tags":["weapon","melee"],"slIdMax":0,"knownRequired":false},
+    {"id":25,"name":"Battle Axe","valueCopper":75,"tags":["weapon","melee"],"slIdMax":0,"knownRequired":false},
+    {"id":26,"name":"Crystal Staff","valueCopper":90,"tags":["weapon","magic"],"slIdMax":0,"knownRequired":false},
+    {"id":27,"name":"Crossbow","valueCopper":85,"tags":["weapon","ranged"],"slIdMax":0,"knownRequired":false},
+
+    {"id":28,"name":"Meat","valueCopper":6,"tags":["food"],"slIdMax":0,"knownRequired":false},
+    {"id":29,"name":"Cooked Meat","valueCopper":10,"tags":["food","cooked"],"slIdMax":0,"knownRequired":false},
+    {"id":30,"name":"Water","valueCopper":2,"tags":["consumable","drink"],"slIdMax":0,"knownRequired":false},
+
+    {"id":31,"name":"Münzen (Kupfer)","valueCopper":1,"tags":["currency","coin","copper"],"slIdMax":0,"knownRequired":false},
+    {"id":32,"name":"Münzen (Silber)","valueCopper":100,"tags":["currency","coin","silver"],"slIdMax":0,"knownRequired":false},
+    {"id":33,"name":"Münzen (Gold)","valueCopper":100000,"tags":["currency","coin","gold"],"slIdMax":0,"knownRequired":false},
+
+    {"id":34,"name":"Beeren","valueCopper":3,"tags":["food","forage"],"slIdMax":0,"knownRequired":false},
+    {"id":35,"name":"Fisch","valueCopper":5,"tags":["food","fish"],"slIdMax":0,"knownRequired":false},
+
+    {"id":40,"name":"Workbench","valueCopper":80,"tags":["build","station","crafting"],"slIdMax":0,"knownRequired":false},
+    {"id":41,"name":"Campfire","valueCopper":30,"tags":["build","cooking","heat"],"slIdMax":0,"knownRequired":false},
+    {"id":42,"name":"Chest","valueCopper":60,"tags":["build","storage"],"slIdMax":0,"knownRequired":false},
+    {"id":43,"name":"Bed","valueCopper":70,"tags":["build","sleep"],"slIdMax":0,"knownRequired":false},
+    {"id":44,"name":"Anvil","valueCopper":150,"tags":["build","station","smithing"],"slIdMax":0,"knownRequired":false},
+    {"id":45,"name":"Smelter","valueCopper":120,"tags":["build","station","smelt"],"slIdMax":0,"knownRequired":false},
+    {"id":46,"name":"Lamp","valueCopper":40,"tags":["build","light"],"slIdMax":0,"knownRequired":false}
+  ],
+  "harvestables": [
+    {
+      "id": "NODE_TREE",
+      "name": "Tree",
+      "valueCopper": 5,
+      "tags": ["harvestable","node","tree","tool:axe","drop:item:0","dropAmount:5"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "NODE_ROCK",
+      "name": "Rock",
+      "valueCopper": 4,
+      "tags": ["harvestable","node","rock","tool:pickaxe","drop:item:1","dropAmount:4"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "NODE_ORE_IRON",
+      "name": "Iron Ore Node",
+      "valueCopper": 6,
+      "tags": ["harvestable","node","ore","iron","tool:pickaxe","drop:item:2","dropAmount:2"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "NODE_BUSH",
+      "name": "Berry Bush",
+      "valueCopper": 3,
+      "tags": ["harvestable","node","bush","tool:hand","drop:item:34","dropAmount:1"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "NODE_FISH_SPOT",
+      "name": "Fish Spot",
+      "valueCopper": 5,
+      "tags": ["harvestable","node","fish","tool:angel","drop:item:35","dropAmount:1"],
+      "slIdMax": 0,
+      "knownRequired": false
+    }
+  ],
+  "livings": [],
+  "pois": [],
+  "npcs": [],
+  "regions": []
+}

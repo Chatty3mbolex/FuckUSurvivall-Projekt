@@ -1,0 +1,16 @@
+{
+  "schema": "zqs.reward.profiles.v1",
+  "version": 1,
+  "note": "Reward-Profile beschreiben Parameter/Modus. Die konkreten Formeln sind im Code (Reward-Generator) gemäß Plan 1.0 / Reward-Referenz.",
+  "profiles": [
+    {
+      "rewardProfileId": "rp_collect_basic",
+      "rewardFormulaType": "collect",
+      "rewardTextMode": "currency",
+      "allowItemRewards": false,
+      "allowCurrencyRewards": true,
+      "allowMixedRewards": false
+    }
+  ]
+}
+

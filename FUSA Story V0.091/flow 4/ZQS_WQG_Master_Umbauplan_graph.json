@@ -1,0 +1,220 @@
+{
+  "plan_name": "ZQS_WQG_Master_Umbauplan_kanonisch",
+  "source_zip": "FUSA Story V0.091_1.zip",
+  "rules": [
+    "Do not compile",
+    "Do not run",
+    "Do not debug",
+    "Do not commit",
+    "No scope creep",
+    "OfferBuffer is runtime-only",
+    "Root save key is zqs",
+    "QuestLog is view-only",
+    "WanderQuestGuySystem is docking-only"
+  ],
+  "nodes": [
+    {
+      "id": "N00",
+      "title": "Guardrails / Freeze",
+      "deps": [],
+      "files": [],
+      "done_when": [
+        "workflow frozen",
+        "no build/run/debug"
+      ]
+    },
+    {
+      "id": "N01",
+      "title": "Catalog runtime module",
+      "deps": [
+        "N00"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/catalog/CatalogKind.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/catalog/CatalogEntryRt.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/catalog/ContentCatalogRuntime.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/catalog/CatalogIndexes.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/catalog/CatalogRuntimeLoader.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_MODULE_01_CATALOG.md"
+    },
+    {
+      "id": "N02",
+      "title": "Knowledge module",
+      "deps": [
+        "N01"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/knowledge/PlayerKnowledgeState.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/knowledge/KnowledgeQuery.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_MODULE_02_KNOWLEDGE.md"
+    },
+    {
+      "id": "N03",
+      "title": "Blueprint module",
+      "deps": [
+        "N01"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/blueprint/RepeatRules.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/blueprint/QuestBlueprint.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/blueprint/WeightedPicker.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/blueprint/BlueprintLoader.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/blueprint/BlueprintRegistry.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_MODULE_03_BLUEPRINTS.md"
+    },
+    {
+      "id": "N04",
+      "title": "Eligibility / reward profiles / quest id",
+      "deps": [
+        "N01",
+        "N02",
+        "N03"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/ZqsGeneratorInputs.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/EligibilityResult.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/ZqsEligibility.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/RewardProfileDef.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/RewardProfiles.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/RewardProfilesLoader.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/ZqsQuestIdFactory.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_MODULE_04_GENERATOR_PIPELINE.md"
+    },
+    {
+      "id": "N05",
+      "title": "Runtime DTO hardening",
+      "deps": [
+        "N04"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/runtime/GeneratedQuestOffer.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/runtime/PersistentQuestRecord.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/runtime/TargetBlock.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/runtime/RewardBlock.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_DUMMY_REPLACEMENTS_701_702_703.md + ANHANG PLAN_ZQS_ALL_DUMMY_REPLACEMENTS.md"
+    },
+    {
+      "id": "N06",
+      "title": "Text system hardening",
+      "deps": [
+        "N05"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/text/ConversationContext.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/text/SnippetDef.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/text/SnippetPool.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/text/ZqsSnippetLoader.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/text/ZqsTextAssembler.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_ALL_DUMMY_REPLACEMENTS.md"
+    },
+    {
+      "id": "N07",
+      "title": "Generator closure",
+      "deps": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/RewardCalculator.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/generator/ZqsOfferGenerator.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_MODULE_04_GENERATOR_PIPELINE.md + ANHANG PLAN_ZQS_TASKS_03_06_07.md"
+    },
+    {
+      "id": "N08",
+      "title": "Runtime import/accept/save closure",
+      "deps": [
+        "N06",
+        "N07"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/runtime/ZqsRuntime.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/history/QuestHistoryIndex.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/history/QuestHistoryCodec.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/save/ZqsSaveBlock.java",
+        "core/src/main/java/com/yourgame/survival/quest/zqs/save/ZqsSaveIO.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_DUMMY_REPLACEMENTS_701_702_703.md + ANHANG PLAN_ZQS_TASKS_03_06_07.md + ANHANG PLAN_ZQS_ALL_DUMMY_REPLACEMENTS.md"
+    },
+    {
+      "id": "N09",
+      "title": "Dock / WQG closure",
+      "deps": [
+        "N08"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/quest/zqs/dock/WanderQuestGuyDock.java",
+        "core/src/main/java/com/yourgame/survival/systems/WanderQuestGuySystem.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_DUMMY_REPLACEMENTS_701_702_703.md + ANHANG PLAN_ZQS_ALL_DUMMY_REPLACEMENTS.md"
+    },
+    {
+      "id": "N10",
+      "title": "Legacy view + runtime data alignment",
+      "deps": [
+        "N08"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/data/ItemDef.java",
+        "core/src/main/java/com/yourgame/survival/data/DataRegistry.java",
+        "core/src/main/java/com/yourgame/survival/quest/QuestDef.java",
+        "core/src/main/java/com/yourgame/survival/quest/QuestLog.java"
+      ],
+      "source": "master patch matrix"
+    },
+    {
+      "id": "N11",
+      "title": "SaveManager / GameScreen binding",
+      "deps": [
+        "N08",
+        "N09",
+        "N10"
+      ],
+      "files": [
+        "core/src/main/java/com/yourgame/survival/data/SaveManager.java",
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "source": "ANHANG PLAN_ZQS_ALL_DUMMY_REPLACEMENTS.md + master patch matrix"
+    },
+    {
+      "id": "N12",
+      "title": "Asset DB completion",
+      "deps": [
+        "N06",
+        "N07"
+      ],
+      "files": [
+        "assets/data/zqs/catalog_runtime_v1.json",
+        "assets/data/zqs/blueprints_v1.json",
+        "assets/data/zqs/reward_profiles_v1.json",
+        "assets/data/zqs/text_snippets_de_DE_v1.json"
+      ],
+      "source": "ANHANG TEXT/GENERATOR/flow4 docs"
+    },
+    {
+      "id": "N13",
+      "title": "Final structural audit",
+      "deps": [
+        "N11",
+        "N12"
+      ],
+      "files": [],
+      "done_when": [
+        "no missing imports in quest/zqs",
+        "no blocker dummy left",
+        "zqs is canonical save source",
+        "QuestLog remains view only"
+      ]
+    }
+  ]
+}

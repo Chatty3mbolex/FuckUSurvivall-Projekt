@@ -1,0 +1,57 @@
+{
+  "items": [
+    {"id":0,"name":"Wood","type":"resource","stackMax":999,"value":1,"icon":"item_0","tags":["resource","wood"]},
+    {"id":1,"name":"Stone","type":"resource","stackMax":999,"value":1,"icon":"item_1","tags":["resource","stone"]},
+    {"id":2,"name":"Iron Ore","type":"resource","stackMax":999,"value":3,"icon":"item_2","tags":["ore","iron"]},
+    {"id":3,"name":"Copper Ore","type":"resource","stackMax":999,"value":3,"icon":"item_3","tags":["ore","copper"]},
+    {"id":4,"name":"Coal","type":"resource","stackMax":999,"value":2,"icon":"item_4","tags":["ore","coal"]},
+    {"id":5,"name":"Silver Ore","type":"resource","stackMax":999,"value":6,"icon":"item_5","tags":["ore","silver"]},
+    {"id":6,"name":"Gold Ore","type":"resource","stackMax":999,"value":8,"icon":"item_6","tags":["ore","gold"]},
+    {"id":7,"name":"Crystal","type":"resource","stackMax":999,"value":10,"icon":"item_7","tags":["resource","crystal"]},
+    {"id":8,"name":"Herbs","type":"resource","stackMax":999,"value":2,"icon":"item_8","tags":["resource","herb"]},
+    {"id":9,"name":"Clay","type":"resource","stackMax":999,"value":2,"icon":"item_9","tags":["resource","clay"]},
+
+    {"id":10,"name":"Iron Ingot","type":"material","stackMax":999,"value":7,"icon":"item_10","tags":["ingot","iron"]},
+    {"id":11,"name":"Copper Ingot","type":"material","stackMax":999,"value":6,"icon":"item_11","tags":["ingot","copper"]},
+    {"id":12,"name":"Silver Ingot","type":"material","stackMax":999,"value":12,"icon":"item_12","tags":["ingot","silver"]},
+    {"id":13,"name":"Gold Ingot","type":"material","stackMax":999,"value":16,"icon":"item_13","tags":["ingot","gold"]},
+
+    {"id":14,"name":"Axe","type":"tool","stackMax":1,"value":25,"icon":"item_14","tags":["tool","axe"]},
+    {"id":15,"name":"Pickaxe","type":"tool","stackMax":1,"value":25,"icon":"item_15","tags":["tool","pickaxe"]},
+    {"id":16,"name":"Knife","type":"tool","stackMax":1,"value":20,"icon":"item_16","tags":["tool","knife"]},
+    {"id":17,"name":"Hammer","type":"tool","stackMax":1,"value":30,"icon":"item_17","tags":["tool","hammer"]},
+    {"id":18,"name":"Climbing Tool","type":"tool","stackMax":1,"value":40,"icon":"item_18","tags":["tool","climb"]},
+    {"id":19,"name":"Net","type":"tool","stackMax":1,"value":18,"icon":"item_19","tags":["tool","net"]},
+    {"id":36,"name":"Angel","type":"tool","stackMax":1,"value":35,"icon":"item_36","tags":["tool","fishing","rod"]},
+
+    {"id":40,"name":"Workbench","type":"build","stackMax":1,"value":80,"icon":"item_40","tags":["build","station","crafting"]},
+    {"id":41,"name":"Campfire","type":"build","stackMax":1,"value":30,"icon":"item_41","tags":["build","cooking","heat"]},
+    {"id":42,"name":"Chest","type":"build","stackMax":1,"value":60,"icon":"item_42","tags":["build","storage"]},
+    {"id":43,"name":"Bed","type":"build","stackMax":1,"value":70,"icon":"item_43","tags":["build","sleep"]},
+    {"id":44,"name":"Anvil","type":"build","stackMax":1,"value":150,"icon":"item_44","tags":["build","station","smithing"]},
+    {"id":45,"name":"Smelter","type":"build","stackMax":1,"value":120,"icon":"item_45","tags":["build","station","smelt"]},
+    {"id":46,"name":"Lamp","type":"build","stackMax":1,"value":40,"icon":"item_46","tags":["build","light"]},
+
+    {"id":20,"name":"Sword","type":"weapon","stackMax":1,"value":60,"icon":"item_20","tags":["weapon","melee"]},
+    {"id":21,"name":"Spear","type":"weapon","stackMax":1,"value":55,"icon":"item_21","tags":["weapon","melee"]},
+    {"id":22,"name":"Bow","type":"weapon","stackMax":1,"value":70,"icon":"item_22","tags":["weapon","ranged"]},
+    {"id":23,"name":"Dagger","type":"weapon","stackMax":1,"value":45,"icon":"item_23","tags":["weapon","melee"]},
+    {"id":24,"name":"Mace","type":"weapon","stackMax":1,"value":65,"icon":"item_24","tags":["weapon","melee"]},
+    {"id":25,"name":"Battle Axe","type":"weapon","stackMax":1,"value":75,"icon":"item_25","tags":["weapon","melee"]},
+    {"id":26,"name":"Crystal Staff","type":"weapon","stackMax":1,"value":90,"icon":"item_26","tags":["weapon","magic"]},
+    {"id":27,"name":"Crossbow","type":"weapon","stackMax":1,"value":85,"icon":"item_27","tags":["weapon","ranged"]},
+
+    {"id":28,"name":"Meat","type":"food","stackMax":99,"value":6,"icon":"item_28","tags":["food"]},
+    {"id":29,"name":"Cooked Meat","type":"food","stackMax":99,"value":10,"icon":"item_29","tags":["food","cooked"]},
+    {"id":30,"name":"Water","type":"consumable","stackMax":99,"value":2,"icon":"item_30","tags":["drink"]},
+
+    {"id":31,"name":"Münzen (Kupfer)","type":"currency","stackMax":999999,"value":1,"icon":"item_31","tags":["currency","coin","copper"]},
+    {"id":32,"name":"Münzen (Silber)","type":"currency","stackMax":999999,"value":100,"icon":"item_32","tags":["currency","coin","silver"]},
+    {"id":33,"name":"Münzen (Gold)","type":"currency","stackMax":999999,"value":100000,"icon":"item_33","tags":["currency","coin","gold"]},
+
+    {"id":34,"name":"Beeren","type":"food","stackMax":99,"value":3,"icon":"item_34","tags":["food","forage"]},
+    {"id":35,"name":"Fisch","type":"food","stackMax":99,"value":5,"icon":"item_35","tags":["food","fish"]},
+
+    {"id":47,"name":"Arrow","type":"resource","stackMax":999,"value":1,"icon":"item_47","tags":["ammo","arrow"]}
+  ]
+}

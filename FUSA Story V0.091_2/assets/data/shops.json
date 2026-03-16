@@ -1,0 +1,22 @@
+{
+  "shops": {
+    "fixed": {
+      "id": "merchant_fixed",
+      "offers": [
+        {"itemId":0,"buy":2,"sell":1},
+        {"itemId":1,"buy":2,"sell":1},
+        {"itemId":8,"buy":4,"sell":2},
+        {"itemId":30,"buy":2,"sell":1},
+        {"itemId":14,"buy":60,"sell":30},
+        {"itemId":15,"buy":60,"sell":30},
+        {"itemId":36,"buy":90,"sell":45}
+      ]
+    },
+    "wanderingPools": [
+      {
+        "id": "wandering_pool_01",
+        "items": [10,11,12,13,20,21,22,23,24,25,26,27,28,29,36]
+      }
+    ]
+  }
+}

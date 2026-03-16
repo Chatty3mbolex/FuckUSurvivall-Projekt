@@ -1,0 +1,237 @@
+
+ui.png
+size: 1024, 512
+format: RGBA8888
+filter: Nearest, Nearest
+repeat: none
+ui_bar_base
+  rotate: false
+  xy: 451, 436
+  size: 320, 64
+  orig: 320, 64
+  offset: 0, 0
+  index: -1
+ui_bar_fill
+  rotate: false
+  xy: 581, 176
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+ui_bar_hp_fill
+  rotate: false
+  xy: 451, 78
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_hp_frame
+  rotate: false
+  xy: 965, 468
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_hunger_fill
+  rotate: false
+  xy: 355, 18
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_hunger_frame
+  rotate: false
+  xy: 775, 321
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_sleep_fill
+  rotate: false
+  xy: 581, 142
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_sleep_frame
+  rotate: false
+  xy: 645, 272
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_stamina_fill
+  rotate: false
+  xy: 485, 78
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_bar_stamina_frame
+  rotate: false
+  xy: 389, 18
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_btn_down
+  rotate: false
+  xy: 193, 2
+  size: 160, 48
+  orig: 160, 48
+  offset: 0, 0
+  index: -1
+ui_btn_hover
+  rotate: false
+  xy: 775, 405
+  size: 160, 48
+  orig: 160, 48
+  offset: 0, 0
+  index: -1
+ui_btn_normal
+  rotate: false
+  xy: 775, 355
+  size: 160, 48
+  orig: 160, 48
+  offset: 0, 0
+  index: -1
+ui_button
+  rotate: false
+  xy: 1, 1
+  size: 190, 49
+  orig: 190, 49
+  offset: 0, 0
+  index: -1
+ui_button_pressed
+  rotate: false
+  xy: 773, 455
+  size: 190, 45
+  orig: 190, 45
+  offset: 0, 0
+  index: -1
+ui_check_off
+  rotate: false
+  xy: 809, 321
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_check_on
+  rotate: false
+  xy: 679, 272
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_build
+  rotate: false
+  xy: 519, 78
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_craft
+  rotate: false
+  xy: 843, 321
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_exit
+  rotate: false
+  xy: 713, 272
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_inventory
+  rotate: false
+  xy: 877, 321
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_load
+  rotate: false
+  xy: 615, 142
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_pause
+  rotate: false
+  xy: 581, 108
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_save
+  rotate: false
+  xy: 615, 108
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_settings
+  rotate: false
+  xy: 937, 421
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_shop
+  rotate: false
+  xy: 937, 387
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_icon_tutorial
+  rotate: false
+  xy: 937, 353
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_panel
+  rotate: false
+  xy: 1, 52
+  size: 448, 448
+  orig: 448, 448
+  offset: 0, 0
+  index: -1
+ui_panel_slots
+  rotate: false
+  xy: 451, 242
+  size: 192, 192
+  orig: 192, 192
+  offset: 0, 0
+  index: -1
+ui_slider_bg
+  rotate: false
+  xy: 423, 18
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_slider_knob
+  rotate: false
+  xy: 747, 272
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+ui_slot
+  rotate: false
+  xy: 451, 112
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
+ui_slot_pressed
+  rotate: false
+  xy: 645, 306
+  size: 128, 128
+  orig: 128, 128
+  offset: 0, 0
+  index: -1
