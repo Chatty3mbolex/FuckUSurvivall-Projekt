@@ -6259,9 +6259,9 @@ private void craftByOutput(int outItemId) {
             int made = 0;
             for (int k = 0; k < want; k++) {
               if (!craft.craft(inv, rec)) break;
-              int outId = rec.outItemId;
+              int craftedOutId = rec.outItemId;
               int outAmount = Math.max(1, rec.outAmount);
-              zqsCraftedOutputCounts.put(outId, zqsCraftedOutputCounts.get(outId, 0) + outAmount);
+              zqsCraftedOutputCounts.put(craftedOutId, zqsCraftedOutputCounts.get(craftedOutId, 0) + outAmount);
               made++;
             }
             if (made > 0) game.audio.sfx("audio/sfx/craft.wav", game.audio.sfxVolume(game.settings));
@@ -6294,15 +6294,15 @@ private void craftByOutput(int outItemId) {
       int tipItemId = -1;
 
       // output icon
-      int outId = rec.outItemId;
+      int outIdUi = rec.outItemId;
       batch.draw(uiRegions.slotPressed, ix0, iy0, is, is);
-      TextureRegion outIcon = entityRegions.itemIcon(outId);
+      TextureRegion outIcon = entityRegions.itemIcon(outIdUi);
       if (outIcon != null) {
         float iw = is * 0.78f;
         float ih = is * 0.78f;
         batch.draw(outIcon, ix0 + (is - iw) * 0.5f, iy0 + (is - ih) * 0.5f, iw, ih);
       }
-      if (hitRect(mx, my, ix0, iy0, is, is)) tipItemId = outId;
+      if (hitRect(mx, my, ix0, iy0, is, is)) tipItemId = outIdUi;
 
       // arrow-ish separator
       font.setColor(0f, 0f, 0f, 1f);
