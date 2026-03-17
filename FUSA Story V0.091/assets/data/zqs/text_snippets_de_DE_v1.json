@@ -262,7 +262,7 @@
       "filters": {
         "na_reason": "rolled_zero"
       },
-      "text_template": "Für den Moment fällt daraus nichts an",
+      "text_template": "Für den Moment fällt nichts an",
       "needs_prefix_space": false,
       "needs_suffix_space": false,
       "punctuation_role": "close"

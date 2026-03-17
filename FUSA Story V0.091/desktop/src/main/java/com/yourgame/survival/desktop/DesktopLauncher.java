@@ -6,6 +6,9 @@ import com.yourgame.survival.SurvivalGame;
 
 public final class DesktopLauncher {
   public static void main(String[] args) {
+    // Always capture runtime logs + uncaught exceptions to ERRORLOG/...
+    DesktopLogBootstrap.init();
+
     // World editor replaces legacy biome editor.
     boolean worldEditor = hasArg(args, "--biome-editor") || hasArg(args, "-biome-editor") || hasArg(args, "--editor") || hasArg(args, "--world-editor");
     boolean tileEditor = hasArg(args, "--tile-editor") || hasArg(args, "-tile-editor");
@@ -42,4 +45,3 @@ public final class DesktopLauncher {
     return false;
   }
 }
-

@@ -4641,6 +4641,11 @@ public final class GameScreen extends ScreenAdapter {
 
     // If no offers, we must show strict N/A (generator preference), then farewell, then auto-close.
     if (nOffers <= 0) {
+      // ZQS requires a non-empty na_reason to pick a required assignment_na snippet.
+      // If the context provider didn't set one, fall back to a safe default.
+      if (ctx.naReason == null || ctx.naReason.trim().isEmpty()) {
+        ctx.naReason = "rolled_zero";
+      }
       String na = (zqsWqgDock != null) ? zqsWqgDock.buildAssignmentNa(ctx) : "";
       // Dummy fallback text is NOT allowed; if dock missing this is a wiring bug.
       if (na == null || na.isEmpty()) na = "(MISSING_ZQS_NA_TEXT)"; // DUMMY: should never happen; indicates missing snippet DB wiring.
