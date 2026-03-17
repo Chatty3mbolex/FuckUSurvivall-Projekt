@@ -160,9 +160,20 @@ public final class ZqsSaveIO {
         if (rw != null) {
           pr.reward.rewardTotalCopper = rw.getInt("reward_total_copper", 0);
           pr.reward.rewardTextMode = rw.getString("reward_text_mode", "currency");
-          pr.reward.rewardCurrencyCopper = rw.getInt("reward_currency_copper", 0);
-          pr.reward.rewardCurrencySilver = rw.getInt("reward_currency_silver", 0);
-          pr.reward.rewardCurrencyGold = rw.getInt("reward_currency_gold", 0);
+
+          // Canonical currency is copper only. Read legacy split fields for backward compatibility,
+          // but normalize to total-copper immediately.
+          int lc = rw.getInt("reward_currency_copper", 0);
+          int ls = rw.getInt("reward_currency_silver", 0);
+          int lg = rw.getInt("reward_currency_gold", 0);
+          if (pr.reward.rewardTotalCopper <= 0 && (lc != 0 || ls != 0 || lg != 0)) {
+            pr.reward.rewardTotalCopper = Math.max(0, lc) + Math.max(0, ls) * 100 + Math.max(0, lg) * 100000;
+          }
+
+          // Derived fields: keep consistent, but they are not canonical.
+          pr.reward.rewardCurrencyCopper = Math.max(0, pr.reward.rewardTotalCopper);
+          pr.reward.rewardCurrencySilver = 0;
+          pr.reward.rewardCurrencyGold = 0;
           pr.reward.rewardItems.clear();
           JsonValue it = rw.get("reward_items");
           if (it != null) {
@@ -219,6 +230,26 @@ public final class ZqsSaveIO {
         if (loc != null) {
           pr.locations.acceptedLocation = loc.getString("accepted_location", "");
           pr.locations.completedLocation = loc.getString("completed_location", "");
+        }
+
+        // objectiveMeta (A1)
+        JsonValue om = r.get("objective_meta");
+        if (om != null) {
+          pr.objectiveMeta.repeatFamilyKey = om.getString("repeat_family_key", "");
+          pr.objectiveMeta.targetRegionId = om.getString("target_region_id", "");
+          pr.objectiveMeta.targetRegionName = om.getString("target_region_name", "");
+          pr.objectiveMeta.targetEntityId = om.getString("target_entity_id", "");
+          pr.objectiveMeta.targetEntityName = om.getString("target_entity_name", "");
+          pr.objectiveMeta.progressKey = om.getString("progress_key", "");
+        }
+
+        // progress (A1)
+        JsonValue pg = r.get("progress");
+        if (pg != null) {
+          pr.progress.baseline = pg.getInt("baseline", 0);
+          pr.progress.current = pg.getInt("current", 0);
+          pr.progress.readyAt = pg.getLong("ready_at", 0L);
+          pr.progress.deadlineAt = pg.getLong("deadline_at", 0L);
         }
 
         out.playerQuestDb.records.add(pr);
@@ -333,9 +364,7 @@ public final class ZqsSaveIO {
     sb.append('"').append("reward").append('"').append(':').append('{');
     sb.append('"').append("reward_total_copper").append('"').append(':').append(pr.reward.rewardTotalCopper).append(',');
     kv(sb, "reward_text_mode", pr.reward.rewardTextMode); sb.append(',');
-    sb.append('"').append("reward_currency_copper").append('"').append(':').append(pr.reward.rewardCurrencyCopper).append(',');
-    sb.append('"').append("reward_currency_silver").append('"').append(':').append(pr.reward.rewardCurrencySilver).append(',');
-    sb.append('"').append("reward_currency_gold").append('"').append(':').append(pr.reward.rewardCurrencyGold).append(',');
+    // Canonical currency is copper only; do not persist gold/silver breakdown.
     sb.append('"').append("reward_items").append('"').append(':').append('[');
     for (int i = 0; i < pr.reward.rewardItems.size(); i++) {
       if (i > 0) sb.append(',');
@@ -382,6 +411,25 @@ public final class ZqsSaveIO {
     sb.append('"').append("locations").append('"').append(':').append('{');
     kv(sb, "accepted_location", pr.locations.acceptedLocation); sb.append(',');
     kv(sb, "completed_location", pr.locations.completedLocation);
+    sb.append('}');
+
+    // A1 additions (append-only; do not rename existing keys)
+    sb.append(',');
+    sb.append('"').append("objective_meta").append('"').append(':').append('{');
+    kv(sb, "repeat_family_key", pr.objectiveMeta.repeatFamilyKey); sb.append(',');
+    kv(sb, "target_region_id", pr.objectiveMeta.targetRegionId); sb.append(',');
+    kv(sb, "target_region_name", pr.objectiveMeta.targetRegionName); sb.append(',');
+    kv(sb, "target_entity_id", pr.objectiveMeta.targetEntityId); sb.append(',');
+    kv(sb, "target_entity_name", pr.objectiveMeta.targetEntityName); sb.append(',');
+    kv(sb, "progress_key", pr.objectiveMeta.progressKey);
+    sb.append('}');
+
+    sb.append(',');
+    sb.append('"').append("progress").append('"').append(':').append('{');
+    sb.append('"').append("baseline").append('"').append(':').append(pr.progress.baseline).append(',');
+    sb.append('"').append("current").append('"').append(':').append(pr.progress.current).append(',');
+    sb.append('"').append("ready_at").append('"').append(':').append(pr.progress.readyAt).append(',');
+    sb.append('"').append("deadline_at").append('"').append(':').append(pr.progress.deadlineAt);
     sb.append('}');
 
     sb.append('}');

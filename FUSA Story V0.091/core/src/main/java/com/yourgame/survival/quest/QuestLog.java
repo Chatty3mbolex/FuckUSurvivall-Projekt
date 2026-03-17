@@ -85,4 +85,21 @@ public final class QuestLog {
   public void clear() {
     entries.clear();
   }
+
+  public Entry find(String questId) {
+    if (questId == null || questId.isEmpty()) return null;
+    for (int i = 0; i < entries.size; i++) {
+      Entry e = entries.get(i);
+      if (e != null && e.def != null && questId.equals(e.def.id)) return e;
+    }
+    return null;
+  }
+
+  /** View-only sync from canonical ZQS state (do not create a second persistence). */
+  public void updateZqsState(String questId, String finalStatus) {
+    Entry e = find(questId);
+    if (e == null) return;
+    e.finalStatus = (finalStatus == null) ? "" : finalStatus;
+    e.status = QuestLog.fromFinalStatus(finalStatus);
+  }
 }

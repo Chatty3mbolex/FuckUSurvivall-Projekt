@@ -286,6 +286,8 @@ public final class GameScreen extends ScreenAdapter {
   // ZQS SaveBlock (persisted inside slot JSON under key "zqs").
   private final com.yourgame.survival.quest.zqs.save.ZqsSaveBlock zqsSave = new com.yourgame.survival.quest.zqs.save.ZqsSaveBlock();
 
+  private final com.badlogic.gdx.utils.IntIntMap zqsCraftedOutputCounts = new com.badlogic.gdx.utils.IntIntMap();
+
   // Task 9: runtime-only quest log (persist later)
   private final com.yourgame.survival.quest.QuestLog questLog = new com.yourgame.survival.quest.QuestLog();
 
@@ -685,7 +687,9 @@ public final class GameScreen extends ScreenAdapter {
     this.questGuy.bindZqsContextProvider(() -> {
       var c = new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
       // ZQS runtimeSec must be stable across save/load; use real epoch seconds.
-      c.runtimeSec = System.currentTimeMillis() / 1000L;
+      long nowSec = System.currentTimeMillis() / 1000L;
+      c.epochSec = nowSec;
+      c.runtimeSec = nowSec;
       c.debugHqMode = "EXCLUDE_HQ";
       // time_of_day
       float t = dayNight.t;
@@ -2171,17 +2175,41 @@ public final class GameScreen extends ScreenAdapter {
       }
     }
 
+    if (zqsRt != null) {
+      long nowSec = System.currentTimeMillis() / 1000L;
+      zqsRt.refreshQuestLifecycle(buildZqsProgressSnapshot(nowSec), nowSec);
+    }
+
     // Quest popup shortcuts: 1/2/3 accept
     if (questPopupOpen && questGuy != null) {
       boolean accepted = false;
+      boolean claimed = false;
+      boolean claimPressed = false;
       long nowSec = System.currentTimeMillis() / 1000L;
       if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) accepted = questGuy.acceptOffer(0, questLog, nowSec);
       if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) accepted = questGuy.acceptOffer(1, questLog, nowSec);
       if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) accepted = questGuy.acceptOffer(2, questLog, nowSec);
+
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_7)) { claimPressed = true; claimed = questGuy.claimReward(0, questLog, wallet, inv, nowSec); }
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_8)) { claimPressed = true; claimed = questGuy.claimReward(1, questLog, wallet, inv, nowSec); }
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)) { claimPressed = true; claimed = questGuy.claimReward(2, questLog, wallet, inv, nowSec); }
+
       if (accepted) {
         toast = "Quest angenommen.";
         toastT = 2.0f;
         game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+      }
+
+      if (claimPressed) {
+        if (claimed) {
+          toast = "Quest abgegeben. Belohnung erhalten.";
+          toastT = 2.0f;
+          game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+        } else {
+          toast = "Abgabe nicht möglich.";
+          toastT = 2.0f;
+          game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
+        }
       }
     }
 
@@ -4834,7 +4862,7 @@ public final class GameScreen extends ScreenAdapter {
 
     // Simple panel (reuse generic UI panel)
     float panelW = 640f;
-    float panelH = 220f;
+    float panelH = 320f;
     float x0 = spHead.x - panelW * 0.5f;
     float y0 = spHead.y + 18f;
     x0 = MathUtils.clamp(x0, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
@@ -4877,6 +4905,27 @@ public final class GameScreen extends ScreenAdapter {
       }
       y -= 6f;
       font.draw(batch, "NUM 1/2/3 = annehmen", x0 + 26f, y);
+      y -= 18f;
+    }
+
+    int tn = (questGuy != null) ? questGuy.turnInReadyCount() : 0;
+    if (tn > 0) {
+      y -= 6f;
+      font.draw(batch, "Abgabebereit:", x0 + 26f, y);
+      y -= 22f;
+      for (int i = 0; i < tn; i++) {
+        com.yourgame.survival.quest.QuestDef q = questGuy.turnInReady(i);
+        if (q == null) continue;
+        String line = (7 + i) + ") " + q.title;
+        font.draw(batch, line, x0 + 26f, y);
+        y -= 18f;
+        if (q.desc != null && !q.desc.isEmpty()) {
+          font.draw(batch, "    - " + q.desc, x0 + 26f, y);
+          y -= 18f;
+        }
+      }
+      y -= 6f;
+      font.draw(batch, "NUM 7/8/9 = abgeben", x0 + 26f, y);
       y -= 18f;
     }
 
@@ -5805,6 +5854,10 @@ private void craftByOutput(int outItemId) {
     com.yourgame.survival.data.RecipeDef r = craft.findByOutput(data.recipes, outItemId);
     if (r == null) return;
     craft.craft(inv, r);
+
+    int outId = r.outItemId;
+    int outAmount = Math.max(1, r.outAmount);
+    zqsCraftedOutputCounts.put(outId, zqsCraftedOutputCounts.get(outId, 0) + outAmount);
   }
 
   // Nicht fertiges Feature: commented out unused method
@@ -5835,6 +5888,33 @@ private void craftByOutput(int outItemId) {
     float bL = bx - pad, bR = bx + bw + pad;
     float bB = by - pad, bT = by + bh + pad;
     return (aL < bR && aR > bL && aB < bT && aT > bB);
+  }
+
+  private com.yourgame.survival.quest.zqs.runtime.ZqsQuestProgressSnapshot buildZqsProgressSnapshot(long nowSec) {
+    com.yourgame.survival.quest.zqs.runtime.ZqsQuestProgressSnapshot s = new com.yourgame.survival.quest.zqs.runtime.ZqsQuestProgressSnapshot();
+    s.epochSec = nowSec;
+    s.currentAreaTemplateId = (worldMap != null && worldMap.curTemplateId != null) ? worldMap.curTemplateId : "";
+
+    if (worldMap != null) {
+      s.consumedPois.clear();
+      s.consumedPois.addAll(worldMap.consumedPois);
+      s.removedAuthoredNodes.clear();
+      s.removedAuthoredNodes.addAll(worldMap.removedAuthoredNodes);
+    }
+
+    s.inventoryCounts.clear();
+    if (inv != null && inv.countsById != null) {
+      for (int i = 0; i < inv.countsById.length; i++) {
+        int c = inv.countsById[i];
+        if (c != 0) s.inventoryCounts.put(i, c);
+      }
+    }
+
+    s.craftedOutputCounts.clear();
+    for (com.badlogic.gdx.utils.IntIntMap.Entry e : zqsCraftedOutputCounts.entries()) {
+      s.craftedOutputCounts.put(e.key, e.value);
+    }
+    return s;
   }
 
   private void placePanelAvoiding(float panelW, float panelH, float prefX, float prefY,
@@ -6179,6 +6259,9 @@ private void craftByOutput(int outItemId) {
             int made = 0;
             for (int k = 0; k < want; k++) {
               if (!craft.craft(inv, rec)) break;
+              int outId = rec.outItemId;
+              int outAmount = Math.max(1, rec.outAmount);
+              zqsCraftedOutputCounts.put(outId, zqsCraftedOutputCounts.get(outId, 0) + outAmount);
               made++;
             }
             if (made > 0) game.audio.sfx("audio/sfx/craft.wav", game.audio.sfxVolume(game.settings));
@@ -7794,7 +7877,9 @@ private void craftByOutput(int outItemId) {
       questGuy.bindZqsContextProvider(() -> {
         var c = new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
         // ZQS runtimeSec must be stable across save/load; use real epoch seconds.
-        c.runtimeSec = System.currentTimeMillis() / 1000L;
+        long nowSec = System.currentTimeMillis() / 1000L;
+        c.epochSec = nowSec;
+        c.runtimeSec = nowSec;
         c.debugHqMode = "EXCLUDE_HQ";
         float t = dayNight.t;
         if (t < 0.23f) c.timeOfDay = "morning";

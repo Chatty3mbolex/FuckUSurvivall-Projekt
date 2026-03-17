@@ -125,7 +125,6 @@
       "needs_suffix_space": false,
       "punctuation_role": "close"
     },
-
     {
       "snippet_id": "assignment.main.generic.001",
       "text_category": "assignment",
@@ -166,6 +165,84 @@
       "punctuation_role": "middle"
     },
     {
+      "snippet_id": "assignment.middle.liefern.item.001",
+      "text_category": "assignment",
+      "text_part": "middle",
+      "filters": {
+        "quest_type": "liefern",
+        "quest_subtype": "liefern.item"
+      },
+      "text_template": "Bring {target_quantity} Stück {target_name} unversehrt an den Zielort",
+      "needs_prefix_space": false,
+      "needs_suffix_space": true,
+      "punctuation_role": "middle"
+    },
+    {
+      "snippet_id": "assignment.middle.craften.recipe_output.001",
+      "text_category": "assignment",
+      "text_part": "middle",
+      "filters": {
+        "quest_type": "craften",
+        "quest_subtype": "craften.recipe_output"
+      },
+      "text_template": "Stell {target_quantity}x {target_name} sauber her",
+      "needs_prefix_space": false,
+      "needs_suffix_space": true,
+      "punctuation_role": "middle"
+    },
+    {
+      "snippet_id": "assignment.middle.craften.delivery.001",
+      "text_category": "assignment",
+      "text_part": "middle",
+      "filters": {
+        "quest_type": "craften",
+        "quest_subtype": "craften.delivery"
+      },
+      "text_template": "Fertig {target_quantity}x {target_name} an und liefer es anschließend ab",
+      "needs_prefix_space": false,
+      "needs_suffix_space": true,
+      "punctuation_role": "middle"
+    },
+    {
+      "snippet_id": "assignment.middle.finden.poi.001",
+      "text_category": "assignment",
+      "text_part": "middle",
+      "filters": {
+        "quest_type": "finden",
+        "quest_subtype": "finden.poi"
+      },
+      "text_template": "Finde {target_name} und sieh dort nach dem Rechten",
+      "needs_prefix_space": false,
+      "needs_suffix_space": true,
+      "punctuation_role": "middle"
+    },
+    {
+      "snippet_id": "assignment.middle.finden.poi_loot.001",
+      "text_category": "assignment",
+      "text_part": "middle",
+      "filters": {
+        "quest_type": "finden",
+        "quest_subtype": "finden.poi_loot"
+      },
+      "text_template": "Durchsuch {target_name} gründlich und bring Verwertbares von dort heraus",
+      "needs_prefix_space": false,
+      "needs_suffix_space": true,
+      "punctuation_role": "middle"
+    },
+    {
+      "snippet_id": "assignment.middle.finden.object.001",
+      "text_category": "assignment",
+      "text_part": "middle",
+      "filters": {
+        "quest_type": "finden",
+        "quest_subtype": "finden.object"
+      },
+      "text_template": "Spür {target_name} auf und sichere es",
+      "needs_prefix_space": false,
+      "needs_suffix_space": true,
+      "punctuation_role": "middle"
+    },
+    {
       "snippet_id": "assignment.end.generic.001",
       "text_category": "assignment",
       "text_part": "end",
@@ -178,7 +255,6 @@
       "needs_suffix_space": false,
       "punctuation_role": "close"
     },
-
     {
       "snippet_id": "assignment_na.rolled_zero.001",
       "text_category": "assignment_na",
@@ -227,7 +303,6 @@
       "needs_suffix_space": false,
       "punctuation_role": "close"
     },
-
     {
       "snippet_id": "reward.main.claimable.001",
       "text_category": "reward",
@@ -275,7 +350,7 @@
         "reward_state": "*",
         "reward_text_mode": "currency"
       },
-      "text_template": "{reward_currency_gold}G {reward_currency_silver}S {reward_currency_copper}K",
+      "text_template": "{reward_total_copper} Kupfer",
       "needs_prefix_space": false,
       "needs_suffix_space": true,
       "punctuation_role": "middle"
@@ -288,7 +363,7 @@
         "reward_state": "*",
         "reward_text_mode": "failed"
       },
-      "text_template": "0G 0S 0K",
+      "text_template": "0 Kupfer",
       "needs_prefix_space": false,
       "needs_suffix_space": true,
       "punctuation_role": "middle"
@@ -306,7 +381,6 @@
       "needs_suffix_space": false,
       "punctuation_role": "close"
     },
-
     {
       "snippet_id": "farewell.main.generic.001",
       "text_category": "farewell",

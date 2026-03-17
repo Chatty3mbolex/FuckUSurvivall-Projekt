@@ -64,4 +64,41 @@ public final class WanderQuestGuyDock {
     log.acceptZqs(def, runtimeSec, le.logbookEntryNr, le.finalStatus);
     return true;
   }
+
+  public QuestDef[] listTurnInReady(int desiredCount) {
+    int n = Math.max(0, Math.min(3, desiredCount));
+    QuestDef[] out = new QuestDef[n];
+    if (n <= 0) return out;
+
+    java.util.ArrayList<ZqsSaveBlock.LogbookEntry> list = rt.listTurnInReadyForNpc("WANDER_QUEST_GUY");
+    int m = Math.min(n, (list != null) ? list.size() : 0);
+    for (int i = 0; i < m; i++) {
+      ZqsSaveBlock.LogbookEntry le = list.get(i);
+      if (le == null || le.questId == null || le.questId.isEmpty()) continue;
+
+      int rewardCopper = 0;
+      ZqsSaveBlock.PersistentQuestRecordSave pr = rt.findQuestRecord(le.questId);
+      if (pr != null && pr.reward != null) rewardCopper = Math.max(0, pr.reward.rewardTotalCopper);
+
+      String desc = "Belohnung: " + rewardCopper + " Kupfer";
+      out[i] = new QuestDef(le.questId, QuestDef.Kind.SIDE, le.title, desc);
+    }
+    return out;
+  }
+
+  public boolean claimReward(String questId, QuestLog log,
+                             com.yourgame.survival.data.Wallet wallet,
+                             com.yourgame.survival.data.Inventory inv,
+                             long epochSec) {
+    if (questId == null || questId.isEmpty()) return false;
+    if (log == null) return false;
+
+    boolean ok = rt.claimQuestReward(questId, wallet, inv, epochSec);
+    if (!ok) return false;
+
+    ZqsSaveBlock.LogbookEntry le = rt.findLogbookEntry(questId);
+    String fs = (le != null) ? le.finalStatus : "erledigt";
+    log.updateZqsState(questId, fs);
+    return true;
+  }
 }

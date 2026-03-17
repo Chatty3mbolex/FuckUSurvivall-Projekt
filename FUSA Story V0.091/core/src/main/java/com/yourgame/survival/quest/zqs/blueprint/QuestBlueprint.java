@@ -9,6 +9,12 @@ public final class QuestBlueprint {
   public String questType = "";
   public String questSubtype = "";
 
+  /**
+   * Repeat-family key used by denySameFamily. Must not be derived from questType.
+   * Loaded from blueprints_v1.json.
+   */
+  public String repeatFamilyKey = "";
+
   /** Allowed catalog kind ids (e.g. item, harvestable, npc, region, ...). */
   public String[] allowedTargetKinds = new String[0];
 
@@ -25,4 +31,3 @@ public final class QuestBlueprint {
 
   public final RepeatRules repeatRules = new RepeatRules();
 }
-

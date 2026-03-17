@@ -26,6 +26,7 @@ public final class BlueprintLoader {
       bp.objectiveFamily = b.getString("objectiveFamily", "NQ");
       bp.questType = b.getString("questType", "");
       bp.questSubtype = b.getString("questSubtype", "");
+      bp.repeatFamilyKey = b.getString("repeatFamilyKey", "");
       bp.minPlayerLevel = b.getInt("minPlayerLevel", 1);
       if (b.has("maxPlayerLevel")) {
         try {
@@ -63,6 +64,11 @@ public final class BlueprintLoader {
         throw new IllegalStateException("Blueprint missing blueprintId");
       }
 
+      // Strict (A5): rewardProfileId is mandatory.
+      if (bp.rewardProfileId == null || bp.rewardProfileId.trim().isEmpty()) {
+        throw new IllegalStateException("Blueprint missing rewardProfileId: " + bp.blueprintId);
+      }
+
       out.add(bp);
     }
 
@@ -80,4 +86,3 @@ public final class BlueprintLoader {
     }
   }
 }
-

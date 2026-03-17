@@ -3,9 +3,9 @@ package com.yourgame.survival.quest.zqs.generator;
 import com.yourgame.survival.quest.zqs.blueprint.BlueprintRegistry;
 import com.yourgame.survival.quest.zqs.blueprint.QuestBlueprint;
 import com.yourgame.survival.quest.zqs.catalog.CatalogEntryRt;
-import com.yourgame.survival.quest.zqs.catalog.CatalogIndexes;
 import com.yourgame.survival.quest.zqs.catalog.CatalogKind;
 import com.yourgame.survival.quest.zqs.catalog.ContentCatalogRuntime;
+import com.yourgame.survival.quest.zqs.catalog.CatalogIndexes;
 import com.yourgame.survival.quest.zqs.knowledge.KnowledgeQuery;
 import com.yourgame.survival.quest.zqs.knowledge.PlayerKnowledgeState;
 import com.yourgame.survival.quest.zqs.runtime.GeneratedQuestOffer;
@@ -46,13 +46,14 @@ public final class ZqsOfferGenerator {
       ZqsSaveBlock save,
       int desiredCount
   ) {
-    if (catalog == null || catalogIdx == null) throw new IllegalStateException("CatalogRuntime missing");
-    if (blueprints == null) throw new IllegalStateException("BlueprintRegistry missing");
-    if (save == null) throw new IllegalStateException("ZqsSaveBlock missing");
+    if (blueprints == null) throw new IllegalArgumentException("blueprints missing");
+    if (catalog == null) throw new IllegalArgumentException("catalog missing");
+    if (knowledge == null) throw new IllegalArgumentException("knowledge missing");
+    if (save == null) throw new IllegalArgumentException("save missing");
 
     Result out = new Result();
 
-    // Eligibility gate: cap reached
+    // Hard gate: cap reached
     // (No fallback; explicit behavior.)
     if (openQuestsCount > 10) {
       out.nqGenerationPossible = false;
@@ -84,16 +85,15 @@ public final class ZqsOfferGenerator {
     Rng rng = new Rng(rngSeed);
 
     HashSet<String> idsInBatch = new HashSet<>();
-
-    // RepeatRules inputs from save (active quests)
-    HashSet<String> activeTargetKeys = RepeatRulesGate.activeTargetKeys(save);
-    HashSet<String> activeQuestTypes = RepeatRulesGate.activeQuestTypes(save);
+    HashSet<String> batchBlueprintIds = new HashSet<>();
+    HashSet<String> batchQuestShapeKeys = new HashSet<>();
+    HashSet<String> blockedTargetKeys = RepeatRulesGate.activeTargetKeys(save);
+    HashSet<String> activeRepeatFamilyKeys = RepeatRulesGate.activeRepeatFamilyKeys(save);
 
     for (int i = 0; i < n; i++) {
       ArrayList<QuestBlueprint> candidates = blueprints.filter("NQ", playerLevel);
       if (candidates.isEmpty()) break;
 
-      // Apply RepeatRules gate: cooldown + denySameFamily
       ArrayList<QuestBlueprint> eligibleBps = new ArrayList<>();
       for (QuestBlueprint b : candidates) {
         if (b == null) continue;
@@ -102,8 +102,11 @@ public final class ZqsOfferGenerator {
           if (RepeatRulesGate.isOnCooldown(save, cdKey, runtimeSec)) continue;
         }
         if (b.repeatRules != null && b.repeatRules.denySameFamily) {
-          // v1 interpretation: questType is the repeat-family surrogate.
-          if (activeQuestTypes.contains(b.questType)) continue;
+          String rfk = safe(b.repeatFamilyKey);
+          if (rfk.isEmpty()) {
+            throw new IllegalStateException("Blueprint missing repeatFamilyKey (denySameFamily=true): " + safe(b.blueprintId));
+          }
+          if (activeRepeatFamilyKeys.contains(rfk)) continue;
         }
         eligibleBps.add(b);
       }
@@ -113,10 +116,10 @@ public final class ZqsOfferGenerator {
         break;
       }
 
-      QuestBlueprint bp = pickWeighted(rng, eligibleBps);
+      QuestBlueprint bp = pickDiversifiedBlueprint(rng, eligibleBps, batchBlueprintIds, batchQuestShapeKeys);
       if (bp == null) break;
 
-      TargetBlock tb = pickTarget(rng, bp, catalog, knowledge, playerSlId, activeTargetKeys);
+      TargetBlock tb = pickTarget(rng, bp, catalog, knowledge, playerSlId, blockedTargetKeys);
       if (tb == null) {
         out.nqGenerationPossible = false;
         out.blockReason = "no_valid_targets";
@@ -129,17 +132,38 @@ public final class ZqsOfferGenerator {
 
       int expectedTimeSec = (int) Math.floor(qty * 120f * 0.86f);
 
-      // Reward (copper-based)
-      QuestBlueprintDef bpd = new QuestBlueprintDef();
-      bpd.rewardProfileId = (bp.rewardProfileId != null) ? bp.rewardProfileId : "";
-      RewardBlock reward = rewardCalc.computeBaseReward(bpd.rewardProfileId, bp.questType, bp.questSubtype, tb, expectedTimeSec);
-
-      // rewardTextMode from profile for text filtering (payout remains copper)
-      RewardProfileDef rp = (rewardProfiles != null) ? rewardProfiles.get(bp.rewardProfileId) : null;
-      if (rp != null && rp.rewardTextMode != null) {
-        RewardTextMode m = RewardTextMode.byId(rp.rewardTextMode);
-        if (m != null) reward.rewardTextMode = m;
+      if (rewardProfiles == null) {
+        throw new IllegalStateException("RewardProfiles missing (cannot compute rewards)");
       }
+      String rpid = safe(bp.rewardProfileId);
+      if (rpid.isEmpty()) {
+        throw new IllegalStateException("Blueprint missing rewardProfileId: " + safe(bp.blueprintId));
+      }
+
+      RewardProfileDef rp = rewardProfiles.get(rpid);
+      if (rp == null) {
+        throw new IllegalStateException("Unknown rewardProfileId: " + rpid + " (blueprint=" + safe(bp.blueprintId) + ")");
+      }
+
+      // Strict: profiles must explicitly define formula type; no questType-based fallback.
+      String rewardFormulaType = safe(rp.rewardFormulaType).trim();
+      if (rewardFormulaType.isEmpty()) {
+        throw new IllegalStateException("RewardProfile missing rewardFormulaType: " + rpid);
+      }
+
+      // Strict: v1 payout is wallet copper -> profile must allow currency rewards.
+      if (!rp.allowCurrencyRewards) {
+        throw new IllegalStateException("RewardProfile disallows currency rewards (unsupported in v1): " + rpid);
+      }
+
+      RewardBlock reward = rewardCalc.computeBaseReward(rewardFormulaType, bp.questType, bp.questSubtype, tb, expectedTimeSec);
+
+      // Strict: rewardTextMode must resolve.
+      RewardTextMode m = RewardTextMode.byId(rp.rewardTextMode);
+      if (m == null) {
+        throw new IllegalStateException("Unknown rewardTextMode: " + safe(rp.rewardTextMode) + " (profile=" + rpid + ")");
+      }
+      reward.rewardTextMode = m;
 
       int qnr = (save.counters != null) ? save.counters.questNrCounter : 1;
       String questId = ZqsQuestIdFactory.buildNqId(playerSlId, qnr, "P0", bp.blueprintId, tb.targetKind, tb.targetId, qty);
@@ -153,15 +177,24 @@ public final class ZqsOfferGenerator {
 
       GeneratedQuestOffer offer = new GeneratedQuestOffer();
       offer.questId = questId;
-      offer.questFamily = "NQ";
+      offer.questFamily = safe(bp.objectiveFamily);
       offer.questType = bp.questType;
       offer.questSubtype = bp.questSubtype;
       offer.blueprintId = bp.blueprintId;
+      offer.repeatFamilyKey = safe(bp.repeatFamilyKey);
       offer.targetType = tb.targetKind;
       offer.targetId = tb.targetId;
       offer.targetName = tb.targetName;
       offer.targetQuantity = qty;
       offer.targetValueCopper = tb.targetValueCopper;
+      offer.targetRegionId = safe(tb.regionId);
+      offer.targetRegionName = safeNameByKey(catalogIdx, offer.targetRegionId);
+
+      // Entity meta (receiver preferred, else giver)
+      offer.targetEntityId = !safe(tb.receiverNpcKey).isEmpty() ? safe(tb.receiverNpcKey) : safe(tb.giverNpcKey);
+      offer.targetEntityName = safeNameByKey(catalogIdx, offer.targetEntityId);
+
+      offer.progressKey = buildProgressKey(safe(bp.questSubtype), tb);
       offer.expectedTimeSec = expectedTimeSec;
       offer.reward = reward;
       offer.textProfileId = (bp.textProfileId != null) ? bp.textProfileId : "";
@@ -170,6 +203,10 @@ public final class ZqsOfferGenerator {
       offer.generatedAtRuntimeSec = runtimeSec;
 
       out.offers.add(offer);
+
+      batchBlueprintIds.add(safe(bp.blueprintId));
+      batchQuestShapeKeys.add(buildQuestShapeKey(bp.questType, bp.questSubtype));
+      blockedTargetKeys.add(buildTargetKey(tb.targetKind, tb.targetId));
     }
 
     if (out.offers.isEmpty() && out.nqGenerationPossible && (out.blockReason == null || out.blockReason.isEmpty() || "none".equals(out.blockReason))) {
@@ -227,59 +264,85 @@ public final class ZqsOfferGenerator {
     return lo + off;
   }
 
-  private static QuestBlueprint pickWeighted(Rng rng, ArrayList<QuestBlueprint> list) {
+  private static QuestBlueprint pickDiversifiedBlueprint(Rng rng,
+                                                         ArrayList<QuestBlueprint> list,
+                                                         HashSet<String> usedBlueprintIds,
+                                                         HashSet<String> usedQuestShapeKeys) {
+    if (list == null || list.isEmpty()) return null;
+
     float sum = 0f;
     for (QuestBlueprint b : list) {
-      if (b == null) continue;
-      float w = (b.weight > 0f) ? b.weight : 0f;
-      sum += w;
+      sum += diversifiedBlueprintWeight(b, usedBlueprintIds, usedQuestShapeKeys);
     }
-    if (sum <= 0f) return null;
+    if (sum <= 0f) return pickWeightedFallback(list);
+
     float r = rng.nextFloat01() * sum;
     float acc = 0f;
     for (QuestBlueprint b : list) {
-      if (b == null) continue;
-      float w = (b.weight > 0f) ? b.weight : 0f;
+      float w = diversifiedBlueprintWeight(b, usedBlueprintIds, usedQuestShapeKeys);
       if (w <= 0f) continue;
       acc += w;
       if (r <= acc) return b;
+    }
+    return pickWeightedFallback(list);
+  }
+
+  private static float diversifiedBlueprintWeight(QuestBlueprint b,
+                                                  HashSet<String> usedBlueprintIds,
+                                                  HashSet<String> usedQuestShapeKeys) {
+    if (b == null) return 0f;
+    float w = (b.weight > 0f) ? b.weight : 0f;
+    if (w <= 0f) return 0f;
+
+    if (usedBlueprintIds != null && usedBlueprintIds.contains(safe(b.blueprintId))) {
+      w *= 0.15f;
+    }
+    if (usedQuestShapeKeys != null && usedQuestShapeKeys.contains(buildQuestShapeKey(b.questType, b.questSubtype))) {
+      w *= 0.35f;
+    }
+    return w;
+  }
+
+  private static QuestBlueprint pickWeightedFallback(ArrayList<QuestBlueprint> list) {
+    for (QuestBlueprint b : list) {
+      if (b != null && b.weight > 0f) return b;
     }
     return list.get(0);
   }
 
   private static TargetBlock pickTarget(Rng rng, QuestBlueprint bp, ContentCatalogRuntime cat,
                                        PlayerKnowledgeState knowledge, int playerSlId,
-                                       HashSet<String> activeTargetKeys) {
+                                       HashSet<String> blockedTargetKeys) {
     if (bp == null) return null;
 
+    ArrayList<TargetBlock> candidates = new ArrayList<>();
+
     if (allows(bp, "item")) {
-      TargetBlock tb = pickFromList(rng, CatalogKind.ITEM, cat.items, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
-      tb = pickFromList(rng, CatalogKind.RESOURCE, cat.resources, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
+      collectTargets(candidates, CatalogKind.ITEM, cat.items, knowledge, playerSlId, blockedTargetKeys);
+      collectTargets(candidates, CatalogKind.RESOURCE, cat.resources, knowledge, playerSlId, blockedTargetKeys);
     }
     if (allows(bp, "harvestable")) {
-      TargetBlock tb = pickFromList(rng, CatalogKind.HARVESTABLE, cat.harvestables, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
+      collectTargets(candidates, CatalogKind.HARVESTABLE, cat.harvestables, knowledge, playerSlId, blockedTargetKeys);
     }
     if (allows(bp, "living")) {
-      TargetBlock tb = pickFromList(rng, CatalogKind.LIVING, cat.livings, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
+      collectTargets(candidates, CatalogKind.LIVING, cat.livings, knowledge, playerSlId, blockedTargetKeys);
     }
     if (allows(bp, "poi")) {
-      TargetBlock tb = pickFromList(rng, CatalogKind.POI, cat.pois, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
+      collectTargets(candidates, CatalogKind.POI, cat.pois, knowledge, playerSlId, blockedTargetKeys);
     }
     if (allows(bp, "npc")) {
-      TargetBlock tb = pickFromList(rng, CatalogKind.NPC, cat.npcs, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
+      collectTargets(candidates, CatalogKind.NPC, cat.npcs, knowledge, playerSlId, blockedTargetKeys);
     }
     if (allows(bp, "region")) {
-      TargetBlock tb = pickFromList(rng, CatalogKind.REGION, cat.regions, knowledge, playerSlId, activeTargetKeys);
-      if (tb != null) return tb;
+      collectTargets(candidates, CatalogKind.REGION, cat.regions, knowledge, playerSlId, blockedTargetKeys);
     }
 
-    return null;
+    if (candidates.isEmpty()) return null;
+
+    int idx = (int) Math.floor(rng.nextFloat01() * candidates.size());
+    if (idx < 0) idx = 0;
+    if (idx >= candidates.size()) idx = candidates.size() - 1;
+    return candidates.get(idx);
   }
 
   private static boolean allows(QuestBlueprint bp, String kind) {
@@ -288,42 +351,82 @@ public final class ZqsOfferGenerator {
     return false;
   }
 
-  private static TargetBlock pickFromList(Rng rng, CatalogKind kind,
-                                         java.util.List<CatalogEntryRt> list,
-                                         PlayerKnowledgeState knowledge,
-                                         int playerSlId,
-                                         HashSet<String> activeTargetKeys) {
-    if (list == null || list.isEmpty()) return null;
+  private static void collectTargets(ArrayList<TargetBlock> out,
+                                     CatalogKind kind,
+                                     java.util.List<CatalogEntryRt> list,
+                                     PlayerKnowledgeState knowledge,
+                                     int playerSlId,
+                                     HashSet<String> blockedTargetKeys) {
+    if (out == null || list == null || list.isEmpty()) return;
 
-    ArrayList<CatalogEntryRt> candidates = new ArrayList<>();
     for (CatalogEntryRt e : list) {
       if (e == null || !e.isValid()) continue;
       if (e.slIdMax > playerSlId) continue;
       if (!KnowledgeQuery.passesKnownGate(knowledge, e)) continue;
 
-      if (activeTargetKeys != null && !activeTargetKeys.isEmpty()) {
-        String k = kind.id + ":" + e.key();
-        if (activeTargetKeys.contains(k)) continue;
-      }
+      String targetKey = buildTargetKey(kind.id, e.key());
+      if (blockedTargetKeys != null && blockedTargetKeys.contains(targetKey)) continue;
 
-      candidates.add(e);
+      TargetBlock tb = new TargetBlock();
+      tb.targetKind = kind.id;
+      tb.targetId = e.key();
+      tb.targetName = (e.name != null) ? e.name : "";
+      tb.targetValueCopper = e.valueCopper;
+      tb.knownFlagRequired = e.knownRequired;
+      tb.knownFlagState = true;
+      tb.slId = Math.max(1, playerSlId);
+      out.add(tb);
     }
-    if (candidates.isEmpty()) return null;
+  }
 
-    int idx = (int) Math.floor(rng.nextFloat01() * candidates.size());
-    if (idx < 0) idx = 0;
-    if (idx >= candidates.size()) idx = candidates.size() - 1;
-    CatalogEntryRt ce = candidates.get(idx);
-    if (ce == null) return null;
+  private static String buildQuestShapeKey(String questType, String questSubtype) {
+    return safe(questType) + "|" + safe(questSubtype);
+  }
 
-    TargetBlock tb = new TargetBlock();
-    tb.targetKind = kind.id;
-    tb.targetId = ce.key();
-    tb.targetName = (ce.name != null) ? ce.name : "";
-    tb.targetValueCopper = ce.valueCopper;
-    tb.knownFlagRequired = ce.knownRequired;
-    tb.knownFlagState = true;
-    tb.slId = Math.max(1, playerSlId);
-    return tb;
+  private static String safeNameByKey(CatalogIndexes idx, String key) {
+    if (idx == null) return "";
+    String k = safe(key);
+    if (k.isEmpty()) return "";
+    CatalogEntryRt e = idx.get(k);
+    return (e != null && e.name != null) ? e.name : "";
+  }
+
+  private static String buildProgressKey(String questSubtype, TargetBlock tb) {
+    String st = safe(questSubtype);
+    String tid = (tb != null) ? safe(tb.targetId) : "";
+
+    if (st.equals("sammeln.item") || st.equals("liefern.item")) {
+      return "inventory:item:" + tid;
+    }
+    if (st.equals("sammeln.harvestable")) {
+      return "harvestable:" + tid;
+    }
+    if (st.equals("craften.recipe_output")) {
+      return "craft:item:" + tid;
+    }
+    if (st.equals("craften.delivery")) {
+      return "inventory:item:" + tid;
+    }
+    if (st.equals("finden.poi") || st.equals("finden.poi_loot")) {
+      return "poi:" + tid;
+    }
+    if (st.equals("finden.object")) {
+      return "object:" + tid;
+    }
+    if (st.equals("finden.person")) {
+      return "person:" + tid;
+    }
+    if (st.equals("eskortieren.route")) {
+      return "escort:" + tid;
+    }
+    throw new IllegalStateException("Unsupported questSubtype for progressKey mapping: '" + st + "'");
+  }
+
+  private static String buildTargetKey(String targetType, String targetId) {
+    return safe(targetType) + ":" + safe(targetId);
+  }
+
+  private static String safe(String s) {
+    return (s != null) ? s : "";
   }
 }

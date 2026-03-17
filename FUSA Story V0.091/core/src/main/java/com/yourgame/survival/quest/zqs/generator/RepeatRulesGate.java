@@ -87,10 +87,11 @@ public final class RepeatRulesGate {
   }
 
   /**
-   * Collects active quest type keys for denySameFamily behavior.
-   * In current data model this uses questType as family surrogate.
+   * Collects active repeat-family keys for denySameFamily behavior.
+   *
+   * Canonical field is PersistentQuestRecordSave.objectiveMeta.repeatFamilyKey.
    */
-  public static HashSet<String> activeQuestTypes(ZqsSaveBlock save) {
+  public static HashSet<String> activeRepeatFamilyKeys(ZqsSaveBlock save) {
     HashSet<String> out = new HashSet<>();
     if (save == null || save.playerQuestDb == null || save.playerQuestDb.records == null) return out;
     if (save.questHistoryIndex == null || save.questHistoryIndex.activeQuestIds == null) return out;
@@ -100,11 +101,12 @@ public final class RepeatRulesGate {
       if (r == null) continue;
       if (r.questId == null || r.questId.isEmpty()) continue;
       if (!save.questHistoryIndex.activeQuestIds.contains(r.questId)) continue;
-      if (r.questType != null && !r.questType.isEmpty()) out.add(r.questType);
+
+      String k = (r.objectiveMeta != null) ? safe(r.objectiveMeta.repeatFamilyKey) : "";
+      if (!k.isEmpty()) out.add(k);
     }
     return out;
   }
 
   private static String safe(String s) { return (s == null) ? "" : s; }
 }
-

@@ -16,6 +16,9 @@ public final class ZqsGeneratorInputs {
 
   public long runtimeSec = 0;
 
+  /** Real-world epoch seconds (canonical time basis for ZQS/WQG). */
+  public long epochSec = 0;
+
   public int openQuestsCount = 0;
   public int completedQuestsCount = 0;
 
@@ -30,4 +33,3 @@ public final class ZqsGeneratorInputs {
   /** Canonical save block; used for timer/counters/rng state. */
   public ZqsSaveBlock save;
 }
-

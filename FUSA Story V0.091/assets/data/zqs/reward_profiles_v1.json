@@ -10,7 +10,38 @@
       "allowItemRewards": false,
       "allowCurrencyRewards": true,
       "allowMixedRewards": false
+    },
+    {
+      "rewardProfileId": "rp_deliver_basic",
+      "rewardFormulaType": "deliver",
+      "rewardTextMode": "currency",
+      "allowItemRewards": false,
+      "allowCurrencyRewards": true,
+      "allowMixedRewards": false
+    },
+    {
+      "rewardProfileId": "rp_craft_basic",
+      "rewardFormulaType": "craft",
+      "rewardTextMode": "currency",
+      "allowItemRewards": false,
+      "allowCurrencyRewards": true,
+      "allowMixedRewards": false
+    },
+    {
+      "rewardProfileId": "rp_find_basic",
+      "rewardFormulaType": "find",
+      "rewardTextMode": "currency",
+      "allowItemRewards": false,
+      "allowCurrencyRewards": true,
+      "allowMixedRewards": false
+    },
+    {
+      "rewardProfileId": "rp_escort_basic",
+      "rewardFormulaType": "escort",
+      "rewardTextMode": "currency",
+      "allowItemRewards": false,
+      "allowCurrencyRewards": true,
+      "allowMixedRewards": false
     }
   ]
 }
-

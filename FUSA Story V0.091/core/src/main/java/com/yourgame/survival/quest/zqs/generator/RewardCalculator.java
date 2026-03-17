@@ -11,21 +11,12 @@ import com.yourgame.survival.quest.zqs.runtime.TargetBlock;
  */
 public final class RewardCalculator {
 
-  public RewardBlock computeBaseReward(QuestBlueprintDef bp, TargetBlock target, int expectedTimeSec) {
-    if (bp == null) throw new IllegalArgumentException("bp missing");
-    if (target == null) throw new IllegalArgumentException("target missing");
-
-    // Legacy adapter: when only rewardProfileId is provided, treat as generic formula.
-    return computeBaseReward(
-        (bp.rewardProfileId != null) ? bp.rewardProfileId : "",
-        null,
-        null,
-        target,
-        expectedTimeSec);
-  }
-
   /**
    * Canonical reward computation (copper-based).
+   *
+   * Primary driver is rewardFormulaType from RewardProfiles.
+   * questType / questSubtype remain as a subtype-level fallback for formulas
+   * that need finer branching (for example find.poi vs find.object).
    *
    * Reference: flow 4/zqs_reward_logik_referenz_v1.md
    */
@@ -33,27 +24,31 @@ public final class RewardCalculator {
                                       TargetBlock target, int expectedTimeSec) {
     if (target == null) throw new IllegalArgumentException("target missing");
 
-    RewardBlock r = new RewardBlock();
-    r.rewardFormulaType = (rewardFormulaType != null) ? rewardFormulaType : "";
+    String formula = normalizeRewardFormulaTypeStrict(rewardFormulaType);
+    String qst = normalizeQuestSubtype(questSubtype);
 
-    // No invented data: we compute only from the canonical target value + expected time.
-    // Quest-type specific formulas:
-    // - sammeln / liefern: (amount * value) + (time * 33)
-    // - finden.poi / finden.poi_loot: (value) + (time * 33)
-    // - eskortieren: (time * 33)
+    RewardBlock r = new RewardBlock();
+    r.rewardFormulaType = formula;
+
     int value = Math.max(0, target.targetValueCopper);
+    int amount = Math.max(0, target.targetAmount);
     int timePart = Math.max(0, expectedTimeSec) * 33;
 
-    String qt = (questType == null) ? "" : questType.trim().toLowerCase();
-    String qst = (questSubtype == null) ? "" : questSubtype.trim().toLowerCase();
-
     int base;
-    if (qt.equals("eskortieren")) {
-      base = timePart;
-    } else if (qt.equals("finden") && (qst.equals("finden.poi") || qst.equals("finden.poi_loot"))) {
-      base = value + timePart;
-    } else {
-      base = (Math.max(0, target.targetAmount) * value) + timePart;
+    switch (formula) {
+      case "escort":
+        base = timePart;
+        break;
+      case "find":
+        base = computeFindRewardStrict(qst, value, amount, timePart);
+        break;
+      case "collect":
+      case "deliver":
+      case "craft":
+        base = (amount * value) + timePart;
+        break;
+      default:
+        throw new IllegalStateException("Unknown rewardFormulaType: '" + formula + "'");
     }
 
     r.baseRewardCopper = base;
@@ -63,9 +58,6 @@ public final class RewardCalculator {
     r.rewardState = RewardState.ACCEPTED;
     r.rewardTextMode = RewardTextMode.CURRENCY;
     r.normalizeCurrency();
-
-    // Reward distribution is currently copper-only payout (wallet.copper) as the canonical currency.
-    // rewardTextMode may still be used for text filtering.
 
     return r;
   }
@@ -87,5 +79,34 @@ public final class RewardCalculator {
       r.rewardTotalCopper = r.finalRewardCopper;
     }
     r.normalizeCurrency();
+  }
+
+  private static int computeFindRewardStrict(String questSubtype, int value, int amount, int timePart) {
+    if ("finden.poi".equals(questSubtype)
+        || "finden.poi_loot".equals(questSubtype)
+        || "finden.object".equals(questSubtype)) {
+      return value + timePart;
+    }
+    // Strict: no fallback for unsupported find-subtypes.
+    throw new IllegalStateException("Unsupported questSubtype for rewardFormulaType=find: '" + safe(questSubtype) + "'");
+  }
+
+  private static String normalizeRewardFormulaTypeStrict(String rewardFormulaType) {
+    String v = safe(rewardFormulaType).trim().toLowerCase();
+    if (v.isEmpty()) throw new IllegalStateException("rewardFormulaType missing");
+
+    // Strict allow-list. Any new type must be added explicitly.
+    if ("collect".equals(v) || "deliver".equals(v) || "craft".equals(v) || "find".equals(v) || "escort".equals(v)) {
+      return v;
+    }
+    throw new IllegalStateException("Unknown rewardFormulaType: '" + v + "'");
+  }
+
+  private static String normalizeQuestSubtype(String questSubtype) {
+    return safe(questSubtype).trim().toLowerCase();
+  }
+
+  private static String safe(String s) {
+    return (s != null) ? s : "";
   }
 }

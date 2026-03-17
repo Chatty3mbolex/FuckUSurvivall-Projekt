@@ -100,7 +100,82 @@
     }
   ],
   "livings": [],
-  "pois": [],
-  "npcs": [],
-  "regions": []
+  "pois": [
+    {
+      "id": "FOREST_01|HIDDEN_CHEST|276|76",
+      "name": "HIDDEN_CHEST",
+      "valueCopper": 0,
+      "tags": ["poi","HIDDEN_CHEST","template:FOREST_01"],
+      "slIdMax": 0,
+      "knownRequired": false
+    }
+  ],
+  "npcs": [
+    {
+      "id": "MERCHANT_ELF",
+      "name": "MERCHANT_ELF",
+      "valueCopper": 0,
+      "tags": ["npc"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "MERCHANT_WANDERING",
+      "name": "MERCHANT_WANDERING",
+      "valueCopper": 0,
+      "tags": ["npc"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "WANDER_QUEST_GUY",
+      "name": "WANDER_QUEST_GUY",
+      "valueCopper": 0,
+      "tags": ["npc"],
+      "slIdMax": 0,
+      "knownRequired": false
+    }
+  ],
+  "regions": [
+    {
+      "id": "HOME",
+      "name": "Home (Eerie Clearing)",
+      "valueCopper": 0,
+      "tags": ["region","template"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "FOREST_01",
+      "name": "FOREST_01",
+      "valueCopper": 0,
+      "tags": ["region","template"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "GEN_GRASSLAND",
+      "name": "Grasslands (alpha empty)",
+      "valueCopper": 0,
+      "tags": ["region","template"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "GEN_LIGHT_FOREST",
+      "name": "Light forest (alpha empty)",
+      "valueCopper": 0,
+      "tags": ["region","template"],
+      "slIdMax": 0,
+      "knownRequired": false
+    },
+    {
+      "id": "GEN_ROCKY_FIELDS",
+      "name": "Rocky fields (alpha empty)",
+      "valueCopper": 0,
+      "tags": ["region","template"],
+      "slIdMax": 0,
+      "knownRequired": false
+    }
+  ]
 }

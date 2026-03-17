@@ -4,6 +4,12 @@ package com.yourgame.survival.quest.zqs.runtime;
 public final class ZqsConversationContext {
   public long runtimeSec;
 
+  /**
+   * Real-world epoch seconds (canonical time basis for ZQS/WQG).
+   * runtimeSec is kept for compatibility but must carry the same value.
+   */
+  public long epochSec;
+
   public String timeOfDay = "day"; // morning|day|evening|night
   public String worldstressZone = "ruhig"; // ruhig|belebt|hektisch
   public String debugHqMode = "EXCLUDE_HQ"; // INCLUDE_HQ|EXCLUDE_HQ

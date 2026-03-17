@@ -34,6 +34,9 @@ public final class WanderQuestGuySystem {
     private final com.yourgame.survival.quest.QuestDef[] offers = new com.yourgame.survival.quest.QuestDef[3];
     private int offerCount = 0;
 
+    private final com.yourgame.survival.quest.QuestDef[] turnInReady = new com.yourgame.survival.quest.QuestDef[3];
+    private int turnInReadyCount = 0;
+
     // ZQS dock (concept flow 4). WQG must only talk to dock.
     private com.yourgame.survival.quest.zqs.dock.WanderQuestGuyDock zqsDock;
 
@@ -185,6 +188,7 @@ public final class WanderQuestGuySystem {
     public void onPopupOpened() {
         if (zqsDock == null) return;
         rollOffers();
+        rollTurnInReady();
         com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext ctx =
             (ctxProvider != null) ? ctxProvider.buildCtx() : new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
         greeting = zqsDock.buildGreeting(ctx, offerCount);
@@ -207,6 +211,30 @@ public final class WanderQuestGuySystem {
             return zqsDock.acceptOffer(q.id, log, runtimeSec);
         }
         return log.accept(q, runtimeSec);
+    }
+
+    public int turnInReadyCount() { return turnInReadyCount; }
+
+    public com.yourgame.survival.quest.QuestDef turnInReady(int idx) {
+        if (idx < 0 || idx >= turnInReadyCount) return null;
+        return turnInReady[idx];
+    }
+
+    public boolean claimReward(int idx,
+                               com.yourgame.survival.quest.QuestLog log,
+                               com.yourgame.survival.data.Wallet wallet,
+                               com.yourgame.survival.data.Inventory inv,
+                               long epochSec) {
+        if (log == null) return false;
+        com.yourgame.survival.quest.QuestDef q = turnInReady(idx);
+        if (q == null) return false;
+        if (zqsDock == null) return false;
+        boolean ok = zqsDock.claimReward(q.id, log, wallet, inv, epochSec);
+        if (ok) {
+            // refresh list so UI updates immediately
+            rollTurnInReady();
+        }
+        return ok;
     }
 
     private int findOrSpawn(Entities es, World world) {
@@ -278,6 +306,17 @@ public final class WanderQuestGuySystem {
         int m = (defs != null) ? Math.min(defs.length, offers.length) : 0;
         for (int i = 0; i < m; i++) offers[i] = defs[i];
         offerCount = m;
+    }
+
+    private void rollTurnInReady() {
+        turnInReadyCount = 0;
+        for (int i = 0; i < turnInReady.length; i++) turnInReady[i] = null;
+        if (zqsDock == null) return;
+
+        com.yourgame.survival.quest.QuestDef[] defs = zqsDock.listTurnInReady(3);
+        int m = (defs != null) ? Math.min(defs.length, turnInReady.length) : 0;
+        for (int i = 0; i < m; i++) turnInReady[i] = defs[i];
+        turnInReadyCount = m;
     }
 
     private String randomGreeting() {

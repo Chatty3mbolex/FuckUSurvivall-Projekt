@@ -16,6 +16,18 @@ public final class PersistentQuestRecord {
   public int targetValueCopper;
   public int expectedTimeSec;
 
+  // Objective meta (used for repeat rules, placeholders, progress resolver)
+  public String repeatFamilyKey;
+  public String targetRegionId;
+  public String targetRegionName;
+  public String targetEntityId;
+  public String targetEntityName;
+  public String progressKey;
+  public int progressBaseline;
+  public int progressCurrent;
+  public long readyAtRuntimeSec;
+  public long deadlineAtRuntimeSec;
+
   public RewardBlock reward;
 
   public String textProfileId;
@@ -47,6 +59,20 @@ public final class PersistentQuestRecord {
     this.targetQuantity = o.targetQuantity;
     this.targetValueCopper = o.targetValueCopper;
     this.expectedTimeSec = o.expectedTimeSec;
+
+    this.repeatFamilyKey = o.repeatFamilyKey;
+    this.targetRegionId = o.targetRegionId;
+    this.targetRegionName = o.targetRegionName;
+    this.targetEntityId = o.targetEntityId;
+    this.targetEntityName = o.targetEntityName;
+    this.progressKey = o.progressKey;
+
+    // progress fields are set on accept (baseline/current/ready/deadline)
+    this.progressBaseline = 0;
+    this.progressCurrent = 0;
+    this.readyAtRuntimeSec = 0L;
+    this.deadlineAtRuntimeSec = 0L;
+
     this.reward = o.reward;
     this.textProfileId = o.textProfileId;
     this.sourceNpcId = o.sourceNpcId;

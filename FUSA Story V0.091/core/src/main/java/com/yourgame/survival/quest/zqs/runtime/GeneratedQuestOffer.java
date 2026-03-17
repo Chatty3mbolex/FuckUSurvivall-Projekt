@@ -15,6 +15,14 @@ public final class GeneratedQuestOffer {
   public int targetQuantity;
   public int targetValueCopper;
 
+  // Objective meta (used for repeat rules, placeholders, progress resolver)
+  public String repeatFamilyKey;
+  public String targetRegionId;
+  public String targetRegionName;
+  public String targetEntityId;
+  public String targetEntityName;
+  public String progressKey;
+
   public int expectedTimeSec;
   public RewardBlock reward;
 

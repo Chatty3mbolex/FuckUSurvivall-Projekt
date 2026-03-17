@@ -94,6 +94,26 @@ public final class ZqsSaveBlock {
     public final Timestamps timestamps = new Timestamps();
     public int logbookEntryNr = 0;
     public final Locations locations = new Locations();
+
+    // --- phase A1 additions (do not replace existing blocks) ---
+    public final ObjectiveMeta objectiveMeta = new ObjectiveMeta();
+    public final Progress progress = new Progress();
+  }
+
+  public static final class ObjectiveMeta {
+    public String repeatFamilyKey = "";
+    public String targetRegionId = "";
+    public String targetRegionName = "";
+    public String targetEntityId = "";
+    public String targetEntityName = "";
+    public String progressKey = "";
+  }
+
+  public static final class Progress {
+    public int baseline = 0;
+    public int current = 0;
+    public long readyAt = 0L;
+    public long deadlineAt = 0L;
   }
 
   public static final class Target {

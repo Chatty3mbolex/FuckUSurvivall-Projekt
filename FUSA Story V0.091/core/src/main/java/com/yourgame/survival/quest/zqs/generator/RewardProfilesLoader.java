@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import com.yourgame.survival.quest.zqs.runtime.RewardTextMode;
 
 /**
  * Strict loader for `assets/data/zqs/reward_profiles_v1.json`.
@@ -30,6 +31,26 @@ public final class RewardProfilesLoader {
       if (rp.rewardProfileId == null || rp.rewardProfileId.isEmpty()) {
         throw new IllegalStateException("RewardProfile missing rewardProfileId");
       }
+
+      // Strict validation (A5): profiles must provide a known formula type.
+      String ft = (rp.rewardFormulaType != null) ? rp.rewardFormulaType.trim().toLowerCase() : "";
+      if (ft.isEmpty()) {
+        throw new IllegalStateException("RewardProfile missing rewardFormulaType: " + rp.rewardProfileId);
+      }
+      if (!("collect".equals(ft) || "deliver".equals(ft) || "craft".equals(ft) || "find".equals(ft) || "escort".equals(ft))) {
+        throw new IllegalStateException("Unknown rewardFormulaType: '" + ft + "' (profile=" + rp.rewardProfileId + ")");
+      }
+      rp.rewardFormulaType = ft;
+
+      // Strict validation (A5): rewardTextMode must be known.
+      String rtm = (rp.rewardTextMode != null) ? rp.rewardTextMode.trim().toLowerCase() : "";
+      if (RewardTextMode.byId(rtm) == null) {
+        throw new IllegalStateException("Unknown rewardTextMode: '" + rtm + "' (profile=" + rp.rewardProfileId + ")");
+      }
+      rp.rewardTextMode = rtm;
+      if (out.byId.containsKey(rp.rewardProfileId)) {
+        throw new IllegalStateException("Duplicate rewardProfileId: " + rp.rewardProfileId);
+      }
       out.byId.put(rp.rewardProfileId, rp);
     }
 
@@ -47,4 +68,3 @@ public final class RewardProfilesLoader {
     }
   }
 }
-
