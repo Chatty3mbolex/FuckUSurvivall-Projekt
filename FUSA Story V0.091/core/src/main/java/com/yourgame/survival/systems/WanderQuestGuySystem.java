@@ -184,11 +184,11 @@ public final class WanderQuestGuySystem {
         rollOffers();
     }
 
-    /** Called by UI when opening the popup to re-roll greeting (not offers). */
-    public void onPopupOpened() {
-        if (zqsDock == null) return;
-        rollOffers();
-        rollTurnInReady();
+  /** Called by UI when opening the popup to re-roll greeting (not offers). */
+  public void onPopupOpened() {
+    if (zqsDock == null) return;
+    rollOffers();
+    rollTurnInReady();
         com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext ctx =
             (ctxProvider != null) ? ctxProvider.buildCtx() : new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
         greeting = zqsDock.buildGreeting(ctx, offerCount);
@@ -207,10 +207,21 @@ public final class WanderQuestGuySystem {
         if (q == null) return false;
 
         // Persist accept through dock.
-        if (zqsDock != null) {
-            return zqsDock.acceptOffer(q.id, log, runtimeSec);
-        }
-        return log.accept(q, runtimeSec);
+        boolean ok;
+        if (zqsDock != null) ok = zqsDock.acceptOffer(q.id, log, runtimeSec);
+        else ok = log.accept(q, runtimeSec);
+        if (ok) removeOfferAt(idx);
+        return ok;
+    }
+
+    /** Declines an offer (no quest record; history only). */
+    public boolean declineOffer(int idx, long epochSec) {
+        com.yourgame.survival.quest.QuestDef q = offer(idx);
+        if (q == null) return false;
+        if (zqsDock == null) return false;
+        zqsDock.declineOffer(q.id, epochSec);
+        removeOfferAt(idx);
+        return true;
     }
 
     public int turnInReadyCount() { return turnInReadyCount; }
@@ -287,7 +298,7 @@ public final class WanderQuestGuySystem {
         return -1;
     }
 
-    private void rollOffers() {
+  private void rollOffers() {
         // Offer refresh timing is governed by ZQS persisted NQ timer state.
         refreshT = 0f;
 
@@ -295,17 +306,38 @@ public final class WanderQuestGuySystem {
         offerCount = 3;
         for (int i = 0; i < offers.length; i++) offers[i] = null;
 
-        com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext ctx = new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
-        if (ctxProvider != null) ctx = ctxProvider.buildCtx();
+    com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext ctx = new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
+    if (ctxProvider != null) ctx = ctxProvider.buildCtx();
 
         if (zqsDock == null) return;
 
         // Ask dock for generated offers (legacy UI QuestDefs).
+        // IMPORTANT per design: if generation is blocked (e.g. timer not due), offers must be discarded
+        // and UI must show N/A phrase.
         com.yourgame.survival.quest.QuestDef[] defs = zqsDock.generateOffers(ctx, offerCount);
+        boolean blocked = (ctx != null && !ctx.nqGenerationPossible);
+        // treat timer_not_due as blocked (design decision)
+        if (ctx != null && ctx.blockReason != null && ctx.blockReason.equals("timer_not_due")) blocked = true;
+    if (blocked) defs = null;
         for (int i = 0; i < offers.length; i++) offers[i] = null;
         int m = (defs != null) ? Math.min(defs.length, offers.length) : 0;
         for (int i = 0; i < m; i++) offers[i] = defs[i];
-        offerCount = m;
+    offerCount = m;
+  }
+
+  /** Emergency/safety: clears runtime-only offers without touching quest log. */
+  public void discardAllOffers() {
+    for (int i = 0; i < offers.length; i++) offers[i] = null;
+    offerCount = 0;
+  }
+
+    private void removeOfferAt(int idx) {
+        if (idx < 0 || idx >= offerCount) return;
+        for (int i = idx; i < offers.length - 1; i++) {
+            offers[i] = offers[i + 1];
+        }
+        offers[offers.length - 1] = null;
+        offerCount = Math.max(0, offerCount - 1);
     }
 
     private void rollTurnInReady() {

@@ -45,10 +45,28 @@ public final class WanderQuestGuyDock {
     for (int i = 0; i < m; i++) {
       GeneratedQuestOffer o = rt.offer(i);
       if (o == null) continue;
-      String title = rt.buildAssignmentText(o);
-      out[i] = new QuestDef(o.questId, QuestDef.Kind.SIDE, title, "");
+      // Full offer text: assignment + reward (reward amounts are computed by reward system).
+      String offerText = rt.buildOfferText(o);
+      out[i] = new QuestDef(o.questId, QuestDef.Kind.SIDE, offerText, "");
     }
     return out;
+  }
+
+  /** N/A phrase when no offers can be shown (blocked or rolled zero). */
+  public String buildAssignmentNa(ZqsConversationContext ctx) {
+    if (ctx == null) ctx = new ZqsConversationContext();
+    return rt.buildAssignmentNaText(ctx);
+  }
+
+  /** Farewell text; caller must set ctx.conversationResult appropriately (accepted|declined|no_offer|left|...). */
+  public String buildFarewell(ZqsConversationContext ctx) {
+    if (ctx == null) ctx = new ZqsConversationContext();
+    return rt.buildFarewellText(ctx);
+  }
+
+  /** Persist decline in ZQS history view (no quest record created). */
+  public void declineOffer(String questId, long epochSec) {
+    rt.declineOffer(questId, epochSec);
   }
 
   public boolean acceptOffer(String questId, QuestLog log, long runtimeSec) {

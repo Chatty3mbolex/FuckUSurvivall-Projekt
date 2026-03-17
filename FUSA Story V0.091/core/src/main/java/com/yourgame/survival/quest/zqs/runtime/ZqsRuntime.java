@@ -612,6 +612,67 @@ public final class ZqsRuntime {
     return text.buildGreeting(c).full;
   }
 
+  /**
+   * Builds the full offer text shown BEFORE accepting a quest.
+   *
+   * Note: This must include reward information (reward system decides amounts; text only formats).
+   */
+  public String buildOfferText(GeneratedQuestOffer offer) {
+    if (offer == null) return "";
+    com.yourgame.survival.quest.zqs.text.ConversationContext c = new com.yourgame.survival.quest.zqs.text.ConversationContext();
+    c.questType = offer.questType;
+    c.questSubtype = offer.questSubtype;
+    if (offer.reward != null) {
+      c.rewardState = (offer.reward.rewardState != null) ? offer.reward.rewardState.id : "";
+      c.rewardTextMode = (offer.reward.rewardTextMode != null) ? offer.reward.rewardTextMode.id : "";
+    }
+
+    String assignRaw = text.buildAssignment(c).full;
+    String assign = fillQuestPlaceholders(assignRaw, offer, offer.reward);
+
+    String rewardRaw = text.buildReward(c).full;
+    String reward = fillQuestPlaceholders(rewardRaw, offer, offer.reward);
+
+    return join2(assign, reward);
+  }
+
+  /** Builds the N/A phrase used when no offers can be generated or generation is blocked. */
+  public String buildAssignmentNaText(ZqsConversationContext ctx) {
+    com.yourgame.survival.quest.zqs.text.ConversationContext c = mapCtx(ctx);
+    return text.buildAssignmentNa(c).full;
+  }
+
+  /** Builds the farewell text (conversationResult controls the ending). */
+  public String buildFarewellText(ZqsConversationContext ctx) {
+    com.yourgame.survival.quest.zqs.text.ConversationContext c = mapCtx(ctx);
+    return text.buildFarewell(c).full;
+  }
+
+  /**
+   * Declines an offer (persisted as history only).
+   *
+   * IMPORTANT: OfferBuffer is runtime-only; declining must NOT depend on offer buffer longevity.
+   */
+  public void declineOffer(String questId, long epochSec) {
+    if (save == null) throw new IllegalStateException("ZqsSaveBlock missing (cannot persist decline)");
+    if (questId == null || questId.isEmpty()) throw new IllegalArgumentException("questId missing");
+
+    // Mark as seen + declined.
+    if (!save.questHistoryIndex.seenQuestIds.contains(questId)) {
+      save.questHistoryIndex.seenQuestIds.add(questId);
+    }
+    removeAll(save.questHistoryIndex.declinedQuestIds, questId);
+    save.questHistoryIndex.declinedQuestIds.add(questId);
+
+    // Also ensure it's not in active/completed/expired lists.
+    removeAll(save.questHistoryIndex.activeQuestIds, questId);
+    removeAll(save.questHistoryIndex.completedQuestIds, questId);
+    removeAll(save.questHistoryIndex.expiredQuestIds, questId);
+
+    // No quest record is created on decline.
+    rebuildIndexesFromSave();
+  }
+
   public String buildAssignmentText(GeneratedQuestOffer offer) {
     if (offer == null) return "";
     com.yourgame.survival.quest.zqs.text.ConversationContext c = new com.yourgame.survival.quest.zqs.text.ConversationContext();

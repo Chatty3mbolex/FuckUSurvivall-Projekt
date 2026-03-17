@@ -22,6 +22,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
+import com.badlogic.gdx.utils.Align;
 import com.yourgame.survival.SurvivalGame;
 import com.yourgame.survival.data.Inventory;
 import com.yourgame.survival.data.SkillDefs;
@@ -142,6 +143,8 @@ public final class GameScreen extends ScreenAdapter {
 
   // Block 7: render/input scratch + future state/command buffering (structural only)
   private final RenderScratch scratch = new RenderScratch();
+  // UI: reuse a single GlyphLayout for wrapping/measuring without per-frame allocations.
+  private final com.badlogic.gdx.graphics.g2d.GlyphLayout uiLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
 // Nicht fertiges Feature:   private final UiState uiState = new UiState();
   private final InputState inputState = new InputState();
 // Nicht fertiges Feature:   private final CommandBuffer commands = new CommandBuffer();
@@ -414,8 +417,29 @@ public final class GameScreen extends ScreenAdapter {
   private boolean invJustOpened = false;
   private boolean walletOpen = false;
   private int openMerchantE = -1;
+
+  // ---------------- WanderQuestGuy dialog (WQG) ----------------
+
+  /** True while the WQG dialog is open (modal; freezes world + releases mouse). */
   private boolean questPopupOpen = false;
+
+  /** Entity index of the currently open quest guy dialog. */
   private int openQuestGuyE = -1;
+
+  /** WQG dialog scroll position (pixels; 0 = top). */
+  private float wqgScrollPx = 0f;
+
+  /** Cached composed dialog text (greeting + offers + etc.). */
+  private String wqgDialogText = "";
+
+  /** Cached wrapped lines for the dialog text (computed when dialog text changes). */
+  private final java.util.ArrayList<String> wqgWrapped = new java.util.ArrayList<>();
+
+  /** When >0, the dialog will close after this epoch second (auto-close only in specific states). */
+  private long wqgAutoCloseAtEpochSec = 0L;
+
+  /** If non-empty, the farewell is appended to the dialog text and auto-close may start. */
+  private String wqgFarewellText = "";
   private boolean questLogOpen = false;
 
   // Boot/preload overlay (covers the world at start, then fades out; blocks simulation until done)
@@ -1080,6 +1104,12 @@ public final class GameScreen extends ScreenAdapter {
       @Override
       public boolean scrolled(float amountX, float amountY) {
         // amountY: positive usually = scroll down
+        if (questPopupOpen) {
+          // WQG dialog scroll (text area).
+          // Positive amountY = scroll down => move text up (increase scroll).
+          wqgScrollPx += (float) Math.signum(amountY) * 90f;
+          return true;
+        }
         if (craftOpen) {
           // scroll craft list (do not zoom while craft panel is open)
           craftScroll += (float) Math.signum(amountY) * 90f;
@@ -1769,13 +1799,15 @@ public final class GameScreen extends ScreenAdapter {
     }
 
     // When a modal UI is open, do NOT warp/clamp the OS cursor.
-    updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen && !questLogOpen && openChestE < 0 && !skillsOpen);
+    // Clamp cursor to action ring only when no modal UI is open.
+    // When WQG dialog is open we must release mouse (no warping).
+    updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen && !questLogOpen && openChestE < 0 && !skillsOpen && !questPopupOpen);
 
     // Cursor mode:
     // - Default: small crosshair (set in SurvivalGame)
     // - Inside the action ring (non-modal): hide hardware cursor so the in-world aim UI is clean
     {
-      boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || questLogOpen || openChestE >= 0 || skillsOpen;
+    boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || questLogOpen || openChestE >= 0 || skillsOpen || questPopupOpen;
       boolean wantHidden = false;
       drawUnarmedDotCursor = false;
       if (!modal) {
@@ -2180,38 +2212,7 @@ public final class GameScreen extends ScreenAdapter {
       zqsRt.refreshQuestLifecycle(buildZqsProgressSnapshot(nowSec), nowSec);
     }
 
-    // Quest popup shortcuts: 1/2/3 accept
-    if (questPopupOpen && questGuy != null) {
-      boolean accepted = false;
-      boolean claimed = false;
-      boolean claimPressed = false;
-      long nowSec = System.currentTimeMillis() / 1000L;
-      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) accepted = questGuy.acceptOffer(0, questLog, nowSec);
-      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) accepted = questGuy.acceptOffer(1, questLog, nowSec);
-      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) accepted = questGuy.acceptOffer(2, questLog, nowSec);
-
-      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_7)) { claimPressed = true; claimed = questGuy.claimReward(0, questLog, wallet, inv, nowSec); }
-      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_8)) { claimPressed = true; claimed = questGuy.claimReward(1, questLog, wallet, inv, nowSec); }
-      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)) { claimPressed = true; claimed = questGuy.claimReward(2, questLog, wallet, inv, nowSec); }
-
-      if (accepted) {
-        toast = "Quest angenommen.";
-        toastT = 2.0f;
-        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
-      }
-
-      if (claimPressed) {
-        if (claimed) {
-          toast = "Quest abgegeben. Belohnung erhalten.";
-          toastT = 2.0f;
-          game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
-        } else {
-          toast = "Abgabe nicht möglich.";
-          toastT = 2.0f;
-          game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
-        }
-      }
-    }
+    // WQG dialog: offer accept/decline/turn-in is handled via explicit UI buttons (no debug keybinds).
 
     // UI interactions: shop buy/sell + drag-to-buy + tool->hotbar drag + hotbar reordering + buy popup
     float uiMx = Gdx.input.getX();
@@ -2347,7 +2348,7 @@ public final class GameScreen extends ScreenAdapter {
           !TILE_TREES_FELL_ON_HARVEST);
     }
 
-    boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || questLogOpen || openChestE >= 0;
+    boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || questLogOpen || openChestE >= 0 || questPopupOpen;
     entityRenderer.setPlayerHandVisible(!uiBlocksHand);
     entityRenderer.draw(batch, entities, loadedMinCx, loadedMaxCx, loadedMinCy, loadedMaxCy);
 
@@ -2517,11 +2518,11 @@ public final class GameScreen extends ScreenAdapter {
     if (shopOpen) {
       drawShopMenuAtMerchant();
     }
-    if (questPopupOpen) {
-      drawQuestPopupAtGuy();
-    }
     if (questLogOpen) {
       drawQuestLogPanel();
+    }
+    if (questPopupOpen) {
+      drawWqgDialog();
     }
     if (craftOpen) {
       drawCraftPanel();
@@ -3580,11 +3581,14 @@ public final class GameScreen extends ScreenAdapter {
     float ix = 0f;
     float iy = 0f;
 
-    // Player movement (always allowed)
-    if (Gdx.input.isKeyPressed(Input.Keys.W)) iy += 1f;
-    if (Gdx.input.isKeyPressed(Input.Keys.S)) iy -= 1f;
-    if (Gdx.input.isKeyPressed(Input.Keys.A)) ix -= 1f;
-    if (Gdx.input.isKeyPressed(Input.Keys.D)) ix += 1f;
+    // Player movement
+    // Requirement (WQG dialog): freeze player movement while the popup is open, but keep mouse free.
+    if (!questPopupOpen) {
+      if (Gdx.input.isKeyPressed(Input.Keys.W)) iy += 1f;
+      if (Gdx.input.isKeyPressed(Input.Keys.S)) iy -= 1f;
+      if (Gdx.input.isKeyPressed(Input.Keys.A)) ix -= 1f;
+      if (Gdx.input.isKeyPressed(Input.Keys.D)) ix += 1f;
+    }
 
     // Diagonal movement: reduce only lateral (X) component for better control feel.
     if (ix != 0f && iy != 0f) ix *= 0.70f;
@@ -3765,8 +3769,11 @@ public final class GameScreen extends ScreenAdapter {
     // - Ticked here so movement is included in collision resolution.
     boolean isHomeArea = (worldMap != null && "HOME".equals(worldMap.curTemplateId));
     if (questGuy != null) {
+    // World freeze while WQG dialog is open (design requirement).
+    if (!questPopupOpen) {
       float playerReach = actionReach(equippedFromHotbar());
       questGuy.tick(entities, world, px, py, playerReach, dt, isHomeArea);
+    }
     }
 
     // Prevent player/orc/animal overlap (simple separation)
@@ -4540,11 +4547,10 @@ public final class GameScreen extends ScreenAdapter {
     if (walletOpen || pricingOpen || skillsOpen || mapOpen) return false;
     if (craftOpen || invOpen || buildMode || openChestE >= 0 || shopOpen) return false;
 
-    // E closes quest popup
+    // If popup already open: E should behave like pressing the explicit "Gehen" button.
+    // (We do NOT close immediately: farewell must be shown first.)
     if (questPopupOpen) {
-      questPopupOpen = false;
-      openQuestGuyE = -1;
-      game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+      wqgRequestLeave("left");
       return true;
     }
 
@@ -4563,15 +4569,180 @@ public final class GameScreen extends ScreenAdapter {
       float dx = entities.x[i] - px;
       float dy = entities.y[i] - py;
       if (dx*dx + dy*dy <= r2) {
-        questPopupOpen = true;
-        openQuestGuyE = i;
-        if (questGuy != null) questGuy.onPopupOpened();
-        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+        openQuestGuyDialog(i);
         return true;
       }
     }
 
     return false;
+  }
+
+  /** Opens the WQG dialog for the given entity index (must be a WANDER_QUEST_GUY). */
+  private void openQuestGuyDialog(int e) {
+    questPopupOpen = true;
+    openQuestGuyE = e;
+
+    // Close other modals.
+    shopOpen = false;
+    craftOpen = false;
+    walletOpen = false;
+    invOpen = false;
+    buildMode = false;
+    openChestE = -1;
+
+    // Reset dialog UI state (MUST be fresh per popup; no old content allowed).
+    wqgScrollPx = 0f;
+    wqgDialogText = "";
+    wqgWrapped.clear();
+    wqgFarewellText = "";
+    wqgAutoCloseAtEpochSec = 0L;
+
+    if (questGuy != null) questGuy.onPopupOpened();
+
+    // Compose initial dialog text (greeting + offers or N/A + farewell + auto-close).
+    wqgRefreshDialogTextOnOpen();
+
+    game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+  }
+
+  /**
+   * Builds the on-open dialog content according to design:
+   * - Greeting always first.
+   * - If no offers OR generation blocked/timer-not-due => show N/A phrase, then farewell, then start 30s auto-close.
+   */
+  private void wqgRefreshDialogTextOnOpen() {
+    long nowSec = System.currentTimeMillis() / 1000L;
+
+    com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext ctx =
+        (questGuy != null) ? questGuyCtxSafe() : new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
+
+    String greet = (questGuy != null) ? questGuy.greeting() : "";
+
+    // Hard rule: if player already has too many open quests, do NOT generate/keep offers.
+    // Required behavior: N/A phrase -> farewell -> timer -> close.
+    final int OPEN_QUESTS_CAP = 10;
+    int openCnt = (questLog != null) ? questLog.size() : 0;
+    if (openCnt >= OPEN_QUESTS_CAP) {
+      ctx.openQuestsCount = openCnt;
+      ctx.nqGenerationPossible = false;
+      ctx.blockReason = "cap_reached";
+      ctx.naReason = "cap_reached";
+      // Safety: if offers exist for any reason, discard them now.
+      if (questGuy != null) {
+        // Decline all offers ("Gehen" semantics: not accepted => verworfen).
+        while (questGuy.offerCount() > 0) {
+          if (!questGuy.declineOffer(0, nowSec)) break;
+        }
+        questGuy.discardAllOffers();
+      }
+    }
+
+    int nOffers = (questGuy != null) ? questGuy.offerCount() : 0;
+
+    // If no offers, we must show strict N/A (generator preference), then farewell, then auto-close.
+    if (nOffers <= 0) {
+      String na = (zqsWqgDock != null) ? zqsWqgDock.buildAssignmentNa(ctx) : "";
+      // Dummy fallback text is NOT allowed; if dock missing this is a wiring bug.
+      if (na == null || na.isEmpty()) na = "(MISSING_ZQS_NA_TEXT)"; // DUMMY: should never happen; indicates missing snippet DB wiring.
+
+      // Farewell uses conversation_result.
+      ctx.conversationResult = "no_offer";
+      String farewell = (zqsWqgDock != null) ? zqsWqgDock.buildFarewell(ctx) : "";
+      if (farewell == null || farewell.isEmpty()) farewell = "(MISSING_ZQS_FAREWELL_TEXT)"; // DUMMY: should never happen.
+
+      wqgFarewellText = farewell;
+      wqgAutoCloseAtEpochSec = nowSec + 30L; // Rule: auto-close after farewell.
+
+      wqgDialogText = joinWqgText(greet, na, farewell);
+      wqgWrapDialogText();
+      wqgScrollToBottom();
+      return;
+    }
+
+    // Offers exist: show greeting + offers. No auto-close.
+    wqgDialogText = joinWqgText(greet, buildOfferListText(), "");
+    wqgWrapDialogText();
+    wqgScrollToTop();
+  }
+
+  private com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext questGuyCtxSafe() {
+    // We build context exactly like the bound provider does, but without leaking implementation.
+    // If provider is missing, we still provide epochSec/runtimeSec to keep ZQS deterministic.
+    long nowSec = System.currentTimeMillis() / 1000L;
+    com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext c = new com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext();
+    c.epochSec = nowSec;
+    c.runtimeSec = nowSec;
+    c.openQuestsCount = (questLog != null) ? questLog.size() : 0;
+    // completedQuestsCount is tracked in existing context code path; keep 0 here if unavailable.
+    return c;
+  }
+
+  /** Request leaving the WQG dialog (explicit button or E). Always shows farewell first. */
+  private void wqgRequestLeave(String result) {
+    if (!questPopupOpen) return;
+    long nowSec = System.currentTimeMillis() / 1000L;
+
+    // Rule: leaving without accepting means all currently offered quests are considered discarded (verworfen).
+    if (questGuy != null) {
+      while (questGuy.offerCount() > 0) {
+        if (!questGuy.declineOffer(0, nowSec)) break;
+      }
+      questGuy.discardAllOffers();
+    }
+
+    com.yourgame.survival.quest.zqs.runtime.ZqsConversationContext ctx = questGuyCtxSafe();
+    ctx.conversationResult = (result != null) ? result : "left";
+    String farewell = (zqsWqgDock != null) ? zqsWqgDock.buildFarewell(ctx) : "";
+    if (farewell == null || farewell.isEmpty()) farewell = "(MISSING_ZQS_FAREWELL_TEXT)"; // DUMMY.
+    wqgFarewellText = farewell;
+
+    // Close after farewell. If offers are non-empty we still close (explicit leave).
+    // Delay is intentionally small so the farewell is visible for a moment.
+    // DUMMY: If you want a different UX timing, replace this constant.
+    wqgAutoCloseAtEpochSec = nowSec + 2L;
+
+    // Append farewell to visible text.
+    wqgDialogText = joinWqgText(wqgDialogText, "", farewell);
+    wqgWrapDialogText();
+    wqgScrollToBottom();
+    game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+  }
+
+  private static String joinWqgText(String a, String b, String c) {
+    String x = (a == null) ? "" : a.trim();
+    String y = (b == null) ? "" : b.trim();
+    String z = (c == null) ? "" : c.trim();
+    String out = x;
+    if (!y.isEmpty()) out = out.isEmpty() ? y : (out + "\n\n" + y);
+    if (!z.isEmpty()) out = out.isEmpty() ? z : (out + "\n\n" + z);
+    return out;
+  }
+
+  private String buildOfferListText() {
+    StringBuilder sb = new StringBuilder(512);
+    int n = (questGuy != null) ? questGuy.offerCount() : 0;
+    for (int i = 0; i < n; i++) {
+      var q = questGuy.offer(i);
+      if (q == null) continue;
+      if (sb.length() > 0) sb.append("\n\n");
+      // q.title contains the full generated offer text (assignment + reward).
+      sb.append("Angebot ").append(i + 1).append(":\n");
+      sb.append(q.title);
+    }
+    return sb.toString();
+  }
+
+  private void wqgScrollToTop() { wqgScrollPx = 0f; }
+  private void wqgScrollToBottom() {
+    // actual max scroll depends on wrapped lines; resolved in draw.
+    wqgScrollPx = 1_000_000f;
+  }
+
+  private void wqgWrapDialogText() {
+    wqgWrapped.clear();
+    // Wrap is computed in draw using GlyphLayout; we keep this list as a placeholder cache.
+    // DUMMY: This method currently only resets the cache; real wrapping is done in drawWqgDialog().
+    // Reason: wrapping depends on runtime panel width, which depends on screen size.
   }
 
   private boolean tryToggleChest() {
@@ -4843,96 +5014,164 @@ public final class GameScreen extends ScreenAdapter {
     batch.setColor(1f, 1f, 1f, 1f);
   }
 
-  private void drawQuestPopupAtGuy() {
+  private void drawWqgDialog() {
     if (openQuestGuyE < 0 || openQuestGuyE >= Entities.MAX || !entities.alive[openQuestGuyE]
         || entities.type[openQuestGuyE] != EntityType.WANDER_QUEST_GUY) {
       questPopupOpen = false;
       openQuestGuyE = -1;
+      wqgAutoCloseAtEpochSec = 0L;
       return;
     }
 
-    float gxw = entities.x[openQuestGuyE];
-    float gyw = entities.y[openQuestGuyE];
+    // Auto-close (timer is set only when offers are empty and farewell was shown).
+    if (wqgAutoCloseAtEpochSec > 0L) {
+      long nowSec = System.currentTimeMillis() / 1000L;
+      if (nowSec >= wqgAutoCloseAtEpochSec) {
+        questPopupOpen = false;
+        openQuestGuyE = -1;
+        wqgAutoCloseAtEpochSec = 0L;
+        return;
+      }
+    }
 
-    // World -> screen
-    Vector3 spHead = scratch.v3a;
-    float headOffset = com.yourgame.survival.entity.EntityMetrics.drawH(EntityType.WANDER_QUEST_GUY) * 0.60f;
-    spHead.set(gxw, gyw + headOffset, 0f);
-    cam.project(spHead);
+    // Panel size: maximum inventory panel size.
+    final int gridW = com.yourgame.survival.data.Inventory.GRID_W;
+    int normalRowsCap = Math.max(com.yourgame.survival.data.Inventory.GRID_MIN_H, (inv.normalSlotCount() + gridW - 1) / gridW);
+    int toolRowsCap = com.yourgame.survival.data.Inventory.TOOL_MAX_ROWS;
 
-    // Simple panel (reuse generic UI panel)
-    float panelW = 640f;
-    float panelH = 320f;
-    float x0 = spHead.x - panelW * 0.5f;
-    float y0 = spHead.y + 18f;
+    float uiScale = 0.85f;
+    float slot = 144f * uiScale;
+    float pad = 20f * uiScale;
+    float normalH = normalRowsCap * slot + (normalRowsCap - 1) * pad;
+    float toolH = toolRowsCap * slot + (toolRowsCap - 1) * pad;
+    float labelH = 52f * uiScale;
+    float innerW = gridW * slot + (gridW - 1) * pad;
+    float innerH = normalH + labelH + toolH;
+    float panelPad = 52f * uiScale;
+    float titleH = 96f * uiScale;
+    float panelW = innerW + panelPad * 2f;
+    float panelH = innerH + panelPad * 2f + titleH;
+
+    float x0 = (Gdx.graphics.getWidth() - panelW) * 0.5f;
+    float y0 = 0f;
     x0 = MathUtils.clamp(x0, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
     y0 = MathUtils.clamp(y0, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
 
     batch.setColor(1f, 1f, 1f, 1f);
     batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
 
+    // Header
+    font.getData().setScale(2.0f * uiScale);
     font.setColor(0f, 0f, 0f, 1f);
-    font.getData().setScale(1.35f * UI_FONT_SCALE);
-    font.draw(batch, "WANDER_QUEST_GUY (E close)", x0 + 26f, y0 + panelH - 22f);
+    font.draw(batch, "WANDER_QUEST_GUY", x0 + panelPad, y0 + panelH - 28f * uiScale);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
 
-    float y = y0 + panelH - 62f;
+    // Buttons
+    float btnH = 86f * uiScale;
+    float btnPad = 16f * uiScale;
+    float btnY = y0 + panelPad;
+    float btnW = (panelW - panelPad * 2f - btnPad * 2f) / 3f;
+    float btnX0 = x0 + panelPad;
+    float btnAcceptX = btnX0;
+    float btnDeclineX = btnX0 + (btnW + btnPad);
+    float btnGoX = btnX0 + (btnW + btnPad) * 2f;
 
-    font.getData().setScale(1.10f * UI_FONT_SCALE);
-    String greet = (questGuy != null) ? questGuy.greeting() : "";
-    if (greet != null && !greet.isEmpty()) {
-      font.draw(batch, '"' + greet + '"', x0 + 26f, y);
-      y -= 26f;
-    }
+    // Scrollable text region
+    float textX0 = x0 + panelPad;
+    float textY0 = btnY + btnH + 18f * uiScale;
+    float textW = panelW - panelPad * 2f;
+    float textH = panelH - titleH - panelPad - (btnH + 18f * uiScale) - panelPad;
 
-    font.getData().setScale(1.05f * UI_FONT_SCALE);
-    int n = (questGuy != null) ? questGuy.offerCount() : 0;
-    if (n <= 0) {
-      font.draw(batch, "Heute hab ich nichts für dich. Versuch's später nochmal.", x0 + 26f, y);
-      y -= 22f;
-    } else {
-      font.draw(batch, "Ich hab was für dich:", x0 + 26f, y);
-      y -= 22f;
-      for (int i = 0; i < n; i++) {
-        com.yourgame.survival.quest.QuestDef q = questGuy.offer(i);
-        if (q == null) continue;
-        String line = (i + 1) + ") " + q.title + "  [" + q.kind + "]";
-        font.draw(batch, line, x0 + 26f, y);
-        y -= 18f;
-        if (q.desc != null && !q.desc.isEmpty()) {
-          font.draw(batch, "    - " + q.desc, x0 + 26f, y);
-          y -= 18f;
-        }
-      }
-      y -= 6f;
-      font.draw(batch, "NUM 1/2/3 = annehmen", x0 + 26f, y);
-      y -= 18f;
-    }
+    // Clip text (use the same scratch rectangles as other UI panels, e.g. Craft panel)
+    Rectangle clip = scratch.r0;
+    clip.set(textX0, textY0, textW, textH);
+    Rectangle scissors = scratch.r1;
+    ScissorStack.calculateScissors(uiCam, batch.getTransformMatrix(), clip, scissors);
+    batch.flush();
+    ScissorStack.pushScissors(scissors);
 
-    int tn = (questGuy != null) ? questGuy.turnInReadyCount() : 0;
-    if (tn > 0) {
-      y -= 6f;
-      font.draw(batch, "Abgabebereit:", x0 + 26f, y);
-      y -= 22f;
-      for (int i = 0; i < tn; i++) {
-        com.yourgame.survival.quest.QuestDef q = questGuy.turnInReady(i);
-        if (q == null) continue;
-        String line = (7 + i) + ") " + q.title;
-        font.draw(batch, line, x0 + 26f, y);
-        y -= 18f;
-        if (q.desc != null && !q.desc.isEmpty()) {
-          font.draw(batch, "    - " + q.desc, x0 + 26f, y);
-          y -= 18f;
-        }
-      }
-      y -= 6f;
-      font.draw(batch, "NUM 7/8/9 = abgeben", x0 + 26f, y);
-      y -= 18f;
-    }
+    // Wrap + draw (friendly to existing UI coords: use BitmapFont wrapping instead of custom word splitting)
+    float wrapW = textW - 8f;
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.05f * uiScale);
 
-    font.getData().setScale(0.95f * UI_FONT_SCALE);
-    font.draw(batch, "Questlog (runtime): " + questLog.size() + " aktiv", x0 + 26f, y0 + 26f);
+    String text = (wqgDialogText != null) ? wqgDialogText : "";
+    uiLayout.setText(font, text, Color.BLACK, wrapW, Align.left, true);
+    float contentH = Math.max(textH, uiLayout.height);
+    float maxScroll = Math.max(0f, contentH - textH);
+    wqgScrollPx = MathUtils.clamp(wqgScrollPx, 0f, maxScroll);
+
+    // Draw from top of the text region; scrolling moves content up/down.
+    float drawY = textY0 + textH - 8f + wqgScrollPx;
+    font.draw(batch, text, textX0 + 4f, drawY, wrapW, Align.left, true);
 
     font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    batch.flush();
+    ScissorStack.popScissors();
+
+    // Draw buttons
+    float mx = Gdx.input.getX();
+    float my = uiMouseYUp();
+    boolean click = Gdx.input.justTouched();
+    int nOffers = (questGuy != null) ? questGuy.offerCount() : 0;
+    boolean hasOffer = nOffers > 0;
+
+    // DUMMY: apply to first offer only (selection UI must be added later).
+    int selIdx = 0;
+
+    batch.setColor(1f, 1f, 1f, hasOffer ? 1f : 0.35f);
+    batch.draw(uiRegions.button, btnAcceptX, btnY, btnW, btnH);
+    batch.setColor(1f, 1f, 1f, hasOffer ? 1f : 0.35f);
+    batch.draw(uiRegions.button, btnDeclineX, btnY, btnW, btnH);
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.button, btnGoX, btnY, btnW, btnH);
+
+    font.getData().setScale(1.35f * uiScale);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.draw(batch, "ANNEHMEN", btnAcceptX + 18f * uiScale, btnY + 52f * uiScale);
+    font.draw(batch, "ABLEHNEN", btnDeclineX + 18f * uiScale, btnY + 52f * uiScale);
+    font.draw(batch, "GEHEN", btnGoX + 18f * uiScale, btnY + 52f * uiScale);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    if (click) {
+      long nowSec = System.currentTimeMillis() / 1000L;
+
+      if (hitRect(mx, my, btnGoX, btnY, btnW, btnH)) {
+        wqgRequestLeave("left");
+      }
+      if (hasOffer && hitRect(mx, my, btnAcceptX, btnY, btnW, btnH)) {
+        if (questGuy.acceptOffer(selIdx, questLog, nowSec)) {
+          wqgDialogText = joinWqgText((questGuy != null) ? questGuy.greeting() : "", buildOfferListText(), "");
+          if (questGuy.offerCount() <= 0) {
+            var ctx = questGuyCtxSafe();
+            ctx.conversationResult = "accepted";
+            String farewell = (zqsWqgDock != null) ? zqsWqgDock.buildFarewell(ctx) : "";
+            if (farewell == null || farewell.isEmpty()) farewell = "(MISSING_ZQS_FAREWELL_TEXT)";
+            wqgFarewellText = farewell;
+            wqgAutoCloseAtEpochSec = nowSec + 30L;
+            wqgDialogText = joinWqgText(wqgDialogText, "", farewell);
+          }
+          wqgScrollToBottom();
+        }
+      }
+      if (hasOffer && hitRect(mx, my, btnDeclineX, btnY, btnW, btnH)) {
+        if (questGuy.declineOffer(selIdx, nowSec)) {
+          wqgDialogText = joinWqgText((questGuy != null) ? questGuy.greeting() : "", buildOfferListText(), "");
+          if (questGuy.offerCount() <= 0) {
+            var ctx = questGuyCtxSafe();
+            ctx.conversationResult = "declined";
+            String farewell = (zqsWqgDock != null) ? zqsWqgDock.buildFarewell(ctx) : "";
+            if (farewell == null || farewell.isEmpty()) farewell = "(MISSING_ZQS_FAREWELL_TEXT)";
+            wqgFarewellText = farewell;
+            wqgAutoCloseAtEpochSec = nowSec + 30L;
+            wqgDialogText = joinWqgText(wqgDialogText, "", farewell);
+          }
+          wqgScrollToBottom();
+        }
+      }
+    }
+
     font.setColor(0f, 0f, 0f, 1f);
   }
 
