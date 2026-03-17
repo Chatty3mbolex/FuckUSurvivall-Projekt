@@ -440,7 +440,10 @@ public final class GameScreen extends ScreenAdapter {
 
   /** If non-empty, the farewell is appended to the dialog text and auto-close may start. */
   private String wqgFarewellText = "";
-  private boolean questLogOpen = false;
+  // Questlogbook UI (Shift+Q): hub + two sub-windows (open/done).
+  private boolean questLogHubOpen = false;
+  private boolean questLogOpenQuestsOpen = false;
+  private boolean questLogDoneQuestsOpen = false;
 
   // Boot/preload overlay (covers the world at start, then fades out; blocks simulation until done)
   private static final float BOOT_OVERLAY_FILL_SEC = 8.0f;
@@ -1485,8 +1488,15 @@ public final class GameScreen extends ScreenAdapter {
         buyBuffer = "";
         dragArmed = false;
         dragActive = false;
-      } else if (questLogOpen) {
-        questLogOpen = false;
+      } else if (questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen) {
+        // Close quest logbook windows (sub-windows first).
+        if (questLogOpenQuestsOpen) {
+          questLogOpenQuestsOpen = false;
+        } else if (questLogDoneQuestsOpen) {
+          questLogDoneQuestsOpen = false;
+        } else {
+          questLogHubOpen = false;
+        }
       } else if (pricingOpen) {
         pricingOpen = false;
         pricingPresetPopup = false;
@@ -1801,13 +1811,17 @@ public final class GameScreen extends ScreenAdapter {
     // When a modal UI is open, do NOT warp/clamp the OS cursor.
     // Clamp cursor to action ring only when no modal UI is open.
     // When WQG dialog is open we must release mouse (no warping).
-    updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen && !questLogOpen && openChestE < 0 && !skillsOpen && !questPopupOpen);
+    updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+        && !questLogHubOpen && !questLogOpenQuestsOpen && !questLogDoneQuestsOpen
+        && openChestE < 0 && !skillsOpen && !questPopupOpen);
 
     // Cursor mode:
     // - Default: small crosshair (set in SurvivalGame)
     // - Inside the action ring (non-modal): hide hardware cursor so the in-world aim UI is clean
     {
-    boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || questLogOpen || openChestE >= 0 || skillsOpen || questPopupOpen;
+    boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen
+        || questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen
+        || openChestE >= 0 || skillsOpen || questPopupOpen;
       boolean wantHidden = false;
       drawUnarmedDotCursor = false;
       if (!modal) {
@@ -2175,10 +2189,10 @@ public final class GameScreen extends ScreenAdapter {
       toastT = 2.0f;
     }
 
-    // Quest log (Shift+Q)
+    // Quest logbook hub (Shift+Q)
     if (shiftHeld && Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-      questLogOpen = !questLogOpen;
-      if (questLogOpen) {
+      questLogHubOpen = !questLogHubOpen;
+      if (questLogHubOpen) {
         // Close other modals.
         shopOpen = false;
         craftOpen = false;
@@ -2188,10 +2202,12 @@ public final class GameScreen extends ScreenAdapter {
         pricingOpen = false;
         pricingPresetPopup = false;
         openChestE = -1;
-        questPopupOpen = false;
-        openQuestGuyE = -1;
+        // WQG popup is independent; keep it as-is.
         game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
       } else {
+        // Closing hub also closes both sub-windows.
+        questLogOpenQuestsOpen = false;
+        questLogDoneQuestsOpen = false;
         game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
       }
     }
@@ -2348,7 +2364,9 @@ public final class GameScreen extends ScreenAdapter {
           !TILE_TREES_FELL_ON_HARVEST);
     }
 
-    boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen || questLogOpen || openChestE >= 0 || questPopupOpen;
+    boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingOpen || walletOpen
+        || questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen
+        || openChestE >= 0 || questPopupOpen;
     entityRenderer.setPlayerHandVisible(!uiBlocksHand);
     entityRenderer.draw(batch, entities, loadedMinCx, loadedMaxCx, loadedMinCy, loadedMaxCy);
 
@@ -2518,8 +2536,14 @@ public final class GameScreen extends ScreenAdapter {
     if (shopOpen) {
       drawShopMenuAtMerchant();
     }
-    if (questLogOpen) {
-      drawQuestLogPanel();
+    if (questLogHubOpen) {
+      drawQuestLogHubPanel();
+    }
+    if (questLogOpenQuestsOpen) {
+      drawQuestLogOpenQuestsPanel();
+    }
+    if (questLogDoneQuestsOpen) {
+      drawQuestLogDoneQuestsPanel();
     }
     if (questPopupOpen) {
       drawWqgDialog();
@@ -5066,7 +5090,7 @@ public final class GameScreen extends ScreenAdapter {
     batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
 
     // Header
-    font.getData().setScale(2.0f * uiScale);
+    font.getData().setScale(2.15f * uiScale);
     font.setColor(0f, 0f, 0f, 1f);
     font.draw(batch, "WANDER_QUEST_GUY", x0 + panelPad, y0 + panelH - 28f * uiScale);
     font.getData().setScale(1.0f * UI_FONT_SCALE);
@@ -5098,7 +5122,8 @@ public final class GameScreen extends ScreenAdapter {
     // Wrap + draw (friendly to existing UI coords: use BitmapFont wrapping instead of custom word splitting)
     float wrapW = textW - 8f;
     font.setColor(0f, 0f, 0f, 1f);
-    font.getData().setScale(1.05f * uiScale);
+    // WQG dialog is text-heavy; keep it visibly larger than default UI labels.
+    font.getData().setScale(1.25f * uiScale);
 
     String text = (wqgDialogText != null) ? wqgDialogText : "";
     uiLayout.setText(font, text, Color.BLACK, wrapW, Align.left, true);
@@ -5132,7 +5157,7 @@ public final class GameScreen extends ScreenAdapter {
     batch.setColor(1f, 1f, 1f, 1f);
     batch.draw(uiRegions.button, btnGoX, btnY, btnW, btnH);
 
-    font.getData().setScale(1.35f * uiScale);
+    font.getData().setScale(1.15f * uiScale);
     font.setColor(0f, 0f, 0f, 1f);
     font.draw(batch, "ANNEHMEN", btnAcceptX + 18f * uiScale, btnY + 52f * uiScale);
     font.draw(batch, "ABLEHNEN", btnDeclineX + 18f * uiScale, btnY + 52f * uiScale);
@@ -5180,14 +5205,14 @@ public final class GameScreen extends ScreenAdapter {
     font.setColor(0f, 0f, 0f, 1f);
   }
 
-  private void drawQuestLogPanel() {
-    // Simple inventory-like panel (modal, mouse free). No scrolling yet.
-    float panelW = 820f;
-    float panelH = 520f;
-    float x0 = 34f;
-    float y0 = 80f;
+  // ---------------- Questlogbuch (Schema UI) ----------------
 
-    // clamp to screen
+  private void drawQuestLogHubPanel() {
+    // Center window: Questlogbuch hub. Buttons toggle the two sub-windows.
+    float panelW = 350f;
+    float panelH = 400f;
+    float x0 = (Gdx.graphics.getWidth() - panelW) * 0.5f;
+    float y0 = (Gdx.graphics.getHeight() - panelH) * 0.5f;
     x0 = MathUtils.clamp(x0, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
     y0 = MathUtils.clamp(y0, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
 
@@ -5195,46 +5220,170 @@ public final class GameScreen extends ScreenAdapter {
     batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
 
     font.setColor(0f, 0f, 0f, 1f);
-    font.getData().setScale(1.55f * UI_FONT_SCALE);
-    font.draw(batch, "QUESTLOG (Shift+Q close | ESC close)", x0 + 28f, y0 + panelH - 22f);
+    font.getData().setScale(1.25f * UI_FONT_SCALE);
+    font.draw(batch, "QUESTLOGBUCH", x0 + 28f, y0 + panelH - 22f);
 
-    font.getData().setScale(1.05f * UI_FONT_SCALE);
-    float y = y0 + panelH - 64f;
+    font.getData().setScale(0.95f * UI_FONT_SCALE);
+    font.draw(batch, "Shift+Q oder ESC = schließen", x0 + 20f, y0 + panelH - 50f);
 
-    int n = questLog.size();
-    if (n <= 0) {
-      font.draw(batch, "Leer. Du hast noch keine Quests angenommen.", x0 + 28f, y);
-      y -= 22f;
-      font.draw(batch, "Tipp: Beim Wander_Quest_Guy NUM 1/2/3 drücken.", x0 + 28f, y);
-    } else {
-      // Very minimal grouping: MAIN first, then SIDE.
-      font.draw(batch, "Aktiv: " + n, x0 + 28f, y);
-      y -= 26f;
+    float mx = Gdx.input.getX();
+    float my = uiMouseYUp();
+    boolean click = Gdx.input.justTouched();
 
-      // MAIN
-      font.getData().setScale(1.15f * UI_FONT_SCALE);
-      font.draw(batch, "HAUPTQUESTS", x0 + 28f, y);
-      y -= 22f;
-      font.getData().setScale(1.00f * UI_FONT_SCALE);
-      for (com.yourgame.survival.quest.QuestLog.Entry e : questLog.entries) {
-        if (e == null || e.def == null) continue;
-        if (e.def.kind != com.yourgame.survival.quest.QuestDef.Kind.MAIN) continue;
-        font.draw(batch, "- " + e.def.title, x0 + 44f, y);
-        y -= 18f;
+    float bw = panelW - 40f;
+    float bh = 62f;
+    float bx = x0 + 20f;
+    float by1 = y0 + panelH * 0.58f;
+    float by2 = y0 + panelH * 0.38f;
+
+    // Button: Offene Quests
+    batch.setColor(1f, 1f, 1f, questLogOpenQuestsOpen ? 0.92f : 1f);
+    batch.draw(uiRegions.button, bx, by1, bw, bh);
+    font.getData().setScale(1.00f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.draw(batch, "OFFENE QUESTS", bx + 16f, by1 + 40f);
+
+    // Button: Abgeschlossene Quests
+    batch.setColor(1f, 1f, 1f, questLogDoneQuestsOpen ? 0.92f : 1f);
+    batch.draw(uiRegions.button, bx, by2, bw, bh);
+    font.draw(batch, "ABGESCHLOSSENE QUESTS", bx + 16f, by2 + 40f);
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    if (click) {
+      if (hitRect(mx, my, bx, by1, bw, bh)) {
+        questLogOpenQuestsOpen = !questLogOpenQuestsOpen;
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
       }
-      y -= 10f;
-
-      // SIDE
-      font.getData().setScale(1.15f * UI_FONT_SCALE);
-      font.draw(batch, "NEBENQUESTS", x0 + 28f, y);
-      y -= 22f;
-      font.getData().setScale(1.00f * UI_FONT_SCALE);
-      for (com.yourgame.survival.quest.QuestLog.Entry e : questLog.entries) {
-        if (e == null || e.def == null) continue;
-        if (e.def.kind != com.yourgame.survival.quest.QuestDef.Kind.SIDE) continue;
-        font.draw(batch, "- " + e.def.title, x0 + 44f, y);
-        y -= 18f;
+      if (hitRect(mx, my, bx, by2, bw, bh)) {
+        questLogDoneQuestsOpen = !questLogDoneQuestsOpen;
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
       }
+    }
+
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+  }
+
+  private void drawQuestLogOpenQuestsPanel() {
+    // Right window: Offene Quests
+    float panelW = 540f;
+    float panelH = 500f;
+    float x0 = Gdx.graphics.getWidth() - panelW - 24f;
+    float y0 = 60f;
+    x0 = MathUtils.clamp(x0, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
+    y0 = MathUtils.clamp(y0, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.20f * UI_FONT_SCALE);
+    font.draw(batch, "OFFENE QUESTS", x0 + 22f, y0 + panelH - 22f);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    float cx = x0 + 22f;
+    float cy = y0 + panelH - 78f;
+    float cardW = panelW - 44f;
+    float cardH = 136f;
+    float gap = 12f;
+
+    int shown = 0;
+    for (com.yourgame.survival.quest.QuestLog.Entry e : questLog.entries) {
+      if (e == null || e.def == null) continue;
+      // Open = not completed/failed/expired.
+      if (e.status == com.yourgame.survival.quest.QuestLog.Status.COMPLETED
+          || e.status == com.yourgame.survival.quest.QuestLog.Status.FAILED
+          || e.status == com.yourgame.survival.quest.QuestLog.Status.EXPIRED) {
+        continue;
+      }
+
+      float topY = cy - shown * (cardH + gap);
+      float y0c = topY - cardH;
+      if (y0c < y0 + 18f) break;
+
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.panelSlots, cx, y0c, cardW, cardH);
+
+      font.setColor(0f, 0f, 0f, 1f);
+      font.getData().setScale(1.10f * UI_FONT_SCALE);
+      font.draw(batch, e.def.title, cx + 18f, topY - 22f);
+
+      font.getData().setScale(0.95f * UI_FONT_SCALE);
+      String body = (e.def.desc != null && !e.def.desc.isEmpty()) ? e.def.desc : ((e.finalStatus != null && !e.finalStatus.isEmpty()) ? e.finalStatus : "");
+      if (body == null) body = "";
+      font.draw(batch, body, cx + 18f, topY - 52f);
+
+      float bw = cardW - 28f;
+      float bh = 36f;
+      float bx = cx + 14f;
+      float by = y0c + 12f;
+      batch.draw(uiRegions.button, bx, by, bw, bh);
+      font.getData().setScale(0.90f * UI_FONT_SCALE);
+      font.draw(batch, "ABGEBEN!", bx + 14f, by + 26f);
+
+      shown++;
+    }
+
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+  }
+
+  private void drawQuestLogDoneQuestsPanel() {
+    // Left window: Abgeschlossene Quests
+    float panelW = 540f;
+    float panelH = 500f;
+    float x0 = 24f;
+    float y0 = 60f;
+    x0 = MathUtils.clamp(x0, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
+    y0 = MathUtils.clamp(y0, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.20f * UI_FONT_SCALE);
+    font.draw(batch, "ABGESCHLOSSENE QUESTS", x0 + 22f, y0 + panelH - 22f);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    float cx = x0 + 22f;
+    float cy = y0 + panelH - 78f;
+    float cardW = panelW - 44f;
+    float cardH = 136f;
+    float gap = 12f;
+
+    int shown = 0;
+    for (com.yourgame.survival.quest.QuestLog.Entry e : questLog.entries) {
+      if (e == null || e.def == null) continue;
+      // Done = completed/failed/expired.
+      if (!(e.status == com.yourgame.survival.quest.QuestLog.Status.COMPLETED
+          || e.status == com.yourgame.survival.quest.QuestLog.Status.FAILED
+          || e.status == com.yourgame.survival.quest.QuestLog.Status.EXPIRED)) {
+        continue;
+      }
+
+      float topY = cy - shown * (cardH + gap);
+      float y0c = topY - cardH;
+      if (y0c < y0 + 18f) break;
+
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.panelSlots, cx, y0c, cardW, cardH);
+
+      font.setColor(0f, 0f, 0f, 1f);
+      font.getData().setScale(1.10f * UI_FONT_SCALE);
+      font.draw(batch, e.def.title, cx + 18f, topY - 22f);
+
+      font.getData().setScale(0.95f * UI_FONT_SCALE);
+      String body = (e.def.desc != null && !e.def.desc.isEmpty()) ? e.def.desc : "";
+      if (body == null) body = "";
+      font.draw(batch, body, cx + 18f, topY - 52f);
+
+      font.getData().setScale(0.92f * UI_FONT_SCALE);
+      String info = (e.finalStatus != null && !e.finalStatus.isEmpty()) ? ("Status: " + e.finalStatus) : "Status: erledigt";
+      font.draw(batch, info, cx + 18f, y0c + 44f);
+
+      shown++;
     }
 
     font.getData().setScale(1.0f * UI_FONT_SCALE);
