@@ -161,7 +161,8 @@ public final class EntityRegions {
       case ANIMAL_CHICKEN -> {
         // Chicken: walk when moving; when stopped, sometimes "pick" instead of idle.
         // animT is driven by AI: animT>0 means "picking".
-        TextureRegion fb = reqLiving("animal_deer_idle", 0);
+        // Fallback must be a real atlas region (there is no non-directional animal_deer_idle).
+        TextureRegion fb = reqLiving("animal_deer_idle_S", 0);
 
         if (moving) {
           // If directional frames are missing, fall back to deer idle so we don't crash.
