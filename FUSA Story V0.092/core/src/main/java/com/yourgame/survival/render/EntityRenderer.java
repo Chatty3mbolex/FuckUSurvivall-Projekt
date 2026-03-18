@@ -74,7 +74,7 @@ public final class EntityRenderer {
       float x = es.x[i];
       float y = es.y[i];
 
-      TextureRegion r = regions.forEntity(t, stateTime, es.itemId[i], es.vx[i], es.vy[i], es.dir[i]);
+      TextureRegion r = regions.forEntity(t, stateTime, es.itemId[i], es.vx[i], es.vy[i], es.dir[i], es.rot[i]);
 
       float w = EntityMetrics.drawW(t);
       float h = EntityMetrics.drawH(t);
@@ -435,7 +435,7 @@ public final class EntityRenderer {
         float wx = (tx + 0.5f) * com.yourgame.survival.world.World.TILE_WORLD;
         float wy = (ty * com.yourgame.survival.world.World.TILE_WORLD) + (cut ? 2.0f : 34.0f);
 
-        TextureRegion r = regions.forEntity(want, stateTime, -1, 0f, 0f, (byte) 2);
+        TextureRegion r = regions.forEntity(want, stateTime, -1, 0f, 0f, (byte) 2, 0f);
         float w = EntityMetrics.drawW(want);
         float h = EntityMetrics.drawH(want);
         batch.draw(r, wx - w / 2f, wy - h / 2f, w, h);

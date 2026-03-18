@@ -123,7 +123,7 @@ public final class EntityRegions {
   }
   */
 
-  public TextureRegion forEntity(EntityType t, float stateTime, int itemId, float vx, float vy, byte lastDir) {
+  public TextureRegion forEntity(EntityType t, float stateTime, int itemId, float vx, float vy, byte lastDir, float animT) {
     boolean moving = (vx * vx + vy * vy) > (5f * 5f);
 
     // Facing selection:
@@ -131,7 +131,7 @@ public final class EntityRegions {
     // - ORK/DEER: trust es.dir[] (already stabilized by AI), do NOT re-quantize from vx/vy here.
     // - Others: keep legacy behavior.
     String dir = switch (t) {
-      case PLAYER, ORK_GRUNT, ANIMAL_DEER -> dirLetter(lastDir);
+      case PLAYER, ORK_GRUNT, ANIMAL_DEER, ANIMAL_CHICKEN -> dirLetter(lastDir);
       default -> dir(vx, vy, lastDir);
     };
 
@@ -157,6 +157,27 @@ public final class EntityRegions {
           ? animFrame("animal_deer_walk_" + atlasDir, stateTime, 10f)
           // GENERISCH, MUSS GEWECHSELT WERDEN !!
           : animFrame("animal_deer_idle_" + atlasDir, stateTime, 6f);
+
+      case ANIMAL_CHICKEN -> {
+        // Chicken: walk when moving; when stopped, sometimes "pick" instead of idle.
+        // animT is driven by AI: animT>0 means "picking".
+        TextureRegion fb = reqLiving("animal_deer_idle", 0);
+
+        if (moving) {
+          // If directional frames are missing, fall back to deer idle so we don't crash.
+          yield animFrameOr("animal_chicken_walk_" + atlasDir, stateTime, 10f, fb);
+        }
+
+        boolean picking = animT > 0.01f;
+        if (picking) {
+          // Pick uses only N/S for now.
+          String pd = ("S".equals(atlasDir) ? "S" : "N");
+          yield animFrameOr("animal_chicken_pick_" + pd, stateTime, 8f, fb);
+        }
+
+        // No idle animation yet: show first walk frame in the current dir (fallback safe).
+        yield animFrameOr("animal_chicken_walk_" + atlasDir, 0f, 10f, fb);
+      }
 
       case MERCHANT_ELF -> {
         // Fixed merchant: can use walk animation when moving.

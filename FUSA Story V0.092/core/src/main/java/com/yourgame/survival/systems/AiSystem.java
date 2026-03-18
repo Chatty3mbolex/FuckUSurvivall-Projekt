@@ -89,15 +89,116 @@ public final class AiSystem {
       }
 
       final EntityType type = es.type[i];
-      if (type != EntityType.ORK_GRUNT && type != EntityType.ANIMAL_DEER) continue;
+      if (type != EntityType.ORK_GRUNT && type != EntityType.ANIMAL_DEER && type != EntityType.ANIMAL_CHICKEN) continue;
 
       // Motion is updated by brains (tickOrc/tickDeer); do not zero here.
 
       if (type == EntityType.ORK_GRUNT) {
         tickOrc(es, world, i, player, px, py, dt, stealthMul, intimidateChance, playerSneaking, playerMoving, playerSprinting);
-      } else {
+      } else if (type == EntityType.ANIMAL_DEER) {
         tickDeer(es, world, i, px, py, dt, playerSneaking);
+      } else {
+        tickChicken(es, world, i, dt);
       }
+    }
+  }
+
+  private void tickChicken(
+      final Entities es,
+      final World world,
+      final int i,
+      final float dt
+  ) {
+    // Chicken: wander (no flee yet) + occasional pick stops.
+    // Requirements:
+    // - wander around home (zone leash if set)
+    // - no flee
+    // - stop sometimes and pick for 10..30s (random)
+    // - while picking, face N or S only
+    // Implementation:
+    // - es.rot[i] = pick timer (seconds). >0 => picking.
+    // - es.aiF1[i] = time until next pick (seconds).
+
+    // Picking state
+    if (es.rot[i] > 0f) {
+      es.rot[i] = Math.max(0f, es.rot[i] - dt);
+      es.vx[i] = 0f;
+      es.vy[i] = 0f;
+      if (es.dir[i] != 0 && es.dir[i] != 2) es.dir[i] = 2;
+      return;
+    }
+
+    // Time until next pick
+    es.aiF1[i] -= dt;
+    if (es.aiF1[i] <= 0f) {
+      es.rot[i] = 10f + nextFloat01() * 20f; // 10..30s
+      es.vx[i] = 0f;
+      es.vy[i] = 0f;
+      es.dir[i] = (byte) ((nextFloat01() < 0.5f) ? 0 : 2); // N or S
+      es.faceLock[i] = Math.max(es.faceLock[i], 2.0f);
+
+      // Next pick after some wandering (tunable, not specified): 12..45s
+      es.aiF1[i] = 12f + nextFloat01() * 33f;
+      return;
+    }
+
+    // Wander speed rhythm (deer-like)
+    es.aiT2[i] -= dt;
+    if (es.aiT2[i] <= 0f || es.aiF0[i] <= 0f) {
+      es.aiT2[i] = 10f + nextFloat01() * 35f;
+      final float maxWander = 70f;
+      final float minWander = 10f;
+      es.aiF0[i] = minWander + nextFloat01() * (maxWander - minWander);
+    }
+
+    // Direction changes
+    es.aiT[i] -= dt;
+    if (es.aiT[i] <= 0f) {
+      es.aiT[i] = 2.2f + nextFloat01() * 3.8f;
+      es.dir[i] = (byte) (nextFloat01() * 4f); // 0..3
+      es.faceLock[i] = 0.30f;
+    }
+
+    // Desired velocity from dir
+    float dx = 0f, dy = 0f;
+    switch (es.dir[i]) {
+      case 0 -> dy = 1f; // N
+      case 1 -> dx = 1f; // E
+      case 2 -> dy = -1f; // S
+      default -> dx = -1f; // W
+    }
+
+    final float speed = es.aiF0[i];
+    final float desiredVx = dx * speed;
+    final float desiredVy = dy * speed;
+
+    final float accel = 6.0f;
+    final float a = Math.min(1f, accel * dt);
+    es.vx[i] = es.vx[i] + (desiredVx - es.vx[i]) * a;
+    es.vy[i] = es.vy[i] + (desiredVy - es.vy[i]) * a;
+
+    final float nx = es.x[i] + es.vx[i] * dt;
+    final float ny = es.y[i] + es.vy[i] * dt;
+
+    final boolean water = world.isWaterAtWorldPeek(nx, ny, true);
+    final boolean coll = world.isBlockedAtWorldPeek(nx, ny, true);
+    if (!water && !coll) {
+      // Optional zone leash
+      float rx = nx - es.homeX[i];
+      float ry = ny - es.homeY[i];
+      float rr = es.wanderRadius[i];
+      if (rr > 0f && (rx * rx + ry * ry) > (rr * rr)) {
+        es.aiT[i] = 0f;
+        es.vx[i] = 0f;
+        es.vy[i] = 0f;
+      } else {
+        es.x[i] = nx;
+        es.y[i] = ny;
+      }
+    } else {
+      es.vx[i] *= 0.40f;
+      es.vy[i] *= 0.40f;
+      es.aiT[i] = 0f;
     }
   }
 

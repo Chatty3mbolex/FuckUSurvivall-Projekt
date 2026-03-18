@@ -23,6 +23,7 @@ public final class TuningEntities {
   public static final float DRAW_W_PLAYER = 34f;
   public static final float DRAW_W_ORK_GRUNT = 34f;
   public static final float DRAW_W_ANIMAL_DEER = 17f;   // was 30 — 32px sprite, deer is half player size
+  public static final float DRAW_W_ANIMAL_CHICKEN = 17f; // start with deer scale; adjust once chicken art is final
   public static final float DRAW_W_MERCHANT = 34f;
   public static final float DRAW_W_WANDER_QUEST_GUY = 34f; // placeholder: reuse merchant scale until custom art exists
   public static final float DRAW_W_ITEM_DROP = 14f;     // was 16 — small ground item
@@ -81,10 +82,12 @@ public final class TuningEntities {
 
   public static final float COLLISION_RADIUS_PLAYER = 6.7f;
   public static final float COLLISION_RADIUS_DEER = 3.6f;    // was 6.4 — scaled to new smaller deer
+  public static final float COLLISION_RADIUS_CHICKEN = 3.6f; // reuse deer tuning for now
   public static final float COLLISION_RADIUS_ORK = 6.7f;
 
   public static final float HIT_RADIUS_PLAYER = 9.8f;
   public static final float HIT_RADIUS_DEER = 5.4f;          // was 9.5 — scaled to new smaller deer
+  public static final float HIT_RADIUS_CHICKEN = 5.4f;        // reuse deer tuning for now
   public static final float HIT_RADIUS_ORK = 9.8f;
 
   // ------------------------------------------------------------

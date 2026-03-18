@@ -4,6 +4,7 @@ public enum EntityType {
   PLAYER,
   ORK_GRUNT,
   ANIMAL_DEER,
+  ANIMAL_CHICKEN,
   MERCHANT_ELF,
   MERCHANT_WANDERING,
 

@@ -745,6 +745,56 @@
 			"t": "NODE_ROCK",
 			"x": 195,
 			"y": 218
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 186,
+			"y": 176
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 198,
+			"y": 176
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 186,
+			"y": 186
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 198,
+			"y": 186
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 192,
+			"y": 172
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 192,
+			"y": 190
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 188,
+			"y": 181
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 196,
+			"y": 181
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 190,
+			"y": 178
+		},
+		{
+			"t": "ANIMAL_CHICKEN",
+			"x": 194,
+			"y": 184
 		}
 	]
 },

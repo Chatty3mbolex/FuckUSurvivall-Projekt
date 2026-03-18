@@ -118,6 +118,7 @@ public final class Entities {
       case PLAYER -> 100f;
       case ORK_GRUNT -> 35f;
       case ANIMAL_DEER -> 20f;
+      case ANIMAL_CHICKEN -> 20f;
       case MERCHANT_ELF, MERCHANT_WANDERING -> 9999f;
       case WANDER_QUEST_GUY -> 9999f;
       case NODE_TREE -> 20f;

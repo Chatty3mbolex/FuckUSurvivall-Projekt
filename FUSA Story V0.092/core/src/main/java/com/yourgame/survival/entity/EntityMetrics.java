@@ -9,6 +9,7 @@ public final class EntityMetrics {
       case PLAYER -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_PLAYER;
       case ORK_GRUNT -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_ORK_GRUNT;
       case ANIMAL_DEER -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_ANIMAL_DEER;
+      case ANIMAL_CHICKEN -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_ANIMAL_CHICKEN;
       case MERCHANT_ELF, MERCHANT_WANDERING -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_MERCHANT;
       case WANDER_QUEST_GUY -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_WANDER_QUEST_GUY;
       case ITEM_DROP -> com.yourgame.survival.tuning.TuningEntities.DRAW_W_ITEM_DROP;
@@ -74,6 +75,7 @@ public final class EntityMetrics {
       // Tight per-sprite tuning for the current art.
       case ORK_GRUNT -> com.yourgame.survival.tuning.TuningEntities.COLLISION_RADIUS_ORK;
       case ANIMAL_DEER -> com.yourgame.survival.tuning.TuningEntities.COLLISION_RADIUS_DEER;
+      case ANIMAL_CHICKEN -> com.yourgame.survival.tuning.TuningEntities.COLLISION_RADIUS_CHICKEN;
       case PLAYER -> com.yourgame.survival.tuning.TuningEntities.COLLISION_RADIUS_PLAYER;
 
       // Landmarks are purely visual (no entity-vs-entity physics).
@@ -99,6 +101,7 @@ public final class EntityMetrics {
       // Tight per-sprite tuning for the current art.
       case ORK_GRUNT -> com.yourgame.survival.tuning.TuningEntities.HIT_RADIUS_ORK;
       case ANIMAL_DEER -> com.yourgame.survival.tuning.TuningEntities.HIT_RADIUS_DEER;
+      case ANIMAL_CHICKEN -> com.yourgame.survival.tuning.TuningEntities.HIT_RADIUS_CHICKEN;
       case PLAYER -> com.yourgame.survival.tuning.TuningEntities.HIT_RADIUS_PLAYER;
 
       // Landmarks are not attackable.
