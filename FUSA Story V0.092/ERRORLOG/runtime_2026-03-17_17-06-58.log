@@ -1,0 +1,24 @@
+=== Runtime log started: 2026-03-17_17-06-58 ===
+cwd=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.091\assets
+logDir=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.091\ERRORLOG
+
+=== UNCAUGHT EXCEPTION ===
+Thread: main
+java.lang.IllegalStateException: Array is empty.
+	at com.badlogic.gdx.utils.Array.pop(Array.java:424)
+	at com.badlogic.gdx.scenes.scene2d.utils.ScissorStack.popScissors(ScissorStack.java:78)
+	at com.yourgame.survival.screens.GameScreen.drawWqgDialog(GameScreen.java:5140)
+	at com.yourgame.survival.screens.GameScreen.renderUI(GameScreen.java:2549)
+	at com.yourgame.survival.screens.HudRenderer.renderUI(HudRenderer.java:11)
+	at com.yourgame.survival.screens.GameScreen.render(GameScreen.java:2309)
+	at com.badlogic.gdx.Game.render(Game.java:48)
+	at com.yourgame.survival.SurvivalGame.render(SurvivalGame.java:113)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Graphics$1.invoke(Lwjgl3Graphics.java:85)
+	at org.lwjgl.glfw.GLFWFramebufferSizeCallbackI.callback(GLFWFramebufferSizeCallbackI.java:44)
+	at org.lwjgl.system.JNI.invokeV(Native Method)
+	at org.lwjgl.glfw.GLFW.glfwPollEvents(GLFW.java:3438)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.loop(Lwjgl3Application.java:187)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.<init>(Lwjgl3Application.java:153)
+	at com.yourgame.survival.desktop.DesktopLauncher.main(DesktopLauncher.java:36)
+=== END UNCAUGHT EXCEPTION ===
+
