@@ -161,23 +161,22 @@ public final class EntityRegions {
       case ANIMAL_CHICKEN -> {
         // Chicken: walk when moving; when stopped, sometimes "pick" instead of idle.
         // animT is driven by AI: animT>0 means "picking".
-        // Fallback must be a real atlas region (there is no non-directional animal_deer_idle).
-        TextureRegion fb = reqLiving("animal_deer_idle_S", 0);
-
         if (moving) {
-          // If directional frames are missing, fall back to deer idle so we don't crash.
-          yield animFrameOr("animal_chicken_walk_" + atlasDir, stateTime, 10f, fb);
+          // NO FALLBACKS: missing regions must crash loudly so content issues are fixed.
+          yield animFrame("animal_chicken_walk_" + atlasDir, stateTime, 10f);
         }
 
         boolean picking = animT > 0.01f;
         if (picking) {
           // Pick uses only N/S for now.
           String pd = ("S".equals(atlasDir) ? "S" : "N");
-          yield animFrameOr("animal_chicken_pick_" + pd, stateTime, 8f, fb);
+          // NO FALLBACKS.
+          yield animFrame("animal_chicken_pick_" + pd, stateTime, 8f);
         }
 
         // No idle animation yet: show first walk frame in the current dir (fallback safe).
-        yield animFrameOr("animal_chicken_walk_" + atlasDir, 0f, 10f, fb);
+        // NO FALLBACKS.
+        yield animFrame("animal_chicken_walk_" + atlasDir, 0f, 10f);
       }
 
       case MERCHANT_ELF -> {
