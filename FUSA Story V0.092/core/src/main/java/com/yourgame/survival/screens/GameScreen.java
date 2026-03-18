@@ -6437,7 +6437,7 @@ private void drawDragGhostAndBuyPopup() {
           EntityType.BUILD_LAMP
       };
       int idx = MathUtils.clamp(dragIndex, 0, buildTypes.length - 1);
-      icon = entityRegions.forEntity(buildTypes[idx], buildRot, -1, 0f, 0f, (byte)2);
+    icon = entityRegions.forEntity(buildTypes[idx], buildRot, -1, 0f, 0f, (byte)2, 0f);
     } else if (dragItemId >= 0) {
       icon = entityRegions.itemIcon(dragItemId);
     }
@@ -6783,7 +6783,7 @@ private void craftByOutput(int outItemId) {
       batch.setColor(1f, 1f, 1f, 1f);
       batch.draw(selected ? uiRegions.slotPressed : uiRegions.slot, sx, sy, slot, slot);
 
-      TextureRegion icon = entityRegions.forEntity(buildTypes[i], 0f, -1, 0f, 0f, (byte)2);
+    TextureRegion icon = entityRegions.forEntity(buildTypes[i], 0f, -1, 0f, 0f, (byte)2, 0f);
       if (icon != null) {
         float iw = slot * 0.74f;
         float ih = slot * 0.74f;

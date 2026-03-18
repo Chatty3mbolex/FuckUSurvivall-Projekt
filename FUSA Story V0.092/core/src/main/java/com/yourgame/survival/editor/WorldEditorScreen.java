@@ -1369,7 +1369,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
     if (entityRegions != null) {
       try {
         var t = com.yourgame.survival.entity.EntityType.NODE_TREE;
-        var reg = entityRegions.forEntity(t, 0f, -1, 0f, 0f, (byte) 2);
+      var reg = entityRegions.forEntity(t, 0f, -1, 0f, 0f, (byte) 2, 0f);
         terrainPalette.row();
         terrainPalette.add(new Label("TileTree (preview)", VisUI.getSkin())).left().colspan(cols).row();
         ImageButton b = new ImageButton(new TextureRegionDrawable(reg));
@@ -2257,7 +2257,7 @@ public final class WorldEditorScreen extends ScreenAdapter {
     if (editorTileTreePresentBits == null || editorTileTreeW != areaW || editorTileTreeH != areaH) return;
     if (entityRegions == null) return;
     com.yourgame.survival.entity.EntityType t = com.yourgame.survival.entity.EntityType.NODE_TREE;
-    com.badlogic.gdx.graphics.g2d.TextureRegion r = entityRegions.forEntity(t, 0f, -1, 0f, 0f, (byte) 2);
+      com.badlogic.gdx.graphics.g2d.TextureRegion r = entityRegions.forEntity(t, 0f, -1, 0f, 0f, (byte) 2, 0f);
     float w = com.yourgame.survival.entity.EntityMetrics.drawW(t);
     float h = com.yourgame.survival.entity.EntityMetrics.drawH(t);
 
