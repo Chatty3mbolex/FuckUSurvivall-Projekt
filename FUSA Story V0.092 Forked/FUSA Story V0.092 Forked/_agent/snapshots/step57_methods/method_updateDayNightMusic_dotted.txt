@@ -1,0 +1,5 @@
+﻿dayBgMusic.pause
+dayBgMusic.setVolume
+game.settings
+nightBgMusic.pause
+nightBgMusic.setVolume

@@ -1,0 +1,43 @@
+{
+  "schema": "FUSA_AREA_V1",
+  "templateId": "HOME_01",
+  "name": "Home (Eerie Clearing)",
+  "size": { "w": 384, "h": 384 },
+
+  "layers": {
+    "ground": {
+      "defaultId": 0,
+      "fills": [],
+      "patches": []
+    }
+  },
+
+  "exits": {
+    "N": { "tag": "field", "newArea": true, "oneWay": false },
+    "E": { "tag": "field", "newArea": true, "oneWay": false },
+    "S": { "tag": "field", "newArea": true, "oneWay": false },
+    "W": { "tag": "field", "newArea": true, "oneWay": false }
+  },
+
+  "markers": {
+    "playerSpawn": { "x": 192, "y": 80 },
+    "objects": [
+      {
+        "type": "LANDMARK_CASTLE",
+        "x": 192,
+        "y": 180,
+        "layerBias": 0.0
+      },
+      {
+        "type": "LANDMARK_BRIDGE",
+        "x": 196,
+        "y": 165,
+        "layerBias": 0.0
+      }
+    ]
+  },
+
+  "reserved": [
+    { "name": "future_houses", "rect": { "x": 174, "y": 160, "w": 36, "h": 28 } }
+  ]
+}

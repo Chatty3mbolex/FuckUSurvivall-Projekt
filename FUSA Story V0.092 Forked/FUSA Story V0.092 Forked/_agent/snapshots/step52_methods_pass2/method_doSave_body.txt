@@ -1,0 +1,3 @@
+﻿  public void doSave(int slot) {
+    doSave(slot, "Slot " + slot);
+  }

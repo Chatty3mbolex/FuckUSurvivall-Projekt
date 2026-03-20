@@ -1,0 +1,221 @@
+﻿  void renderUI() {
+    // UI overlay (screen space) — keep it independent from world camera
+    batch.setProjectionMatrix(uiCam.combined);
+    batch.begin();
+    batch.setColor(1f, 1f, 1f, 1f);
+
+    // UI only (no text HUD): draw compact stat panel bottom-left.
+    drawStatsPanel();
+
+    // ============================================================
+    // Area bounds warning UI (FUSA)
+    // ============================================================
+    if (AREA_MODE) {
+      if (inRedZone) {
+        font.setColor(1f, 0.2f, 0.2f, 1f);
+        font.getData().setScale(1.0f * UI_FONT_SCALE);
+        font.draw(batch, "Gebietsende, wechseln oder zurück gehen!", 20, Gdx.graphics.getHeight() - 80);
+        font.setColor(0f, 0f, 0f, 1f);
+      }
+      // VOID removed: player cannot enter the black outside-of-area strip.
+
+      // Direction arrows (only while in red zone; alpha: all sides are exits)
+      if (inRedZone) {
+        try {
+          com.badlogic.gdx.math.Vector3 v = new com.badlogic.gdx.math.Vector3(px, py, 0f);
+          cam.project(v);
+          float sy = Math.max(24f, Math.min(Gdx.graphics.getHeight() - 24f, v.y));
+
+          int tx = (int) Math.floor(px / World.TILE_WORLD);
+          int ty = (int) Math.floor(py / World.TILE_WORLD);
+          int w = AREA_W_TILES;
+          int h = AREA_H_TILES;
+          int rz = RED_ZONE_TILES;
+
+          boolean exitN = true, exitE = true, exitS = true, exitW = true;
+
+          font.setColor(1f, 1f, 1f, 1f);
+          font.getData().setScale(1.1f * UI_FONT_SCALE);
+
+          if (exitW && tx < rz) font.draw(batch, "<", 10, sy);
+          if (exitE && tx >= (w - rz)) font.draw(batch, ">", Gdx.graphics.getWidth() - 20, sy);
+          if (exitS && ty < rz) font.draw(batch, "v", (Gdx.graphics.getWidth() * 0.5f), 28);
+          if (exitN && ty >= (h - rz)) font.draw(batch, "^", (Gdx.graphics.getWidth() * 0.5f), Gdx.graphics.getHeight() - 28);
+
+          font.setColor(0f, 0f, 0f, 1f);
+        } catch (Throwable ignored) {}
+      }
+    }
+
+    // ============================================================
+    // WorldMap UI (Shift+M) (FUSA)
+    // ============================================================
+    if (mapOpen) {
+      // Update transition
+      if (mapTransActive) {
+        mapTransT += Gdx.graphics.getDeltaTime() / 0.25f; // 250ms
+        if (mapTransT >= 1f) {
+          mapTransT = 1f;
+          mapTransActive = false;
+          mapViewMode = mapTransTo;
+// Nicht fertiges Feature:           mapZoomOpen = (mapViewMode == 1);
+        }
+      }
+
+      // Render either world overview or area map (with optional transition).
+      float t = mapTransActive ? smooth01(mapTransT) : 1f;
+
+      if (mapTransActive) {
+        // Crossfade+zoom between two modes.
+        if (mapTransFrom == 0 && mapTransTo == 1) {
+          drawWorldMapOverview(1f - t, 1.0f + 0.30f * t);
+          drawSelectedAreaMap(t, 0.85f + 0.15f * t);
+        } else if (mapTransFrom == 1 && mapTransTo == 0) {
+          drawSelectedAreaMap(1f - t, 1.0f + 0.30f * t);
+          drawWorldMapOverview(t, 0.85f + 0.15f * t);
+        }
+      } else {
+        if (mapViewMode == 0) {
+          drawWorldMapOverview(1f, 1f);
+        } else {
+          drawSelectedAreaMap(1f, 1f);
+        }
+      }
+    }
+
+    // Toast stays (short, contextual).
+    if (toastT > 0f) {
+      font.setColor(0f, 0f, 0f, 1f);
+      font.getData().setScale(1.0f * UI_FONT_SCALE);
+      font.draw(batch, toast, 20, Gdx.graphics.getHeight() - 24);
+      font.setColor(0f, 0f, 0f, 1f);
+    }
+
+    // Debug mode UI is drawn top-most (after fog/night overlays) via drawDebugModeOverlay().
+
+    drawHotbarHud();
+
+    if (buildMode) {
+      drawBuildPanel();
+    }
+
+    if (invOpen) {
+      drawInventoryGrid();
+    }
+
+    if (pricingEditor.isOpen()) {
+      pricingEditor.drawMenu(batch, uiRegions, data, priceBook, font, UI_FONT_SCALE, null);
+    }
+
+    if (walletOpen) {
+      drawWalletMenu();
+    }
+
+    if (shopOpen) {
+      drawShopMenuAtMerchant();
+    }
+    if (questLogHubOpen) {
+      drawQuestLogHubPanel();
+    }
+    if (questLogOpenQuestsOpen) {
+      drawQuestLogOpenQuestsPanel();
+    }
+    if (questLogDoneQuestsOpen) {
+      drawQuestLogDoneQuestsPanel();
+    }
+    if (questPopupOpen) {
+      drawWqgDialog();
+    }
+    if (craftOpen) {
+      drawCraftPanel();
+    }
+
+    if (openChestE >= 0) {
+      drawChestPanel();
+    }
+
+    // Top-most UI: drag ghost + buy popup
+    drawDragGhostAndBuyPopup();
+
+    // Debug overlay at cursor (IDs)
+    // Keep behavior identical: drawHoverIdsAtCursor() only if debugHoverIds is enabled.
+    if (debugHoverIds) {
+      drawHoverIdsAtCursor();
+    }
+
+    // Skill menu overlay (P)
+    if (skillsOpen) {
+      if (!skillMenuRowsBuilt) buildSkillMenuRows();
+      drawSkillMenu();
+    }
+
+    // Day/Night fullscreen overlay (over everything)
+    if (dayNight1x1 != null) {
+      // Base darkness (night stronger)
+      float nightA = 1.00f; // deeper into black
+      float gamma = 1.7f;   // stronger darkening curve
+      float aBase = (float)Math.pow(1f - dnVisual, gamma) * nightA;
+      if (aBase > 1f) aBase = 1f;
+
+      // base night color (black-ish, but NOT more transparent)
+      float r = 0.040f;
+      float g = 0.040f;
+      float b = 0.080f;
+
+      // warm twilight tint (sunrise/sunset)
+      float w = dnWarm;
+      r = r + 0.35f * w;
+      g = g + 0.12f * w;
+      b = b - 0.10f * w;
+
+      if (aBase > 0.001f) {
+        batch.setColor(r, g, b, aBase);
+
+        // If debug lamp is on, draw darkness with an alpha-mask (so area becomes truly brighter)
+        if ((dnLightOn || dnLightXLOn) && dnMaskRegion != null && dnLampScreenValid) {
+          batch.draw(dnMaskRegion, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        } else {
+          batch.draw(dayNight1x1, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        }
+
+        batch.setColor(1f, 1f, 1f, 1f);
+      }
+    }
+
+    // Boot/preload overlay (covers the world until it fades out; shows a small progress bar)
+    if (bootOverlayActive && dayNight1x1 != null) {
+      Gdx.gl.glEnable(GL20.GL_BLEND);
+      Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+      // Fullscreen dark overlay
+      batch.setColor(0f, 0f, 0f, bootOverlayA);
+      batch.draw(dayNight1x1, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+      // Progress bar (UI space, bottom-center)
+      float w = 420f * UI_FONT_SCALE;
+      float h = 18f * UI_FONT_SCALE;
+      float x = (Gdx.graphics.getWidth() - w) * 0.5f;
+      float y = 70f * UI_FONT_SCALE;
+
+      // Track
+      batch.setColor(0f, 0f, 0f, Math.min(1f, bootOverlayA + 0.25f));
+      batch.draw(dayNight1x1, x - 3f, y - 3f, w + 6f, h + 6f);
+      batch.setColor(1f, 1f, 1f, Math.min(1f, bootOverlayA));
+      batch.draw(dayNight1x1, x, y, w, h);
+
+      // Fill
+      float fillW = w * bootOverlayFill;
+      if (fillW > 0.5f) {
+        batch.setColor(0.15f, 0.85f, 0.25f, Math.min(1f, bootOverlayA));
+        batch.draw(dayNight1x1, x, y, fillW, h);
+      }
+
+      batch.setColor(1f, 1f, 1f, 1f);
+      Gdx.gl.glDisable(GL20.GL_BLEND);
+    }
+
+    // Draw debug mode overlay above EVERYTHING (incl. day/night fog overlay).
+    drawDebugModeOverlay();
+
+    batch.end();
+  }

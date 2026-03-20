@@ -1,0 +1,10 @@
+﻿        int hitE = arrowHitSegment(x, y, x2, y2, arrowDmg[i]);
+        if (hitE >= 0) {
+          // Arrow disappears on ANY hit (even if target survives)
+          arrowAlive[i] = false;
+          game.audio.sfx("audio/sfx/ork_hit.wav", game.audio.sfxVolume(game.settings));
+          if (arrowLastKill != null) {
+            onKill(arrowLastKill);
+          }
+          break;
+        }

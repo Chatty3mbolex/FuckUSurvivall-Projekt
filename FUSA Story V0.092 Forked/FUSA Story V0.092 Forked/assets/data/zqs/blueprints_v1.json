@@ -1,0 +1,183 @@
+{
+  "schema": "zqs.blueprints.v1",
+  "version": 1,
+  "note": "Blueprints sind Vorlagen. Sie definieren Questart/Subtype/AllowedTargetKinds/AmountRules/RepeatRules/TextProfileId/RewardProfileId. (Flow 4)",
+  "blueprints": [
+    {
+      "blueprintId": "bp_collect_resource_basic",
+      "objectiveFamily": "NQ",
+      "questType": "sammeln",
+      "questSubtype": "sammeln.item",
+      "repeatFamilyKey": "rfk:sammeln:item",
+      "allowedTargetKinds": ["item"],
+      "amountRules": {
+        "min": 1,
+        "max": 10
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_collect_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_collect_harvestable_basic",
+      "objectiveFamily": "NQ",
+      "questType": "sammeln",
+      "questSubtype": "sammeln.harvestable",
+      "repeatFamilyKey": "rfk:sammeln:harvestable",
+      "allowedTargetKinds": ["harvestable"],
+      "amountRules": {
+        "min": 1,
+        "max": 6
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_collect_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_deliver_item_basic",
+      "objectiveFamily": "NQ",
+      "questType": "liefern",
+      "questSubtype": "liefern.item",
+      "repeatFamilyKey": "rfk:liefern:item",
+      "allowedTargetKinds": ["item"],
+      "amountRules": {
+        "min": 1,
+        "max": 10
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_deliver_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_craft_recipe_output_basic",
+      "objectiveFamily": "NQ",
+      "questType": "craften",
+      "questSubtype": "craften.recipe_output",
+      "repeatFamilyKey": "rfk:craften:recipe_output",
+      "allowedTargetKinds": ["item"],
+      "amountRules": {
+        "min": 1,
+        "max": 6
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_craft_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_craft_delivery_basic",
+      "objectiveFamily": "NQ",
+      "questType": "craften",
+      "questSubtype": "craften.delivery",
+      "repeatFamilyKey": "rfk:craften:delivery",
+      "allowedTargetKinds": ["item"],
+      "amountRules": {
+        "min": 1,
+        "max": 6
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_craft_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_find_poi_basic",
+      "objectiveFamily": "NQ",
+      "questType": "finden",
+      "questSubtype": "finden.poi",
+      "repeatFamilyKey": "rfk:finden:poi",
+      "allowedTargetKinds": ["poi"],
+      "amountRules": {
+        "min": 1,
+        "max": 1
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_find_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_find_poi_loot_basic",
+      "objectiveFamily": "NQ",
+      "questType": "finden",
+      "questSubtype": "finden.poi_loot",
+      "repeatFamilyKey": "rfk:finden:poi_loot",
+      "allowedTargetKinds": ["poi"],
+      "amountRules": {
+        "min": 1,
+        "max": 1
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_find_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    },
+    {
+      "blueprintId": "bp_find_object_basic",
+      "objectiveFamily": "NQ",
+      "questType": "finden",
+      "questSubtype": "finden.object",
+      "repeatFamilyKey": "rfk:finden:object",
+      "allowedTargetKinds": ["poi"],
+      "amountRules": {
+        "min": 1,
+        "max": 1
+      },
+      "minPlayerLevel": 1,
+      "maxPlayerLevel": null,
+      "weight": 1.0,
+      "rewardProfileId": "rp_find_basic",
+      "textProfileId": "tp_nq_default",
+      "repeatRules": {
+        "cooldownHours": 0,
+        "denySameTarget": false,
+        "denySameFamily": false
+      }
+    }
+  ]
+}

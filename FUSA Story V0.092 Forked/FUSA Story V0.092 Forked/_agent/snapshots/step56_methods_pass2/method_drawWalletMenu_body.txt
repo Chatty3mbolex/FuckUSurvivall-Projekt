@@ -1,0 +1,72 @@
+﻿  private void drawWalletMenu() {
+    float w = Math.min(560f, Gdx.graphics.getWidth() - 40f);
+    float h = 300f;
+    float x0 = (Gdx.graphics.getWidth() - w) * 0.5f;
+    float y0 = (Gdx.graphics.getHeight() - h) * 0.5f;
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, w, h);
+
+    float pad = 28f;
+    float x = x0 + pad;
+    float yTop = y0 + h - pad;
+
+    long copper = wallet.copper;
+    double silver = copper / 100.0;      // 100 copper = 1 silver
+    double gold = copper / 100000.0;     // 1000 silver = 1 gold => 100000 copper
+
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.6f * 1.15f);
+    font.draw(batch, "WALLET (G close)", x, yTop);
+
+    float rowGap = 66f;
+    float rowTop = yTop - 70f;
+
+    float iconFrame = 54f;
+    float iconInner = 42f;
+
+    float valueBoxH = 48f;
+    float valueX = x + iconFrame + 14f;
+    float valueW = (x0 + w - pad) - valueX;
+
+    font.getData().setScale(1.15f * UI_FONT_SCALE);
+
+    // Kupfer
+    {
+      float by = rowTop;
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.slot, x, by - iconFrame + 10f, iconFrame, iconFrame);
+      if (walletCoinCopperIcon != null) {
+        batch.draw(walletCoinCopperIcon, x + (iconFrame - iconInner) * 0.5f, by - iconFrame + 10f + (iconFrame - iconInner) * 0.5f, iconInner, iconInner);
+      }
+      batch.draw(uiRegions.button, valueX, by - valueBoxH + 10f, valueW, valueBoxH);
+      font.draw(batch, String.format("%d", copper), valueX + 16f, by - 8f);
+    }
+
+    // Silber
+    {
+      float by = rowTop - rowGap;
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.slot, x, by - iconFrame + 10f, iconFrame, iconFrame);
+      if (walletCoinSilverIcon != null) {
+        batch.draw(walletCoinSilverIcon, x + (iconFrame - iconInner) * 0.5f, by - iconFrame + 10f + (iconFrame - iconInner) * 0.5f, iconInner, iconInner);
+      }
+      batch.draw(uiRegions.button, valueX, by - valueBoxH + 10f, valueW, valueBoxH);
+      font.draw(batch, String.format("%.2f", silver), valueX + 16f, by - 8f);
+    }
+
+    // Gold
+    {
+      float by = rowTop - rowGap * 2f;
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.slot, x, by - iconFrame + 10f, iconFrame, iconFrame);
+      if (walletCoinGoldIcon != null) {
+        batch.draw(walletCoinGoldIcon, x + (iconFrame - iconInner) * 0.5f, by - iconFrame + 10f + (iconFrame - iconInner) * 0.5f, iconInner, iconInner);
+      }
+      batch.draw(uiRegions.button, valueX, by - valueBoxH + 10f, valueW, valueBoxH);
+      font.draw(batch, String.format("%.4f", gold), valueX + 16f, by - 8f);
+    }
+
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+  }

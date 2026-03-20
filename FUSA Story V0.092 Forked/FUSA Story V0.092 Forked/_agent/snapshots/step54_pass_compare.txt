@@ -1,0 +1,16 @@
+﻿=== updateMouseWorld ===
+newTokens=0
+newDotted=0
+
+=== collectInputSnapshot ===
+newTokens=0
+newDotted=0
+
+=== actionReach ===
+newTokens=0
+newDotted=0
+
+=== pickupNearby ===
+newTokens=0
+newDotted=0
+

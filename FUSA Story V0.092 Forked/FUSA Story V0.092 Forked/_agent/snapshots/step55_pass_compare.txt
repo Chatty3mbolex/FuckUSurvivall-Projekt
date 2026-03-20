@@ -1,0 +1,20 @@
+﻿=== debugWorldMapTravel ===
+newTokens=0
+newDotted=0
+
+=== areaEnemyZonesTick ===
+newTokens=0
+newDotted=0
+
+=== areaClearEnemyZones ===
+newTokens=0
+newDotted=0
+
+=== areaAddEnemyZone ===
+newTokens=0
+newDotted=0
+
+=== areaWorldMapState ===
+newTokens=0
+newDotted=0
+

@@ -1,0 +1,51 @@
+﻿  private void tickArrows(float dt) {
+    // Sub-step to avoid tunneling at high arrow speed.
+    final float maxStep = 14f;
+
+    for (int i = 0; i < ARROW_MAX; i++) {
+      if (!arrowAlive[i]) continue;
+
+      float x = arrowX[i];
+      float y = arrowY[i];
+
+      float vx = arrowVx[i];
+      float vy = arrowVy[i];
+      float spd = (float) Math.sqrt(vx * vx + vy * vy);
+      if (spd <= 1e-6f) { arrowAlive[i] = false; continue; }
+
+      float total = spd * dt;
+      int steps = Math.max(1, (int) Math.ceil(total / maxStep));
+      float sdt = dt / steps;
+
+      for (int s = 0; s < steps; s++) {
+        float x2 = x + vx * sdt;
+        float y2 = y + vy * sdt;
+
+        arrowLastKill = null;
+        int hitE = arrowHitSegment(x, y, x2, y2, arrowDmg[i]);
+        if (hitE >= 0) {
+          // Arrow disappears on ANY hit (even if target survives)
+          arrowAlive[i] = false;
+          game.audio.sfx("audio/sfx/ork_hit.wav", game.audio.sfxVolume(game.settings));
+          if (arrowLastKill != null) {
+            onKill(arrowLastKill);
+          }
+          break;
+        }
+
+        // advance
+        arrowTravel[i] += spd * sdt;
+        if (arrowTravel[i] >= arrowRange[i]) {
+          arrowAlive[i] = false;
+          break;
+        }
+
+        x = x2;
+        y = y2;
+      }
+
+      if (!arrowAlive[i]) continue;
+      arrowX[i] = x;
+      arrowY[i] = y;
+    }
+  }

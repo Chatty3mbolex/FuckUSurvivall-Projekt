@@ -1,0 +1,107 @@
+﻿  void renderWorld(float delta, int selectedTool) {
+    Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+    // Camera clamp inside the current Area (player cannot enter VOID).
+    if (AREA_MODE) {
+      float tw = World.TILE_WORLD;
+      float areaW = AREA_W_TILES * tw;
+      float areaH = AREA_H_TILES * tw;
+
+      float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+      float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+
+      float cx = MathUtils.clamp(px, halfW, areaW - halfW);
+      float cy = MathUtils.clamp(py, halfH, areaH - halfH);
+      cam.position.set(cx, cy, 0f);
+    } else {
+      cam.position.set(px, py, 0f);
+    }
+    cam.update();
+
+    batch.setProjectionMatrix(cam.combined);
+    batch.begin();
+    // Guardrail: ensure batch state is sane. Some render paths (entities/fog) change blending/color.
+    batch.enableBlending();
+    batch.setColor(1f, 1f, 1f, 1f);
+    // Areas-only: always draw enough chunks to fully cover the camera viewport (+margin).
+    float chunkWorld = World.TILE_WORLD * World.CHUNK_SIZE;
+    float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+    float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+    int rx = (int) Math.ceil(halfW / chunkWorld) + 2;
+    int ry = (int) Math.ceil(halfH / chunkWorld) + 2;
+    int r = Math.max(rx, ry);
+    // IMPORTANT: draw around the camera center (camera is clamped near edges).
+    chunkRenderer.draw(batch, world, cam.position.x, cam.position.y, r);
+    entityRenderer.tick(delta);
+
+    // FUSA Story: dense forests are drawn from tile bitmasks (NOT as Entities).
+    // Layering policy:
+    // - Stumps: draw BELOW entities (player should not be hidden by stumps).
+    // - Trees: draw ABOVE entities (player walks "under" the canopy).
+    if (AREA_MODE && areaTreePresentBits != null && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+      entityRenderer.drawTileTrees(batch, world, areaTreePresentBits, areaTreeCutBits, areaTreeW, areaTreeH,
+          cam.position.x, cam.position.y, r,
+          false, true,
+          !TILE_TREES_FELL_ON_HARVEST);
+    }
+
+    boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+        || questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen
+        || openChestE >= 0 || questPopupOpen;
+    entityRenderer.setPlayerHandVisible(!uiBlocksHand);
+    entityRenderer.draw(batch, entities, loadedMinCx, loadedMaxCx, loadedMinCy, loadedMaxCy);
+
+    if (AREA_MODE && areaTreePresentBits != null && areaTreeCutBits != null && areaTreeW > 0 && areaTreeH > 0) {
+      entityRenderer.drawTileTrees(batch, world, areaTreePresentBits, areaTreeCutBits, areaTreeW, areaTreeH,
+          cam.position.x, cam.position.y, r,
+          true, false,
+          !TILE_TREES_FELL_ON_HARVEST);
+    }
+    batch.end();
+
+    // ============================================================
+    // Story world: Fog of War overlay in the PLAYFIELD
+    // ============================================================
+    // Variant 2 (as requested):
+    // - Unknown = black
+    // - Explored = dark fog overlay (content stays visible)
+    // - Visible now = clear, with soft edge
+    if (AREA_MODE && shape != null) {
+      renderFogOfWarOverlayWorld();
+    }
+
+    // ============================================================
+    // Area bounds: red border veil (10 tiles wide)
+    // ============================================================
+    if (AREA_MODE && shape != null && inRedZone) {
+      try {
+        shape.setProjectionMatrix(cam.combined);
+        shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+        shape.setColor(1f, 0f, 0f, 0.22f);
+
+        float tw = TILE_WORLD;
+        float w = AREA_W_TILES * tw;
+        float h = AREA_H_TILES * tw;
+        float rz = RED_ZONE_TILES * tw;
+
+        shape.rect(0f, 0f, rz, h);
+        shape.rect(w - rz, 0f, rz, h);
+        shape.rect(0f, 0f, w, rz);
+        shape.rect(0f, h - rz, w, rz);
+
+        shape.end();
+      } catch (Throwable ignored) {
+        try { shape.end(); } catch (Throwable ignored2) {}
+      }
+    }
+
+    // World overlays (health bars + projectiles)
+    drawEntityHealthBarsWorld();
+    projCombat.drawArrowsWorld();
+
+    // Custom cursor (unarmed): visible point cursor, hardware cursor is hidden.
+    if (drawUnarmedDotCursor) {
+    drawDotCursorWorld(mouseWorldX, mouseWorldY);
+    }
+  }

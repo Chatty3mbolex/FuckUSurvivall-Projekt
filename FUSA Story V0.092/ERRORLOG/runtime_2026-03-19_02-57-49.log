@@ -1,0 +1,5 @@
+=== Runtime log started: 2026-03-19_02-57-49 ===
+cwd=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.092\assets
+logDir=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.092\ERRORLOG
+[VisUI] Warning, using invalid libGDX version.
+You are using libGDX 1.14.0 but you need 1.13.5. This may cause unexpected problems and runtime exceptions.

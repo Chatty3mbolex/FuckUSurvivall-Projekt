@@ -1,0 +1,12 @@
+﻿=== clearAllStateForLoad ===
+newTokens=0
+newDotted=0
+
+=== doSave ===
+newTokens=0
+newDotted=0
+
+=== doLoad ===
+newTokens=0
+newDotted=0
+

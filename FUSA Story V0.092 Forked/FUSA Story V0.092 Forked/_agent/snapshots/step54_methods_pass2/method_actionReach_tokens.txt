@@ -1,0 +1,14 @@
+﻿actionReach
+drawUnarmedDotCursor
+dx
+dy
+float
+if
+mouseWorldX
+mouseWorldY
+px
+py
+r
+selectedTool
+true
+wantHidden

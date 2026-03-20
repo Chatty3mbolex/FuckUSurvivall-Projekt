@@ -1,0 +1,41 @@
+﻿    collectInputSnapshot(delta, inputState);
+    applyCommands(commandQueue);
+
+    /* ===== SIMULATION TICK ===== */
+    // Simulation must keep running during the boot overlay to hide initial load spikes.
+    updateScheduler(delta);
+
+    // Smoothing must run in the normal gameplay path as well (not only during boot overlay).
+    
+
+    // Debug: one compact line/sec for MP position + camera + entity coupling.
+    
+
+    /* ===== WORLD DRAW ===== */
+    renderWorld(delta, selectedTool);
+
+    // Day/Night visuals target + smoothing (never instant, even via debug)
+    {
+      float rawLight;
+      float rawWarm;
+      switch (dnDebugMode) {
+        case 1 -> {
+          rawLight = 1f;
+          rawWarm = 0f;
+        }
+        case 2 -> {
+          rawLight = 0f;
+          rawWarm = 0f;
+        }
+        default -> {
+          rawLight = dayNight.daylightPhased();
+          rawWarm = dayNight.warmTwilight();
+        }
+      }
+      dnTarget = rawLight;
+      dnWarmTarget = rawWarm;
+
+      float k = 1f - (float)Math.exp(-delta / 2.5f); // ~2.5s smoothing
+      dnVisual += (dnTarget - dnVisual) * k;
+      dnWarm += (dnWarmTarget - dnWarm) * k;
+    }

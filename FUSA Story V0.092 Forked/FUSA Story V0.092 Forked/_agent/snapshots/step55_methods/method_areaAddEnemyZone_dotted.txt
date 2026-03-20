@@ -1,0 +1,14 @@
+﻿enemyZones.add
+java.util
+Math.max
+r.nextInt
+z.cxTile
+z.cyTile
+z.nextRespawnDayIndex
+z.respawnDaysMax
+z.respawnDaysMin
+z.rTiles
+z.seed
+z.targetCount
+z.targetMax
+z.targetMin

@@ -1,0 +1,443 @@
+﻿hud|3311|// UI only (no text HUD): draw compact stat panel bottom-left.
+hud|3400|drawHotbarHud();
+hud|5526|// fallback: behave like old text HUD
+hud|7839|private void drawHotbarHud() {
+hud|7840|// Bottom anchored HUD: slot icons + selection frame.
+drawHotbarHud|3400|drawHotbarHud();
+drawHotbarHud|7839|private void drawHotbarHud() {
+shopOpen|754|shopOpen = false;
+shopOpen|988|shopOpen = false;
+shopOpen|1348|private boolean shopOpen = false;
+shopOpen|2611|boolean sneakAllowed = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0);
+shopOpen|2623|shopOpen = false;
+shopOpen|2637|if (buildMode) { invOpen = false; craftOpen = false; shopOpen = false; openChestE = -1; }
+shopOpen|2657|if (craftOpen) { invOpen = false; shopOpen = false; buildMode = false; openChestE = -1; }
+shopOpen|2687|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) {
+shopOpen|2703|boolean wantEat = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) &&
+shopOpen|2717|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+shopOpen|2727|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && shiftPressed && Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+shopOpen|2734|updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+shopOpen|2742|boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+shopOpen|2794|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && playerE >= 0) {
+shopOpen|2801|final boolean rmbAllowed = (!shopOpen && !craftOpen && !invOpen && !walletOpen && !pricingEditor.isOpen() && !skillsOpen && !mapOpen
+shopOpen|2970|if (!lmbClickHandled && !shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+shopOpen|3059|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && selectedTool == 22
+shopOpen|3077|shopOpen = false;
+shopOpen|3116|if (shopOpen || invOpen || buildMode || buyPopup || sellPopup || dragArmed || dragActive || hoverHotbar) {
+shopOpen|3183|if (!shopOpen && !craftOpen && !invOpen && !walletOpen) {
+shopOpen|3246|boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+shopOpen|3418|if (shopOpen) {
+shopOpen|4477|if (shopOpen && openMerchantE >= 0 && openMerchantE < Entities.MAX && entities.alive[openMerchantE]
+shopOpen|4483|shopOpen = false;
+shopOpen|4993|shopOpen = false;
+shopOpen|5006|shopOpen = !shopOpen;
+shopOpen|5007|if (shopOpen) {
+shopOpen|5046|shopOpen = false;
+shopOpen|5101|shopOpen = !shopOpen;
+shopOpen|5102|if (shopOpen) {
+shopOpen|5125|if (shopOpen) {
+shopOpen|5126|shopOpen = false;
+shopOpen|5141|if (craftOpen || invOpen || buildMode || openChestE >= 0 || shopOpen) return false;
+shopOpen|5179|shopOpen = false;
+shopOpen|5391|shopOpen = false;
+shopOpen|6369|if (!shopOpen) return -1;
+shopOpen|6628|if (shopOpen && shopLayoutValid && mx >= shopPanelX0 && mx <= shopPanelX0 + shopPanelW && my >= shopPanelY0 && my <= shopPanelY0 + shopPanelH) {
+shopOpen|6649|if (shopOpen && shopLayoutValid && mx >= shopPanelX0 && mx <= shopPanelX0 + shopPanelW && my >= shopPanelY0 && my <= shopPanelY0 + shopPanelH) {
+craftOpen|756|craftOpen = false;
+craftOpen|990|craftOpen = false;
+craftOpen|1349|private boolean craftOpen = false;
+craftOpen|2084|if (craftOpen) {
+craftOpen|2113|if (craftOpen && craftQtyFocusIdx >= 0) {
+craftOpen|2148|if (craftOpen && craftQtyFocusIdx >= 0) {
+craftOpen|2611|boolean sneakAllowed = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0);
+craftOpen|2624|craftOpen = false;
+craftOpen|2637|if (buildMode) { invOpen = false; craftOpen = false; shopOpen = false; openChestE = -1; }
+craftOpen|2656|craftOpen = !craftOpen;
+craftOpen|2657|if (craftOpen) { invOpen = false; shopOpen = false; buildMode = false; openChestE = -1; }
+craftOpen|2687|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) {
+craftOpen|2703|boolean wantEat = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) &&
+craftOpen|2717|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+craftOpen|2727|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && shiftPressed && Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+craftOpen|2734|updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+craftOpen|2742|boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+craftOpen|2794|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && playerE >= 0) {
+craftOpen|2801|final boolean rmbAllowed = (!shopOpen && !craftOpen && !invOpen && !walletOpen && !pricingEditor.isOpen() && !skillsOpen && !mapOpen
+craftOpen|2970|if (!lmbClickHandled && !shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+craftOpen|3059|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && selectedTool == 22
+craftOpen|3078|craftOpen = false;
+craftOpen|3121|if (craftOpen) {
+craftOpen|3183|if (!shopOpen && !craftOpen && !invOpen && !walletOpen) {
+craftOpen|3194|if (!skillsOpen && !craftOpen) {
+craftOpen|3246|boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+craftOpen|3433|if (craftOpen) {
+craftOpen|4942|if (craftOpen || invOpen || buildMode || openChestE >= 0) {
+craftOpen|4994|craftOpen = false;
+craftOpen|5009|craftOpen = false;
+craftOpen|5047|craftOpen = false;
+craftOpen|5104|craftOpen = false;
+craftOpen|5141|if (craftOpen || invOpen || buildMode || openChestE >= 0 || shopOpen) return false;
+craftOpen|5180|craftOpen = false;
+craftOpen|5392|craftOpen = false;
+craftOpen|6748|if (!(craftOpen && craftQtyFocusIdx >= 0)) return;
+craftOpen|9066|if (craftOpen) {
+invOpen|755|invOpen = false;
+invOpen|989|invOpen = false;
+invOpen|1354|private boolean invOpen = false;
+invOpen|2611|boolean sneakAllowed = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0);
+invOpen|2625|invOpen = false;
+invOpen|2637|if (buildMode) { invOpen = false; craftOpen = false; shopOpen = false; openChestE = -1; }
+invOpen|2641|invOpen = !invOpen;
+invOpen|2642|if (invOpen) {
+invOpen|2657|if (craftOpen) { invOpen = false; shopOpen = false; buildMode = false; openChestE = -1; }
+invOpen|2687|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) {
+invOpen|2703|boolean wantEat = (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0) &&
+invOpen|2717|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+invOpen|2727|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && shiftPressed && Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+invOpen|2734|updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+invOpen|2742|boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+invOpen|2794|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && playerE >= 0) {
+invOpen|2801|final boolean rmbAllowed = (!shopOpen && !craftOpen && !invOpen && !walletOpen && !pricingEditor.isOpen() && !skillsOpen && !mapOpen
+invOpen|2970|if (!lmbClickHandled && !shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)
+invOpen|3059|if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && selectedTool == 22
+invOpen|3079|invOpen = false;
+invOpen|3116|if (shopOpen || invOpen || buildMode || buyPopup || sellPopup || dragArmed || dragActive || hoverHotbar) {
+invOpen|3183|if (!shopOpen && !craftOpen && !invOpen && !walletOpen) {
+invOpen|3246|boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+invOpen|3406|if (invOpen) {
+invOpen|4942|if (craftOpen || invOpen || buildMode || openChestE >= 0) {
+invOpen|4995|invOpen = false;
+invOpen|5049|invOpen = false;
+invOpen|5141|if (craftOpen || invOpen || buildMode || openChestE >= 0 || shopOpen) return false;
+invOpen|5182|invOpen = false;
+invOpen|5393|invOpen = false;
+invOpen|6383|if (!invOpen) return -1;
+invOpen|6399|if (!invOpen) return -1;
+walletOpen|1357|private boolean walletOpen = false;
+walletOpen|2453|} else if (walletOpen) {
+walletOpen|2454|walletOpen = false;
+walletOpen|2621|walletOpen = !walletOpen;
+walletOpen|2622|if (walletOpen) {
+walletOpen|2635|if (!pricingEditor.isOpen() && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.B)) {
+walletOpen|2640|if (!pricingEditor.isOpen() && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.I)) {
+walletOpen|2655|if (!pricingEditor.isOpen() && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+walletOpen|2734|updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+walletOpen|2742|boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+walletOpen|2801|final boolean rmbAllowed = (!shopOpen && !craftOpen && !invOpen && !walletOpen && !pricingEditor.isOpen() && !skillsOpen && !mapOpen
+walletOpen|3081|walletOpen = false;
+walletOpen|3095|if (!pricingEditor.isOpen() && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+walletOpen|3183|if (!shopOpen && !craftOpen && !invOpen && !walletOpen) {
+walletOpen|3246|boolean uiBlocksHand = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+walletOpen|3414|if (walletOpen) {
+walletOpen|4935|if (walletOpen || pricingEditor.isOpen() || skillsOpen || mapOpen) return false;
+walletOpen|5010|walletOpen = false;
+walletOpen|5048|walletOpen = false;
+walletOpen|5080|if (walletOpen) return false;
+walletOpen|5105|walletOpen = false;
+walletOpen|5140|if (walletOpen || pricingEditor.isOpen() || skillsOpen || mapOpen) return false;
+walletOpen|5181|walletOpen = false;
+walletOpen|5825|boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+walletOpen|5923|boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+walletOpen|6113|boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+walletOpen|8029|walletOpen = false;
+walletOpen|9087|boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+skillsOpen|1515|private boolean skillsOpen = false;
+skillsOpen|2089|if (skillsOpen) {
+skillsOpen|2465|if (skillsOpen && pendingSkillScrollY != 0) {
+skillsOpen|2473|if (!skillsOpen && pendingScrollY != 0) {
+skillsOpen|2718|skillsOpen = !skillsOpen;
+skillsOpen|2719|if (skillsOpen) {
+skillsOpen|2736|&& openChestE < 0 && !skillsOpen && !questPopupOpen);
+skillsOpen|2744||| openChestE >= 0 || skillsOpen || questPopupOpen;
+skillsOpen|2801|final boolean rmbAllowed = (!shopOpen && !craftOpen && !invOpen && !walletOpen && !pricingEditor.isOpen() && !skillsOpen && !mapOpen
+skillsOpen|3194|if (!skillsOpen && !craftOpen) {
+skillsOpen|3451|if (skillsOpen) {
+skillsOpen|4935|if (walletOpen || pricingEditor.isOpen() || skillsOpen || mapOpen) return false;
+skillsOpen|5140|if (walletOpen || pricingEditor.isOpen() || skillsOpen || mapOpen) return false;
+skillsOpen|9366|skillsOpen = false;
+mapOpen|1319|private boolean mapOpen = false;
+mapOpen|2530|mapOpen = !mapOpen;
+mapOpen|2533|if (mapOpen) {
+mapOpen|2552|if (mapOpen && mapViewMode == 1 && Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+mapOpen|2560|if (mapOpen) {
+mapOpen|2801|final boolean rmbAllowed = (!shopOpen && !craftOpen && !invOpen && !walletOpen && !pricingEditor.isOpen() && !skillsOpen && !mapOpen
+mapOpen|3357|if (mapOpen) {
+mapOpen|4935|if (walletOpen || pricingEditor.isOpen() || skillsOpen || mapOpen) return false;
+mapOpen|5140|if (walletOpen || pricingEditor.isOpen() || skillsOpen || mapOpen) return false;
+drawSkillMenu|3453|drawSkillMenu();
+drawSkillMenu|9359|private void drawSkillMenu() {
+drawQuestLog|3422|drawQuestLogHubPanel();
+drawQuestLog|3425|drawQuestLogOpenQuestsPanel();
+drawQuestLog|3428|drawQuestLogDoneQuestsPanel();
+drawQuestLog|5807|private void drawQuestLogHubPanel() {
+drawQuestLog|5907|private void drawQuestLogOpenQuestsPanel() {
+drawQuestLog|6097|private void drawQuestLogDoneQuestsPanel() {
+drawInventory|3407|drawInventoryGrid();
+drawInventory|7878|private void drawInventoryLines(float x, float y) {
+drawInventory|9034|private void drawInventoryGrid() {
+drawCraft|3434|drawCraftPanel();
+drawCraft|7141|private void drawCraftLines(float x, float y) {
+drawCraft|7381|private void drawCraftPanel() {
+drawShop|3419|drawShopMenuAtMerchant();
+drawShop|5523|private void drawShopMenuAtMerchant() {
+SkillMenuRow|1549|private static final class SkillMenuRow {
+SkillMenuRow|1560|SkillMenuRow(int kind, String label, int skillIndex, String catKey, String subKey) {
+SkillMenuRow|1569|private final ArrayList<SkillMenuRow> skillMenuRows = new ArrayList<>(128);
+SkillMenuRow|1570|private boolean skillMenuRowsBuilt = false;
+SkillMenuRow|2722|buildSkillMenuRows();
+SkillMenuRow|3452|if (!skillMenuRowsBuilt) buildSkillMenuRows();
+SkillMenuRow|9309|skillMenuRows.add(new SkillMenuRow(SkillMenuRow.HEADER2, sub, -1, catKey, subKey));
+SkillMenuRow|9314|if (idx >= 0) skillMenuRows.add(new SkillMenuRow(SkillMenuRow.SKILL, SkillDefs.NAME_DE[idx], idx, catKey, subKey));
+SkillMenuRow|9318|private void buildSkillMenuRows() {
+SkillMenuRow|9319|if (skillMenuRowsBuilt) return;
+SkillMenuRow|9320|skillMenuRows.clear();
+SkillMenuRow|9324|skillMenuRows.add(new SkillMenuRow(SkillMenuRow.HEADER1, "Ressourcen", -1, "Ressourcen", null));
+SkillMenuRow|9330|skillMenuRows.add(new SkillMenuRow(SkillMenuRow.HEADER1, "Kampf", -1, "Kampf", null));
+SkillMenuRow|9337|skillMenuRows.add(new SkillMenuRow(SkillMenuRow.HEADER1, "Soziales", -1, "Soziales", null));
+SkillMenuRow|9343|skillMenuRows.add(new SkillMenuRow(SkillMenuRow.HEADER1, "Person", -1, "Person", null));
+SkillMenuRow|9350|skillMenuRows.add(new SkillMenuRow(SkillMenuRow.HEADER1, "Andere", -1, "Andere", null));
+SkillMenuRow|9356|skillMenuRowsBuilt = true;
+SkillMenuRow|9404|for (int ri = 0; ri < skillMenuRows.size(); ri++) {
+SkillMenuRow|9405|SkillMenuRow r = skillMenuRows.get(ri);
+SkillMenuRow|9407|if (r.kind != SkillMenuRow.HEADER1) {
+SkillMenuRow|9409|if (visible && r.kind == SkillMenuRow.SKILL) {
+SkillMenuRow|9412|if (visible && r.kind == SkillMenuRow.HEADER2) {
+SkillMenuRow|9417|float rh = (r.kind == SkillMenuRow.SKILL) ? (42f * UI_FONT_SCALE) : (r.kind == SkillMenuRow.HEADER1 ? (44f * UI_FONT_SCALE) : (38f * UI_FONT_SCALE));
+SkillMenuRow|9429|for (int ri = 0; ri < skillMenuRows.size(); ri++) {
+SkillMenuRow|9430|SkillMenuRow r = skillMenuRows.get(ri);
+SkillMenuRow|9432|if (r.kind != SkillMenuRow.HEADER1) {
+SkillMenuRow|9437|if (r.kind == SkillMenuRow.SKILL) {
+SkillMenuRow|9443|float rh = (r.kind == SkillMenuRow.SKILL) ? rowSkillH : (r.kind == SkillMenuRow.HEADER1 ? rowHeader1H : rowHeader2H);
+SkillMenuRow|9454|case SkillMenuRow.HEADER1 -> {
+SkillMenuRow|9469|case SkillMenuRow.HEADER2 -> {
+QuestLog|69|import com.yourgame.survival.quest.QuestLog;
+QuestLog|70|import com.yourgame.survival.quest.QuestLog.Entry;
+QuestLog|71|import com.yourgame.survival.quest.QuestLog.Status.COMPLETED;
+QuestLog|72|import com.yourgame.survival.quest.QuestLog.Status.EXPIRED;
+QuestLog|73|import com.yourgame.survival.quest.QuestLog.Status.FAILED;
+QuestLog|813|questLog,
+QuestLog|861|questLog,
+QuestLog|937|c.openQuestsCount = (questLog != null) ? questLog.size() : 0;
+QuestLog|939|if (questLog != null) {
+QuestLog|940|for (int i = 0; i < questLog.entries.size; i++) {
+QuestLog|941|var e = questLog.entries.get(i);
+QuestLog|1240|private final QuestLog questLog = new QuestLog();
+QuestLog|1382|// Questlogbook UI (Shift+Q): hub + two sub-windows (open/done).
+QuestLog|1383|private boolean questLogHubOpen = false;
+QuestLog|1384|private boolean questLogOpenQuestsOpen = false;
+QuestLog|1385|private boolean questLogDoneQuestsOpen = false;
+QuestLog|1386|private float questLogOpenScrollPx = 0f;
+QuestLog|1387|private float questLogDoneScrollPx = 0f;
+QuestLog|1389|// Questlog window positions (drag + persistent in save).
+QuestLog|1398|// Questlog side panel bounds (for wheel scrolling hit tests). Updated each frame while panels are drawn.
+QuestLog|1399|private float questLogOpenPanelX = 0f, questLogOpenPanelY = 0f, questLogOpenPanelW = 0f, questLogOpenPanelH = 0f;
+QuestLog|1400|private float questLogDonePanelX = 0f, questLogDonePanelY = 0f, questLogDonePanelW = 0f, questLogDonePanelH = 0f;
+QuestLog|1402|// Questlog layout scratch (avoid per-frame allocations).
+QuestLog|1403|private final Rectangle questLogCardClip = new Rectangle();
+QuestLog|1404|private final Rectangle questLogCardScissors = new Rectangle();
+QuestLog|1683|c.openQuestsCount = (questLog != null) ? questLog.size() : 0;
+QuestLog|1685|if (questLog != null) {
+QuestLog|1686|for (int i = 0; i < questLog.entries.size; i++) {
+QuestLog|1687|var e = questLog.entries.get(i);
+QuestLog|2070|// Questlogbook scroll (side panels).
+QuestLog|2071|if (questLogOpenQuestsOpen || questLogDoneQuestsOpen) {
+QuestLog|2075|if (questLogOpenQuestsOpen && hitRect(mx, my, questLogOpenPanelX, questLogOpenPanelY, questLogOpenPanelW, questLogOpenPanelH)) {
+QuestLog|2076|questLogOpenScrollPx += step;
+QuestLog|2079|if (questLogDoneQuestsOpen && hitRect(mx, my, questLogDonePanelX, questLogDonePanelY, questLogDonePanelW, questLogDonePanelH)) {
+QuestLog|2080|questLogDoneScrollPx += step;
+QuestLog|2442|} else if (questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen) {
+QuestLog|2444|if (questLogOpenQuestsOpen) {
+QuestLog|2445|questLogOpenQuestsOpen = false;
+QuestLog|2446|} else if (questLogDoneQuestsOpen) {
+QuestLog|2447|questLogDoneQuestsOpen = false;
+QuestLog|2449|questLogHubOpen = false;
+QuestLog|2735|&& !questLogHubOpen && !questLogOpenQuestsOpen && !questLogDoneQuestsOpen
+QuestLog|2743||| questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen
+QuestLog|3074|questLogHubOpen = !questLogHubOpen;
+QuestLog|3075|if (questLogHubOpen) {
+QuestLog|3088|questLogOpenQuestsOpen = false;
+QuestLog|3089|questLogDoneQuestsOpen = false;
+QuestLog|3247||| questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen
+QuestLog|3421|if (questLogHubOpen) {
+QuestLog|3422|drawQuestLogHubPanel();
+QuestLog|3424|if (questLogOpenQuestsOpen) {
+QuestLog|3425|drawQuestLogOpenQuestsPanel();
+QuestLog|3427|if (questLogDoneQuestsOpen) {
+QuestLog|3428|drawQuestLogDoneQuestsPanel();
+QuestLog|5217|int openCnt = (questLog != null) ? questLog.size() : 0;
+QuestLog|5273|c.openQuestsCount = (questLog != null) ? questLog.size() : 0;
+QuestLog|5771|if (questGuy.acceptOffer(selIdx, questLog, nowSec)) {
+QuestLog|5805|// ---------------- Questlogbuch (Schema UI) ----------------
+QuestLog|5807|private void drawQuestLogHubPanel() {
+QuestLog|5808|// Center window: Questlogbuch hub. Buttons toggle the two sub-windows.
+uiRegions|39|import com.yourgame.survival.render.UiRegions;
+uiRegions|1535|private UiRegions uiRegions;
+uiRegions|2200|uiRegions = new UiRegions();
+uiRegions|3411|pricingEditor.drawMenu(batch, uiRegions, data, priceBook, font, UI_FONT_SCALE, null);
+uiRegions|5580|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|5607|batch.draw(uiRegions.slot, sx, sy, slot, slot);
+uiRegions|5687|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|5751|batch.draw(uiRegions.button, btnAcceptX, btnY, btnW, btnH);
+uiRegions|5753|batch.draw(uiRegions.button, btnDeclineX, btnY, btnW, btnH);
+uiRegions|5755|batch.draw(uiRegions.button, btnGoX, btnY, btnW, btnH);
+uiRegions|5858|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|5879|batch.draw(uiRegions.button, bx, by1, bw, bh);
+uiRegions|5886|batch.draw(uiRegions.button, bx, by2, bw, bh);
+uiRegions|5961|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|6059|batch.draw(uiRegions.panelSlots, listX, y0c, cardW, cardHdyn);
+uiRegions|6080|batch.draw(uiRegions.button, bx, btnY, bw, btnH);
+uiRegions|6151|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|6247|batch.draw(uiRegions.panelSlots, listX, y0c, cardW, cardHdyn);
+uiRegions|7041|batch.draw(uiRegions.panelSlots, x0, y0, w, h);
+uiRegions|7097|batch.draw((hoverCancel && lmbDown) ? uiRegions.buttonPressed : uiRegions.button, cancelX, cancelY, btnW, btnH);
+uiRegions|7098|batch.draw((hoverOk && lmbDown) ? uiRegions.buttonPressed : uiRegions.button, okX, okY, btnW, btnH);
+uiRegions|7118|batch.draw((hov && lmbDown) ? uiRegions.buttonPressed : uiRegions.button, bx, qy, smallW, smallH);
+uiRegions|7321|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|7363|batch.draw(selected ? uiRegions.slotPressed : uiRegions.slot, sx, sy, slot, slot);
+uiRegions|7401|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|7476|batch.draw(uiRegions.slot, sx, sy, slot, slot);
+uiRegions|7497|batch.draw((craftQtyFocusIdx == idx) ? uiRegions.slotPressed : uiRegions.slot, qx, qy, qw, qh);
+uiRegions|7513|batch.draw(uiRegions.button, bx, by, bw, bh);
+uiRegions|7562|batch.draw(uiRegions.panelSlots, rx0, ry0, reqW, reqH);
+uiRegions|7574|batch.draw(uiRegions.slotPressed, ix0, iy0, is, is);
+uiRegions|7596|batch.draw(uiRegions.slot, sx, sy, is, is);
+uiRegions|7620|batch.draw(uiRegions.panel, tx, ty, tw, th);
+uiRegions|7646|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|7700|batch.draw(uiRegions.slot, pxs, pys, slot, slot);
+uiRegions|7712|batch.draw(uiRegions.slot, cxs, cys, slot, slot);
+uiRegions|7790|batch.draw(uiRegions.panelSlots, x0 - bgExtra, y0, panelW + bgExtra * 2f, panelH);
+uiRegions|7861|batch.draw(selected ? uiRegions.slotPressed : uiRegions.slot, sx, sy, slot, slot);
+uiRegions|8993|if (uiRegions != null) uiRegions.dispose();
+uiRegions|9119|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+uiRegions|9156|batch.draw(uiRegions.slot, sx, sy, slot, slot);
+uiRegions|9180|batch.draw(uiRegions.slot, sx, sy, slot, slot);
+uiRegions|9207|batch.draw(uiRegions.panelSlots, x0, y0, w, h);
+uiRegions|9237|batch.draw(uiRegions.slot, x, by - iconFrame + 10f, iconFrame, iconFrame);
+uiRegions|9241|batch.draw(uiRegions.button, valueX, by - valueBoxH + 10f, valueW, valueBoxH);
+uiRegions|9249|batch.draw(uiRegions.slot, x, by - iconFrame + 10f, iconFrame, iconFrame);
+uiRegions|9253|batch.draw(uiRegions.button, valueX, by - valueBoxH + 10f, valueW, valueBoxH);
+uiRegions|9261|batch.draw(uiRegions.slot, x, by - iconFrame + 10f, iconFrame, iconFrame);
+uiRegions|9265|batch.draw(uiRegions.button, valueX, by - valueBoxH + 10f, valueW, valueBoxH);
+uiRegions|9383|batch.draw(uiRegions.panelSlots, x0, y0, w, h);
+uiRegions|9463|batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, listX, ry - rh + 8f, w - 72f, rh - 8f);
+uiRegions|9483|batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, subX, ry - rh + 10f, subW, rh - 12f);
+uiRegions|9502|batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, sx, ry - rh + 8f, sw, rh - 8f);
+font|15|import com.badlogic.gdx.graphics.g2d.BitmapFont;
+font|123|import com.yourgame.survival.tuning.TuningGameplay.UI_FONT_SCALE;
+font|1019|private BitmapFont font;
+font|1023|private static final float UI_FONT_SCALE = UI_FONT_SCALE;
+font|1998|font = new BitmapFont();
+font|1999|font.getData().setScale(UI_FONT_SCALE);
+font|2000|font.setColor(0f, 0f, 0f, 1f);
+font|2466|float step = 48f * UI_FONT_SCALE;
+font|3319|font.setColor(1f, 0.2f, 0.2f, 1f);
+font|3320|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|3321|font.draw(batch, "Gebietsende, wechseln oder zurück gehen!", 20, Gdx.graphics.getHeight() - 80);
+font|3322|font.setColor(0f, 0f, 0f, 1f);
+font|3341|font.setColor(1f, 1f, 1f, 1f);
+font|3342|font.getData().setScale(1.1f * UI_FONT_SCALE);
+font|3344|if (exitW && tx < rz) font.draw(batch, "<", 10, sy);
+font|3345|if (exitE && tx >= (w - rz)) font.draw(batch, ">", Gdx.graphics.getWidth() - 20, sy);
+font|3346|if (exitS && ty < rz) font.draw(batch, "v", (Gdx.graphics.getWidth() * 0.5f), 28);
+font|3347|if (exitN && ty >= (h - rz)) font.draw(batch, "^", (Gdx.graphics.getWidth() * 0.5f), Gdx.graphics.getHeight() - 28);
+font|3349|font.setColor(0f, 0f, 0f, 1f);
+font|3392|font.setColor(0f, 0f, 0f, 1f);
+font|3393|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|3394|font.draw(batch, toast, 20, Gdx.graphics.getHeight() - 24);
+font|3395|font.setColor(0f, 0f, 0f, 1f);
+font|3411|pricingEditor.drawMenu(batch, uiRegions, data, priceBook, font, UI_FONT_SCALE, null);
+font|3499|float w = 420f * UI_FONT_SCALE;
+font|3500|float h = 18f * UI_FONT_SCALE;
+font|3502|float y = 70f * UI_FONT_SCALE;
+font|3529|if (font == null || batch == null) return;
+font|3534|font.setColor(0.85f, 0.10f, 0.10f, 1f);
+font|3535|font.getData().setScale(1.25f * UI_FONT_SCALE);
+font|3550|font.draw(batch, dbg, x, y);
+font|3553|font.setColor(0f, 0f, 0f, 1f);
+font|3554|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|5527|font.setColor(0f, 0f, 0f, 1f);
+font|5528|font.getData().setScale(1.15f * UI_FONT_SCALE);
+font|5529|font.draw(batch, "SHOP (drag shop→inventory = BUY | drag inventory→shop = SELL | RMB quick buy | CTRL x10 | SHIFT x100 | E close)", 20, Gdx.graphics.getHeight() - 130);
+font|5534|font.draw(batch, name + "  buy=" + shopBuy[i] + " sell=" + shopSell[i], 20, Gdx.graphics.getHeight() - 150 - i*18);
+font|5536|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|5537|font.setColor(0f, 0f, 0f, 1f);
+font|5582|font.getData().setScale(1.6f * 1.15f);
+font|5583|font.setColor(0f, 0f, 0f, 1f);
+font|5584|font.draw(batch, "MERCHANT (drag shop→inventory = BUY | drag inventory→shop = SELL | RMB quick buy | CTRL x10 | SHIFT x100 | E close)", x0 + panelPad, y0 + panelH - 22f);
+font|5585|font.setColor(0f, 0f, 0f, 1f);
+font|5586|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|5619|font.getData().setScale(1.02f * UI_FONT_SCALE);
+font|5627|font.setColor(1f, 0f, 0f, 1f);
+font|5628|font.draw(batch, "Buy " + shopBuy[i], sx + 8f, buyY);
+font|5630|font.setColor(0.1f, 0.6f, 0.1f, 1f);
+font|5631|font.draw(batch, "Sell " + shopSell[i], sx + 8f, sellY);
+font|5633|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|5634|font.setColor(0f, 0f, 0f, 1f);
+font|5690|font.getData().setScale(2.15f * uiScale);
+font|5691|font.setColor(0f, 0f, 0f, 1f);
+font|5692|font.draw(batch, "WANDER_QUEST_GUY", x0 + panelPad, y0 + panelH - 28f * uiScale);
+font|5693|font.getData().setScale(1.0f * UI_FONT_SCALE);
+font|5719|// Wrap + draw (friendly to existing UI coords: use BitmapFont wrapping instead of custom word splitting)
+font|5721|font.setColor(0f, 0f, 0f, 1f);
+font|5723|font.getData().setScale(1.25f * uiScale);
+font|5726|uiLayout.setText(font, text, Color.BLACK, wrapW, Align.left, true);
+font|5733|font.draw(batch, text, textX0 + 4f, drawY, wrapW, Align.left, true);
+UI_FONT_SCALE|123|import com.yourgame.survival.tuning.TuningGameplay.UI_FONT_SCALE;
+UI_FONT_SCALE|1023|private static final float UI_FONT_SCALE = UI_FONT_SCALE;
+UI_FONT_SCALE|1999|font.getData().setScale(UI_FONT_SCALE);
+UI_FONT_SCALE|2466|float step = 48f * UI_FONT_SCALE;
+UI_FONT_SCALE|3320|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|3342|font.getData().setScale(1.1f * UI_FONT_SCALE);
+UI_FONT_SCALE|3393|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|3411|pricingEditor.drawMenu(batch, uiRegions, data, priceBook, font, UI_FONT_SCALE, null);
+UI_FONT_SCALE|3499|float w = 420f * UI_FONT_SCALE;
+UI_FONT_SCALE|3500|float h = 18f * UI_FONT_SCALE;
+UI_FONT_SCALE|3502|float y = 70f * UI_FONT_SCALE;
+UI_FONT_SCALE|3535|font.getData().setScale(1.25f * UI_FONT_SCALE);
+UI_FONT_SCALE|3554|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5528|font.getData().setScale(1.15f * UI_FONT_SCALE);
+UI_FONT_SCALE|5536|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5586|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5619|font.getData().setScale(1.02f * UI_FONT_SCALE);
+UI_FONT_SCALE|5633|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5693|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5735|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5762|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5861|font.getData().setScale(1.25f * UI_FONT_SCALE);
+UI_FONT_SCALE|5880|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|5890|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5903|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|5964|font.getData().setScale(1.20f * UI_FONT_SCALE);
+UI_FONT_SCALE|5970|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6009|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|6015|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6023|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6041|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|6047|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6066|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|6072|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6081|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6087|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6093|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6154|font.getData().setScale(1.20f * UI_FONT_SCALE);
+UI_FONT_SCALE|6160|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6196|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|6202|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6211|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6228|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|6234|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6253|font.getData().setScale(1.00f * UI_FONT_SCALE);
+UI_FONT_SCALE|6258|font.getData().setScale(0.90f * UI_FONT_SCALE);
+UI_FONT_SCALE|6262|font.getData().setScale(0.86f * UI_FONT_SCALE);
+UI_FONT_SCALE|6272|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|6339|font.getData().setScale(0.85f * UI_FONT_SCALE);
+UI_FONT_SCALE|6341|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|7055|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|7080|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|7104|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|7122|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|7324|font.getData().setScale(1.45f * UI_FONT_SCALE);
+UI_FONT_SCALE|7327|font.getData().setScale(1.05f * UI_FONT_SCALE);
+UI_FONT_SCALE|7376|font.getData().setScale(1.0f * UI_FONT_SCALE);
+UI_FONT_SCALE|7405|font.getData().setScale(1.55f * UI_FONT_SCALE);
+UI_FONT_SCALE|7408|font.getData().setScale(1.05f * UI_FONT_SCALE);
+UI_FONT_SCALE|7502|font.getData().setScale(0.95f * UI_FONT_SCALE);

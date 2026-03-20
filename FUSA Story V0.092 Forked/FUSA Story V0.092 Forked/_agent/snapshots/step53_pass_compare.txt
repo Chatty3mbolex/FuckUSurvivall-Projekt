@@ -1,0 +1,16 @@
+﻿=== fireBowArrow ===
+newTokens=0
+newDotted=0
+
+=== tickArrows ===
+newTokens=0
+newDotted=0
+
+=== arrowHitSegment ===
+newTokens=0
+newDotted=0
+
+=== onKill ===
+newTokens=0
+newDotted=0
+

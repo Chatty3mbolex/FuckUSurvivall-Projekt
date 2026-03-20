@@ -1,0 +1,13 @@
+﻿cam.project
+cam.unproject
+Gdx.graphics
+Gdx.input
+Math.sqrt
+p.set
+p.x
+p.y
+scratch.v3a
+scratch.v3b
+v.set
+v.x
+v.y

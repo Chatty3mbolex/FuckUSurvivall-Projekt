@@ -260,7 +260,23 @@ public final class WorldEditorScreen extends ScreenAdapter {
     shapes = new ShapeRenderer();
     hudFont = new BitmapFont();
 
-    stage = new Stage(new ScreenViewport());
+    // Stage must receive UI input reliably. We also need map zoom to keep working even if
+    // Scene2D holds a scrollFocus after prior UI interaction. To achieve both:
+    // - Stage is first in the InputMultiplexer (so UI always stays clickable)
+    // - Stage clears scrollFocus when the mouse wheel is used over the MAP area
+    stage = new Stage(new ScreenViewport()) {
+      @Override
+      public boolean scrolled(float amountX, float amountY) {
+        // If wheel is used over the map (not inside our editor windows), drop scroll focus so
+        // the Stage does not consume the event and the map handler can zoom.
+        try {
+          if (!isPointerInsideEditorWindows(Gdx.input.getX(), Gdx.input.getY())) {
+            setScrollFocus(null);
+          }
+        } catch (Throwable ignored) {}
+        return super.scrolled(amountX, amountY);
+      }
+    };
 
     cam = new OrthographicCamera();
     cam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -280,9 +296,13 @@ public final class WorldEditorScreen extends ScreenAdapter {
     // Therefore, route input through InputHandler FIRST. It will:
     //   - return false when pointer is over UI -> Stage gets the event
     //   - return true when pointer is over the map -> Stage does not consume it
+    // Input order:
+    // 1) Stage (UI)
+    // 2) InputHandler (map)
+    // With the Stage override above, wheel-over-map won't get stuck on UI scrollFocus.
     InputMultiplexer mux = new InputMultiplexer();
-    mux.addProcessor(new InputHandler());
     mux.addProcessor(stage);
+    mux.addProcessor(new InputHandler());
     Gdx.input.setInputProcessor(mux);
 
     // Preview renderer
@@ -1841,16 +1861,46 @@ public final class WorldEditorScreen extends ScreenAdapter {
     float sx = screenX;
     float sy = Gdx.graphics.getHeight() - screenY;
 
-    // Prefer Scene2D hit testing. This correctly detects UI popups that are NOT inside the
-    // VisWindow bounds (e.g. SelectBox dropdown list), preventing the map InputHandler from
-    // eating clicks meant for UI.
+    // 1) Hard guard: if pointer is inside one of our editor windows, it's UI.
+    // This must be stable and must NOT depend on Scene2D hit testing (which can be overly broad).
+    VisWindow[] ws = new VisWindow[] { boxMapLoader, boxTerrainEdit, boxMarkersZones, boxEntitiesObjects, boxMouseTools };
+    for (VisWindow w : ws) {
+      if (w == null) continue;
+      if (!w.isVisible()) continue;
+      if (sx >= w.getX() && sx <= (w.getX() + w.getWidth()) && sy >= w.getY() && sy <= (w.getY() + w.getHeight())) {
+        return true;
+      }
+    }
+
+    // 2) Popup guard: SelectBox dropdown lists and popup menus can render OUTSIDE our window bounds.
+    // Only treat those as UI, not arbitrary stage hits.
     try {
       if (stage != null) {
         com.badlogic.gdx.scenes.scene2d.Actor hit = stage.hit(sx, sy, true);
-        if (hit != null) return true;
+        if (hit != null) {
+          // Walk parents and accept only known popup-like containers.
+          for (com.badlogic.gdx.scenes.scene2d.Actor a = hit; a != null; a = a.getParent()) {
+            // VisUI popup menu
+            if (a instanceof com.kotcrab.vis.ui.widget.PopupMenu) return true;
+            // Some SelectBox implementations use a dedicated list popup.
+            String cn = a.getClass().getName();
+            if (cn != null && (cn.contains("SelectBox") || cn.contains("List") || cn.contains("Popup"))) {
+              // Restrict: only accept if it's not one of our VisWindows (already handled above).
+              // If we reached a popup-ish actor outside windows, count it as UI.
+              if (!(a instanceof VisWindow)) return true;
+            }
+          }
+        }
       }
     } catch (Throwable ignored) {}
 
+    return false;
+  }
+
+  /** Stable window-bounds-only UI check (does NOT depend on Scene2D hit testing). */
+  private boolean isPointerInsideEditorWindows(int screenX, int screenY) {
+    float sx = screenX;
+    float sy = Gdx.graphics.getHeight() - screenY;
     VisWindow[] ws = new VisWindow[] { boxMapLoader, boxTerrainEdit, boxMarkersZones, boxEntitiesObjects, boxMouseTools };
     for (VisWindow w : ws) {
       if (w == null) continue;

@@ -1,0 +1,92 @@
+﻿  private void updateDayNightMusic(float delta) {
+    // Rules:
+    // - Crossfade is ONLY allowed on the day<->night switch.
+    // - The switch happens once when dnVisual crosses the midpoint (50%).
+
+    // Midpoint side (>= 0.5 = day side)
+    boolean sideDay = dnVisual >= DN_MIDPOINT;
+
+    // Start a switch only when the side changes (once per cycle)
+    if (sideDay != dnSideDay) {
+      dnSideDay = sideDay;
+      dnSwitching = true;
+      dnSwitchT = 0f;
+      dnSwitchToDay = sideDay;
+    }
+
+    float targetDay;
+    float targetNight;
+
+    if (dnSwitching) {
+      dnSwitchT += delta;
+      float a = dnSwitchT / DN_SWITCH_SEC;
+      if (a < 0f) a = 0f;
+      if (a > 1f) a = 1f;
+
+      if (dnSwitchToDay) {
+        // night -> day
+        targetDay = a;
+        targetNight = 1f - a;
+      } else {
+        // day -> night
+        targetDay = 1f - a;
+        targetNight = a;
+      }
+
+      if (a >= 1f) {
+        dnSwitching = false;
+      }
+    } else {
+      targetDay = sideDay ? 1f : 0f;
+      targetNight = sideDay ? 0f : 1f;
+    }
+
+    // Ensure required tracks are playing.
+    if (dnSwitching) {
+      ensureDayBgPlaying();
+      ensureNightBgPlaying();
+    } else {
+      if (targetDay > 0.5f) ensureDayBgPlaying();
+      if (targetNight > 0.5f) ensureNightBgPlaying();
+    }
+
+    // Track fade-in (for playlist transitions; no cross-over between tracks)
+    if (dayBgMusic != null) {
+      dayTrackFadeInT += delta;
+      if (dayTrackFadeInT > TRACK_FADE_IN_SEC) dayTrackFadeInT = TRACK_FADE_IN_SEC;
+    }
+    if (nightBgMusic != null) {
+      nightTrackFadeInT += delta;
+      if (nightTrackFadeInT > TRACK_FADE_IN_SEC) nightTrackFadeInT = TRACK_FADE_IN_SEC;
+    }
+
+    float inDay = dayTrackFadeInT / TRACK_FADE_IN_SEC;
+    float inNight = nightTrackFadeInT / TRACK_FADE_IN_SEC;
+    if (inDay < 0f) inDay = 0f;
+    if (inDay > 1f) inDay = 1f;
+    if (inNight < 0f) inNight = 0f;
+    if (inNight > 1f) inNight = 1f;
+
+    dayBgVol = targetDay;
+    nightBgVol = targetNight;
+
+    float base = game.settings.masterVolume * game.settings.musicVolume;
+    if (base < 0f) base = 0f;
+    if (base > 1f) base = 1f;
+
+    if (dayBgMusic != null) {
+      float v = dayBgVol * base * inDay;
+      dayBgMusic.setVolume(v);
+      if (!dnSwitching && dayBgVol <= 0.001f) {
+        try { dayBgMusic.pause(); } catch (Throwable ignored) {}
+      }
+    }
+
+    if (nightBgMusic != null) {
+      float v = nightBgVol * base * inNight;
+      nightBgMusic.setVolume(v);
+      if (!dnSwitching && nightBgVol <= 0.001f) {
+        try { nightBgMusic.pause(); } catch (Throwable ignored) {}
+      }
+    }
+  }

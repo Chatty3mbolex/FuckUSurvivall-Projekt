@@ -1,0 +1,28 @@
+﻿    updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+        && !questLogHubOpen && !questLogOpenQuestsOpen && !questLogDoneQuestsOpen
+        && openChestE < 0 && !skillsOpen && !questPopupOpen);
+
+    // Cursor mode:
+    // - Default: small crosshair (set in SurvivalGame)
+    // - Inside the action ring (non-modal): hide hardware cursor so the in-world aim UI is clean
+    {
+    boolean modal = shopOpen || craftOpen || invOpen || buildMode || pricingEditor.isOpen() || walletOpen
+        || questLogHubOpen || questLogOpenQuestsOpen || questLogDoneQuestsOpen
+        || openChestE >= 0 || skillsOpen || questPopupOpen;
+      boolean wantHidden = false;
+      drawUnarmedDotCursor = false;
+      if (!modal) {
+        float r = actionReach(selectedTool);
+        float dx = mouseWorldX - px;
+        float dy = mouseWorldY - py;
+        if (dx * dx + dy * dy <= r * r + 0.001f) {
+          wantHidden = true;
+          if (selectedTool < 0) drawUnarmedDotCursor = true;
+        }
+      }
+      if (wantHidden != lastCursorHidden) {
+        if (wantHidden) game.setCursorHidden();
+        else game.setCursorCrosshair();
+        lastCursorHidden = wantHidden;
+      }
+    }

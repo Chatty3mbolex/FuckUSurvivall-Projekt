@@ -1,0 +1,8 @@
+﻿        pickupNearby();
+      }
+    }
+
+    if (zqsRt != null) {
+      long nowSec = System.currentTimeMillis() / 1000L;
+      zqsRt.refreshQuestLifecycle(buildZqsProgressSnapshot(nowSec), nowSec);
+    }

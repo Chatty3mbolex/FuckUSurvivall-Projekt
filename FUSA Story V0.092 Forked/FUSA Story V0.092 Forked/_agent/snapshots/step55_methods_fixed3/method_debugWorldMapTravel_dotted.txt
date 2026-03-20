@@ -1,0 +1,6 @@
+﻿r.code
+r.templateId
+worldMap.curAx
+worldMap.curAy
+worldMap.exitsByArea
+worldMapTravel.travel

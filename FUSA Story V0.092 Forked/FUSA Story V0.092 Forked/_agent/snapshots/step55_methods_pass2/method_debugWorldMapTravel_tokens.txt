@@ -1,0 +1,5 @@
+﻿debugTravelNorth
+debugWorldMapTravel
+N
+public
+void

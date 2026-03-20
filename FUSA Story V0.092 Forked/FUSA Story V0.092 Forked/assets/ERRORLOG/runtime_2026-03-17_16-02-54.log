@@ -1,0 +1,22 @@
+=== Runtime log started: 2026-03-17_16-02-54 ===
+cwd=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.091\assets
+
+=== UNCAUGHT EXCEPTION ===
+Thread: main
+java.lang.IllegalStateException: No matching snippets for assignment_na.na with na_reason=
+	at com.yourgame.survival.quest.zqs.text.ZqsTextAssembler.pickRequired(ZqsTextAssembler.java:103)
+	at com.yourgame.survival.quest.zqs.text.ZqsTextAssembler.buildAssignmentNa(ZqsTextAssembler.java:43)
+	at com.yourgame.survival.quest.zqs.runtime.ZqsRuntime.buildAssignmentNaText(ZqsRuntime.java:642)
+	at com.yourgame.survival.quest.zqs.dock.WanderQuestGuyDock.buildAssignmentNa(WanderQuestGuyDock.java:58)
+	at com.yourgame.survival.screens.GameScreen.wqgRefreshDialogTextOnOpen(GameScreen.java:4644)
+	at com.yourgame.survival.screens.GameScreen.openQuestGuyDialog(GameScreen.java:4603)
+	at com.yourgame.survival.screens.GameScreen.tryToggleQuestGuy(GameScreen.java:4572)
+	at com.yourgame.survival.screens.GameScreen.render(GameScreen.java:2203)
+	at com.badlogic.gdx.Game.render(Game.java:48)
+	at com.yourgame.survival.SurvivalGame.render(SurvivalGame.java:113)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Window.update(Lwjgl3Window.java:435)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.loop(Lwjgl3Application.java:181)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.<init>(Lwjgl3Application.java:153)
+	at com.yourgame.survival.desktop.DesktopLauncher.main(DesktopLauncher.java:36)
+=== END UNCAUGHT EXCEPTION ===
+

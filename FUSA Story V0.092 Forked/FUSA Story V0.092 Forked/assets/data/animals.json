@@ -1,0 +1,11 @@
+{
+  "animals": [
+    {"id":"animal_deer","hp":20,"meatYield":2,"loot":[{"itemId":28,"min":2,"max":2}]},
+
+    {"id":"animal_boar","hp":28,"meatYield":3,"loot":[{"itemId":28,"min":2,"max":3}]},
+    {"id":"animal_wolf","hp":26,"meatYield":2,"loot":[{"itemId":28,"min":1,"max":2}]},
+    {"id":"animal_rabbit","hp":12,"meatYield":1,"loot":[{"itemId":28,"min":1,"max":1}]},
+    {"id":"animal_bear","hp":55,"meatYield":5,"loot":[{"itemId":28,"min":3,"max":5}]},
+    {"id":"animal_fox","hp":16,"meatYield":1,"loot":[{"itemId":28,"min":1,"max":1}]}
+  ]
+}

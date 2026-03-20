@@ -1,0 +1,119 @@
+﻿  private void drawShopMenuAtMerchant() {
+    if (openMerchantE < 0 || openMerchantE >= Entities.MAX || !entities.alive[openMerchantE] || (entities.type[openMerchantE] != EntityType.MERCHANT_ELF && entities.type[openMerchantE] != EntityType.MERCHANT_WANDERING)) {
+      shopLayoutValid = false;
+      // fallback: behave like old text HUD
+      font.setColor(0f, 0f, 0f, 1f);
+      font.getData().setScale(1.15f * UI_FONT_SCALE);
+      font.draw(batch, "SHOP (drag shop→inventory = BUY | drag inventory→shop = SELL | RMB quick buy | CTRL x10 | SHIFT x100 | E close)", 20, Gdx.graphics.getHeight() - 130);
+      int lines = Math.min(6, shopOfferCount);
+      for (int i=0;i<lines;i++) {
+        int id = shopItemId[i];
+        String name = (id >= 0 && id < data.items.length && data.items[id] != null) ? data.items[id].name : ("item_" + id);
+        font.draw(batch, name + "  buy=" + shopBuy[i] + " sell=" + shopSell[i], 20, Gdx.graphics.getHeight() - 150 - i*18);
+      }
+      font.getData().setScale(1.0f * UI_FONT_SCALE);
+      font.setColor(0f, 0f, 0f, 1f);
+      return;
+    }
+
+    // Merchant head position (world -> screen)
+
+    // Merchant head position (world -> screen)
+    float mxw = entities.x[openMerchantE];
+    float myw = entities.y[openMerchantE];
+
+    // Block 0: avoid per-frame allocations in render loop.
+    Vector3 sp = scratch.v3a;
+    sp.set(mxw, myw, 0f);
+    cam.project(sp);
+
+    float headOffset = EntityMetrics.drawH(EntityType.MERCHANT_ELF) * 0.60f;
+    Vector3 spHead = scratch.v3b;
+    spHead.set(mxw, myw + headOffset, 0f);
+    cam.project(spHead);
+
+    // Layout: use inventory slot art (big & readable)
+    float slot = 144f;
+    float pad = 18f;
+
+    int cols = 6;
+    int rows = 2;
+
+    float innerW = cols * slot + (cols - 1) * pad;
+    float innerH = rows * slot + (rows - 1) * pad;
+
+    float panelPad = 40f;
+    float panelW = innerW + panelPad * 2f;
+    float panelH = innerH + panelPad * 2f + 76f; // title
+
+    // Anchor above merchant head
+    float x0 = spHead.x - panelW * 0.5f;
+    float y0 = spHead.y + 18f;
+
+    // clamp to screen
+    x0 = MathUtils.clamp(x0, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
+    y0 = MathUtils.clamp(y0, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.getData().setScale(1.6f * 1.15f);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.draw(batch, "MERCHANT (drag shop→inventory = BUY | drag inventory→shop = SELL | RMB quick buy | CTRL x10 | SHIFT x100 | E close)", x0 + panelPad, y0 + panelH - 22f);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    float sx0 = x0 + panelPad;
+    float sy0 = y0 + panelPad;
+
+    // cache for hit-tests
+    shopPanelX0 = x0;
+    shopPanelY0 = y0;
+    shopPanelW = panelW;
+    shopPanelH = panelH;
+    shopSlotsX0 = sx0;
+    shopSlotsY0 = sy0;
+    shopSlotPx = slot;
+    shopPadPx = pad;
+    shopLayoutValid = true;
+
+    int shown = Math.min(cols * rows, shopOfferCount);
+    for (int i=0;i<cols*rows;i++) {
+      float sx = sx0 + (i % cols) * (slot + pad);
+      float sy = sy0 + (i / cols) * (slot + pad);
+
+      batch.draw(uiRegions.slot, sx, sy, slot, slot);
+
+      if (i < shown) {
+        int itemId = shopItemId[i];
+        if (itemId >= 0) {
+          // icon
+          TextureRegion icon = entityRegions.itemIcon(itemId);
+          float iw = slot * 0.72f;
+          float ih = slot * 0.72f;
+          batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f + 10f, iw, ih);
+
+          // price labels (style like Chatty2: Buy (red) above, Sell (green) below)
+          font.getData().setScale(1.02f * UI_FONT_SCALE);
+
+          int row = i / cols;
+          boolean topRow = row == rows - 1;
+
+          float buyY = sy + slot + (topRow ? 22f : 2f);
+          float sellY = sy - 12f;
+
+          font.setColor(1f, 0f, 0f, 1f);
+          font.draw(batch, "Buy " + shopBuy[i], sx + 8f, buyY);
+
+          font.setColor(0.1f, 0.6f, 0.1f, 1f);
+          font.draw(batch, "Sell " + shopSell[i], sx + 8f, sellY);
+
+          font.getData().setScale(1.0f * UI_FONT_SCALE);
+          font.setColor(0f, 0f, 0f, 1f);
+        }
+      }
+    }
+
+    // line indicator from merchant head to panel (subtle)
+    batch.setColor(1f, 1f, 1f, 1f);
+  }

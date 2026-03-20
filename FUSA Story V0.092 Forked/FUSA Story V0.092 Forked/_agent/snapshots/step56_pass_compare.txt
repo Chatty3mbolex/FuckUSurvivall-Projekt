@@ -1,0 +1,40 @@
+﻿=== drawHotbarHud ===
+newTokens=0
+newDotted=0
+
+=== drawBuildPanel ===
+newTokens=0
+newDotted=0
+
+=== drawCraftPanel ===
+newTokens=0
+newDotted=0
+
+=== drawShopMenuAtMerchant ===
+newTokens=0
+newDotted=0
+
+=== drawQuestLogHubPanel ===
+newTokens=0
+newDotted=0
+
+=== drawQuestLogOpenQuestsPanel ===
+newTokens=0
+newDotted=0
+
+=== drawQuestLogDoneQuestsPanel ===
+newTokens=0
+newDotted=0
+
+=== drawInventoryGrid ===
+newTokens=0
+newDotted=0
+
+=== drawWalletMenu ===
+newTokens=0
+newDotted=0
+
+=== drawSkillMenu ===
+newTokens=0
+newDotted=0
+

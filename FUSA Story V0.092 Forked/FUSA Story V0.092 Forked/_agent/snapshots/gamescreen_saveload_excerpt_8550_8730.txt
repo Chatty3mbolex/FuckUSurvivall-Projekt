@@ -1,0 +1,181 @@
+﻿8550:     // - For scaffolding, we reset it on area load to avoid confusing "missing trees".
+8551:     try { worldNodes.removed.clear(); } catch (Throwable ignored) {}
+8552:   }
+8553: 
+8554:   /**
+8555:    * Clears ALL runtime state that must never survive across save/load.
+8556:    *
+8557:    * This is intentionally aggressive: it prevents ghost entities / duplicated players after loading.
+8558:    */
+8559:   private void clearAllStateForLoad() {
+8560:     // Entities: wipe everything first; load will restore from snapshot.
+8561:     for (int i = 0; i < Entities.MAX; i++) {
+8562:       entities.alive[i] = false;
+8563:       entities.type[i] = null;
+8564:       entities.flags[i] = 0;
+8565:       entities.itemId[i] = -1;
+8566:       entities.itemAmount[i] = 0;
+8567:       entities.data0[i] = -1;
+8568:       entities.hp[i] = 0f;
+8569:       entities.hpMax[i] = 0f;
+8570:       entities.vx[i] = 0f;
+8571:       entities.vy[i] = 0f;
+8572:       entities.faceLock[i] = 0f;
+8573:       entities.aiT[i] = 0f;
+8574:       entities.aiT2[i] = 0f;
+8575:       entities.aiF0[i] = 0f;
+8576:       entities.aiF1[i] = 0f;
+8577:       entities.rot[i] = 0f;
+8578:     }
+8579:     playerE = -1;
+8580: 
+8581:     // Containers/caches that should not leak between runs.
+8582:     try { chestStore.clear(); } catch (Throwable ignored) {}
+8583:     try { worldNodes.removed.clear(); } catch (Throwable ignored) {}
+8584: 
+8585:     // WorldMap is per-save; clear before importing from save.
+8586:     try {
+8587:       worldMap.knownAreas.clear();
+8588:       worldMap.frontier.clear();
+8589:       worldMap.edges.clear();
+8590:       worldMap.exitsByArea.clear();
+8591:       worldMap.areaStates.clear();
+8592:       worldMap.consumedPois.clear();
+8593:       worldMap.removedAuthoredNodes.clear();
+8594:       worldMap.setCurrent(0, 0, "");
+8595:     } catch (Throwable ignored) {}
+8596: 
+8597:     // Transient UI state.
+8598:     shopOpen = false;
+8599:     invOpen = false;
+8600:     craftOpen = false;
+8601:     buildMode = false;
+8602:     openChestE = -1;
+8603: 
+8604:     buyPopup = false;
+8605:     sellPopup = false;
+8606:     buyBuffer = "";
+8607:     // Nicht fertiges Feature: sellBuffer = "";
+8608:     dragArmed = false;
+8609:     dragActive = false;
+8610:     dragSrc = DRAG_SRC_NONE;
+8611:     dragItemId = -1;
+8612:     dragIndex = -1;
+8613: 
+8614:     pricingEditor.close();
+8615: 
+8616:     // Projectiles
+8617:     for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+8618: 
+8619:     // CommandQueue scaffolding
+8620:     commandQueue.clear();
+8621:   }
+8622: 
+8623:   /** Sets player position and keeps the PLAYER entity in sync. */
+8624:   public void areaSetPlayerWorldPos(float wx, float wy) {
+8625:     px = wx;
+8626:     py = wy;
+8627:     if (playerE >= 0) {
+8628:       entities.x[playerE] = wx;
+8629:       entities.y[playerE] = wy;
+8630:     }
+8631:   }
+8632: 
+8633:   public void doSave(int slot) {
+8634:     doSave(slot, "Slot " + slot);
+8635:   }
+8636: 
+8637:   public void doSave(int slot, String name) {
+8638:     try {
+8639:       SaveManager.saveSlot(
+8640:           slot,
+8641:           name,
+8642:           worldSeed,
+8643:           px, py,
+8644:           inv,
+8645:           wallet,
+8646:           progress,
+8647:           needs,
+8648:           dayNight.t,
+8649:           dayIndex,
+8650:           hotbar,
+8651:           hotbarSel,
+8652:           hasBoat,
+8653:           hasClimb,
+8654:           invAnchorX,
+8655:           invAnchorY,
+8656:           questHubAnchorX,
+8657:           questHubAnchorY,
+8658:           questOpenAnchorX,
+8659:           questOpenAnchorY,
+8660:           questDoneAnchorX,
+8661:           questDoneAnchorY,
+8662:           entities,
+8663:           chestStore,
+8664:           worldNodes,
+8665:           merchants,
+8666:           questGuy,
+8667:           questLog,
+8668:           zqsSave,
+8669:           worldMap
+8670:       );
+8671:       toast = "Saved: slot" + slot;
+8672:       toastT = 2.5f;
+8673:     } catch (Throwable t) {
+8674:       toast = "Save failed";
+8675:       toastT = 3.5f;
+8676:     }
+8677:   }
+8678:   public void doLoad(int slot) {
+8679:     try {
+8680:       // HARD RULE: loading a save must not keep any runtime cache/state from prior runs.
+8681:       // If we don't wipe entities/world caches first, old entities can survive and you can "see a copy" of yourself.
+8682:       clearAllStateForLoad();
+8683: 
+8684:       long[] seed = new long[1];
+8685:       float[] pxpy = new float[2];
+8686:       float[] dt = new float[1];
+8687:       int[] dIdx = new int[1];
+8688:       int[] hb = new int[8];
+8689:       int[] hbSel = new int[1];
+8690:       boolean[] boat = new boolean[1];
+8691:       boolean[] climb = new boolean[1];
+8692:       float[] uiPos = new float[8];
+8693: 
+8694:       boolean ok = SaveManager.loadSlot(
+8695:           slot,
+8696:           seed,
+8697:           pxpy,
+8698:           inv,
+8699:           wallet,
+8700:           progress,
+8701:           needs,
+8702:           dt,
+8703:           dIdx,
+8704:           hb,
+8705:           hbSel,
+8706:           boat,
+8707:           climb,
+8708:           uiPos,
+8709:           entities,
+8710:           chestStore,
+8711:           worldNodes,
+8712:           null,
+8713:           null,
+8714:           questLog,
+8715:           zqsSave,
+8716:           worldMap
+8717:       );
+8718:       if (!ok) {
+8719:         toast = "No save in slot" + slot;
+8720:         toastT = 2.5f;
+8721:         return;
+8722:       }
+8723: 
+8724:       // Inventory slot layout may be loaded (v2). As a fallback for older saves, rebuild from totals.
+8725:       // (If slots were imported, rebuildSlotsFromCounts() would destroy organization.)
+8726:       // Heuristic: if normal slots are still minimal and empty but counts exist, rebuild.
+8727:       boolean anyCounts = false;
+8728:       for (int i = 0; i < inv.countsById.length; i++) { if (inv.countsById[i] > 0) { anyCounts = true; break; } }
+8729:       boolean anySlot = false;
+8730:       for (int i = 0; i < inv.normalSlotCount(); i++) { if (inv.getNormalItemId(i) >= 0 && inv.getNormalCount(i) > 0) { anySlot = true; break; } }

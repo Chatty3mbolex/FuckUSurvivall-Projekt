@@ -1,0 +1,214 @@
+﻿  private void drawSkillMenu() {
+    // Modal overlay. Simulation is paused elsewhere.
+    float mx = Gdx.input.getX();
+    float my = uiMouseYUp();
+
+    // Close (ESC). Note: P toggling is handled in the main input section to avoid instant close on the open-press.
+    if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+      skillsOpen = false;
+      return;
+    }
+
+    // Fit to screen (avoid negative x/y on smaller resolutions)
+    float screenW = Gdx.graphics.getWidth();
+    float screenH = Gdx.graphics.getHeight();
+    float w = Math.min(1120f, screenW - 40f);
+    float h = Math.min(720f, screenH - 40f);
+    w = Math.max(520f, w);
+    h = Math.max(360f, h);
+    float x0 = (screenW - w) * 0.5f;
+    float y0 = (screenH - h) * 0.5f;
+    if (x0 < 20f) x0 = 20f;
+    if (y0 < 20f) y0 = 20f;
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, w, h);
+
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.6f * UI_FONT_SCALE);
+    font.draw(batch, "SKILLBAUM", x0 + 36f, y0 + h - 28f);
+
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.draw(batch, "Abenteurer Lvl: " + progress.level + "   XP: " + progress.xp + "/" + progress.xpToNext + "   Skillpunkte: " + progress.skillPoints, x0 + 36f, y0 + h - 70f);
+    font.draw(batch, "ESC oder P = schließen | Klick auf Skill = +1", x0 + 36f, y0 + h - 104f);
+
+    float listX = x0 + 36f;
+    float listYTop = y0 + h - 150f;
+    float listYBottom = y0 + 36f;
+
+    // row metrics
+    float rowSkillH = 42f * UI_FONT_SCALE;
+    float rowHeader1H = 44f * UI_FONT_SCALE;
+    float rowHeader2H = 38f * UI_FONT_SCALE;
+
+    // Compute total content height (visible rows only) to clamp scroll.
+    float totalH = 0f;
+    for (int ri = 0; ri < skillMenuRows.size(); ri++) {
+      SkillMenuRow r = skillMenuRows.get(ri);
+      boolean visible = true;
+      if (r.kind != SkillMenuRow.HEADER1) {
+        visible = skillMenuCatOpen.getOrDefault(r.catKey, true);
+        if (visible && r.kind == SkillMenuRow.SKILL) {
+          visible = skillMenuSubOpen.getOrDefault(r.subKey, true);
+        }
+        if (visible && r.kind == SkillMenuRow.HEADER2) {
+          visible = true; // sub headers are visible when category is open
+        }
+      }
+      if (!visible) continue;
+      float rh = (r.kind == SkillMenuRow.SKILL) ? (42f * UI_FONT_SCALE) : (r.kind == SkillMenuRow.HEADER1 ? (44f * UI_FONT_SCALE) : (38f * UI_FONT_SCALE));
+      totalH += rh;
+    }
+    float viewH = Math.max(1f, listYTop - listYBottom);
+    float maxScroll = Math.max(0f, totalH - viewH);
+    if (skillMenuScrollPx > maxScroll) skillMenuScrollPx = maxScroll;
+
+    String catHoverKey = null;
+    String subHoverKey = null;
+
+    skillHover = -1;
+    float y = listYTop + skillMenuScrollPx;
+    for (int ri = 0; ri < skillMenuRows.size(); ri++) {
+      SkillMenuRow r = skillMenuRows.get(ri);
+
+      if (r.kind != SkillMenuRow.HEADER1) {
+        boolean catOpen = skillMenuCatOpen.getOrDefault(r.catKey, true);
+        if (!catOpen) continue;
+
+        // skills are only visible if their subcategory is open
+        if (r.kind == SkillMenuRow.SKILL) {
+          boolean subOpen = skillMenuSubOpen.getOrDefault(r.subKey, true);
+          if (!subOpen) continue;
+        }
+      }
+
+      float rh = (r.kind == SkillMenuRow.SKILL) ? rowSkillH : (r.kind == SkillMenuRow.HEADER1 ? rowHeader1H : rowHeader2H);
+      float ry = y;
+      // skip rows above the visible window
+      if (ry > listYTop + rh) {
+        y -= rh;
+        continue;
+      }
+      // stop when we are past the bottom
+      if (ry < listYBottom) break;
+
+      switch (r.kind) {
+        case SkillMenuRow.HEADER1 -> {
+          boolean hov = mx >= listX && mx <= listX + (w - 72f) && my >= ry - rh + 6f && my <= ry + 6f;
+          if (hov) catHoverKey = r.catKey;
+
+          boolean open = skillMenuCatOpen.getOrDefault(r.catKey, true);
+          String twisty = open ? "[-]" : "[+]";
+
+          // Category: distinct big button
+          batch.setColor(1f, 1f, 1f, 1f);
+          batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, listX, ry - rh + 8f, w - 72f, rh - 8f);
+
+          font.setColor(0f, 0f, 0f, 1f);
+          font.getData().setScale(1.20f * UI_FONT_SCALE);
+          font.draw(batch, twisty + "  " + r.label, listX + 16f, ry - 12f);
+        }
+        case SkillMenuRow.HEADER2 -> {
+          // Subcategory indent (about "2 tiles"), keep right edge aligned by shrinking width.
+          float subIndent = 64f;
+          float subX = listX + 10f + subIndent;
+          float subW = (w - 72f) - 20f - subIndent;
+
+          boolean hov = mx >= subX && mx <= subX + subW && my >= ry - rh + 6f && my <= ry + 6f;
+          if (hov) subHoverKey = r.subKey;
+
+          boolean open = skillMenuSubOpen.getOrDefault(r.subKey, true);
+          String twisty = open ? "[-]" : "[+]";
+
+          // Subcategory: distinct medium row
+          batch.setColor(1f, 1f, 1f, 1f);
+          batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, subX, ry - rh + 10f, subW, rh - 12f);
+
+          font.setColor(0f, 0f, 0f, 1f);
+          font.getData().setScale(1.05f * UI_FONT_SCALE);
+          font.draw(batch, twisty + "  " + r.label, subX + 18f, ry - 12f);
+        }
+        default -> {
+          int i = r.skillIndex;
+
+        // Skill indent (relative to subcategory position), keep right edge aligned.
+        float subIndentBase = 64f;
+        float skillIndent = subIndentBase + 64f;
+        float sx = listX + skillIndent;
+        float sw = (w - 72f) - skillIndent;
+
+        boolean hov = mx >= sx && mx <= sx + sw && my >= ry - rh + 6f && my <= ry + 6f;
+        if (hov) skillHover = i;
+
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(hov ? uiRegions.buttonPressed : uiRegions.button, sx, ry - rh + 8f, sw, rh - 8f);
+
+        int lv = (i >= 0 && i < progress.skillLv.length) ? progress.skillLv[i] : 0;
+        int cost = SkillEffects.upgradeCost(lv);
+        String line = SkillDefs.NAME_DE[i] + "   [" + lv + "/50]" + "   Kosten: " + cost;
+
+        float iconS = Math.min(32f * UI_FONT_SCALE, rh - 12f);
+        Texture iconTex = getSkillIconTex(i);
+        float textX = sx + 20f;
+        if (iconTex != null) {
+          float ix = sx + 10f;
+          float iy = (ry - rh + 8f) + ((rh - 8f) - iconS) * 0.5f;
+
+          // Keep aspect ratio (avoid squashing tall/wide sprites)
+          float tw = Math.max(1f, iconTex.getWidth());
+          float th = Math.max(1f, iconTex.getHeight());
+          float s = Math.min(iconS / tw, iconS / th);
+          float dw = tw * s;
+          float dh = th * s;
+          float dx = ix + (iconS - dw) * 0.5f;
+          float dy = iy + (iconS - dh) * 0.5f;
+
+          batch.setColor(1f, 1f, 1f, 1f);
+          batch.draw(iconTex, dx, dy, dw, dh);
+          textX = ix + iconS + 14f;
+        }
+
+        font.setColor(0f, 0f, 0f, 1f);
+        font.getData().setScale(1.0f * UI_FONT_SCALE);
+        font.draw(batch, line, textX, ry - 12f);
+        }
+      }
+
+      y -= rh;
+    }
+
+    if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+      // Toggle category dropdown
+      if (catHoverKey != null) {
+        boolean open = skillMenuCatOpen.getOrDefault(catHoverKey, true);
+        skillMenuCatOpen.put(catHoverKey, !open);
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+        return;
+      }
+
+      // Toggle subcategory dropdown
+      if (subHoverKey != null) {
+        boolean open = skillMenuSubOpen.getOrDefault(subHoverKey, true);
+        skillMenuSubOpen.put(subHoverKey, !open);
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+        return;
+      }
+
+      // Click skill
+      if (skillHover >= 0) {
+        int i = skillHover;
+        if (i >= 0 && i < progress.skillLv.length) {
+          int curLv = progress.skillLv[i];
+          int cost = SkillEffects.upgradeCost(curLv);
+
+          if (curLv < 50 && progress.skillPoints >= cost) {
+             
+          } else {
+            game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
+          }
+        } else {
+          game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
+        }
+      }
+    }
+  }

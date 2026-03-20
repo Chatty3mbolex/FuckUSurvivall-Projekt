@@ -1,0 +1,51 @@
+﻿{
+    "projectRoot":  "C:\\Users\\kuehn\\Desktop\\Chatty Projekt\\FuckUSurvivall Projekt\\FUSA Story V0.092 Forked\\FUSA Story V0.092 Forked",
+    "planName":  "AGENT MASTER PLAN — GAMESCREEN DECOMPOSITION",
+    "status":  "STEP_5_8_IN_PROGRESS",
+    "currentPhase":  "PHASE_5",
+    "currentStep":  "5.8",
+    "goal":  "GameScreen decomposition and leak/tuning follow-up without compile/run",
+    "constraints":  [
+                        "OFFLINE_ONLY",
+                        "NO_COMPILE",
+                        "NO_RUN",
+                        "NO_DEBUG",
+                        "NO_COMMIT",
+                        "NO_WEB",
+                        "NO_HUMAN_CHECKPOINTS",
+                        "6S_REASONING_COOLDOWN"
+                    ],
+    "invariants":  [
+                       "SAVE_FORMAT_100_PERCENT_COMPATIBLE",
+                       "GAMELOOP_ORDER_UNCHANGED",
+                       "NO_SCOPE_CREEP",
+                       "ONLY_PLANNED_FILES",
+                       "STATIC_SANITY_ONLY"
+                   ],
+    "lastCompletedStep":  "5.7",
+    "currentObjective":  "Step 5.8 final GameScreen cleanup (shrink file, ensure only controllers + delegation remain)",
+    "lastAction":  "Step 5.8: rewired worldmap/player call sites to worldMapCtl.* and playerCtl.*; removed top-level wrapper methods for those APIs",
+    "lastWhy":  "Shrink GameScreen by eliminating redundant wrappers once controllers exist",
+    "nextAction":  "Finish Step 5.8: recompute line count, mark 5.8 DONE, then proceed to Phase 6 leak audits (TilesetRegions/MiniSkin/AtlasLoader).",
+    "blockers":  [
+
+                 ],
+    "attemptCounters":  {
+                            "mechanical":  2,
+                            "stepFixLoop":  0,
+                            "scriptValidation":  0
+                        },
+    "touchedFiles":  [
+                         "_agent/00_RULES_LOCK.md",
+                         "_agent/15_INVARIANTS.md",
+                         "_agent/state.json"
+                     ],
+    "pendingFiles":  [
+
+                     ],
+    "stepReports":  [
+
+                    ],
+    "resumeTrigger":  "READ _agent/00_RULES_LOCK.md + _agent/15_INVARIANTS.md + _agent/state.json + _agent/10_RESUME.md + checklists BEFORE ANY ACTION",
+    "updated":  "2026-03-20T19:05:55.9046401+01:00"
+}

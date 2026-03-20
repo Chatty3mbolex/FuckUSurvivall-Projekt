@@ -1,0 +1,163 @@
+﻿  private void drawInventoryGrid() {
+    // Inventory: normal grid + tool grid underneath.
+    final int gridW = GRID_W;
+    int normalRows = inv.normalRowsUsed();
+    int toolRows = inv.visibleToolRows();
+
+    float uiScale = 0.85f; // requested: inventory UI 15% smaller
+
+    float slot = 144f * uiScale;
+    float pad = 20f * uiScale;
+
+    float normalH = normalRows * slot + (normalRows - 1) * pad;
+    float toolH = toolRows * slot + (toolRows - 1) * pad;
+    float labelH = 52f * uiScale;
+
+    float innerW = gridW * slot + (gridW - 1) * pad;
+    float innerH = normalH + labelH + toolH;
+
+    float panelPad = 52f * uiScale;
+    float titleH = 96f * uiScale;
+    float panelW = innerW + panelPad * 2f;
+    float panelH = innerH + panelPad * 2f + titleH;
+
+    // anchored bottom-center (default) but movable by drag
+    float x0Default = (Gdx.graphics.getWidth() - panelW) * 0.5f;
+    float y0Default = 0f;
+
+    if (Float.isNaN(invAnchorX) || Float.isNaN(invAnchorY) || (invAnchorX == 0f && invAnchorY == 0f) || invJustOpened) {
+      float xPick = x0Default;
+      float yPick = y0Default;
+
+      // If craft panel is open, avoid placing inventory on top of it.
+      if (craftOpen) {
+        final float craftW = 1230f;
+        final float craftH = 540f;
+        final float cx = craftAnchorX;
+        final float cy = craftAnchorY;
+
+        final float[] outPos = new float[2];
+        placePanelAvoiding(panelW, panelH, x0Default, y0Default, cx, cy, craftW, craftH, (xx, yy) -> {
+          outPos[0] = xx;
+          outPos[1] = yy;
+        });
+        xPick = outPos[0];
+        yPick = outPos[1];
+      }
+
+      invAnchorX = xPick;
+      invAnchorY = yPick;
+      invJustOpened = false;
+    }
+
+    // Drag handling (panel header) - disabled while modal UI / drag&drop is active
+    boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+    if (allowPanelDrag) {
+      float mx = Gdx.input.getX();
+      float my = Gdx.graphics.getHeight() - Gdx.input.getY();
+      if (Gdx.input.justTouched()) {
+        float headerY = invAnchorY + panelH - titleH;
+        if (mx >= invAnchorX && mx <= invAnchorX + panelW && my >= headerY && my <= invAnchorY + panelH) {
+          invDrag = true;
+          invDragDx = mx - invAnchorX;
+          invDragDy = my - invAnchorY;
+        }
+      }
+      if (invDrag) {
+        if (Gdx.input.isTouched()) {
+          invAnchorX = mx - invDragDx;
+          invAnchorY = my - invDragDy;
+        } else {
+          invDrag = false;
+        }
+      }
+    } else {
+      invDrag = false;
+    }
+
+    // clamp to screen so it stays reachable
+    invAnchorX = MathUtils.clamp(invAnchorX, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
+    invAnchorY = MathUtils.clamp(invAnchorY, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
+
+    float x0 = invAnchorX;
+    float y0 = invAnchorY;
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.getData().setScale(2.0f * uiScale);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.draw(batch, "INVENTORY (tools -> hotbar)", x0 + panelPad, y0 + panelH - 28f * uiScale);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+
+    float sx0 = x0 + panelPad;
+
+    float toolY0 = y0 + panelPad;
+    // Add a clearer gap between normal items and tools.
+    float labelY0 = toolY0 + toolH + 34f * uiScale;
+    float normalY0 = labelY0 + labelH;
+
+    // cache layout for hit tests
+    invSlotPx = slot;
+    invPadPx = pad;
+    invToolSlotsX0 = sx0;
+    invToolSlotsY0 = toolY0;
+    invNormSlotsX0 = sx0;
+    invNormSlotsY0 = normalY0;
+    invToolRowsDrawn = toolRows;
+    invNormRowsDrawn = normalRows;
+
+    // tool grid
+    font.getData().setScale(1.3f * uiScale);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.draw(batch, "TOOLS", sx0, labelY0 + 36f * uiScale);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+
+    for (int y = 0; y < toolRows; y++) {
+      for (int x = 0; x < gridW; x++) {
+        int idx = y * gridW + x;
+        float sx = sx0 + x * (slot + pad);
+        float sy = toolY0 + y * (slot + pad);
+        batch.draw(uiRegions.slot, sx, sy, slot, slot);
+
+        int itemId = inv.getToolItemId(idx);
+        int count = inv.getToolCount(idx);
+        if (itemId >= 0 && count > 0) {
+          TextureRegion icon = entityRegions.itemIcon(itemId);
+          float iw = slot * 0.70f;
+          float ih = slot * 0.70f;
+          if (icon != null) batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f, iw, ih);
+          if (count > 1) {
+            font.setColor(0f, 0f, 0f, 1f);
+            font.draw(batch, String.valueOf(count), sx + 6f, sy + 16f);
+            font.setColor(0f, 0f, 0f, 1f);
+          }
+        }
+      }
+    }
+
+    // normal grid
+    for (int y = 0; y < normalRows; y++) {
+      for (int x = 0; x < gridW; x++) {
+        int idx = y * gridW + x;
+        float sx = sx0 + x * (slot + pad);
+        float sy = normalY0 + y * (slot + pad);
+        batch.draw(uiRegions.slot, sx, sy, slot, slot);
+
+        int itemId = inv.getNormalItemId(idx);
+        int count = inv.getNormalCount(idx);
+        if (itemId >= 0 && count > 0) {
+          TextureRegion icon = entityRegions.itemIcon(itemId);
+          float iw = slot * 0.70f;
+          float ih = slot * 0.70f;
+          if (icon != null) batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f, iw, ih);
+
+          font.setColor(0f, 0f, 0f, 1f);
+          font.draw(batch, String.valueOf(count), sx + 6f, sy + 16f);
+          font.setColor(0f, 0f, 0f, 1f);
+        }
+      }
+    }
+  }

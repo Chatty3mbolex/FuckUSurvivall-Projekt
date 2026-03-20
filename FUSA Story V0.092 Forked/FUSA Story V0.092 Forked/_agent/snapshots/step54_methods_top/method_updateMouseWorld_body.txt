@@ -1,0 +1,32 @@
+﻿  private void updateMouseWorld(boolean clampToRing) {
+    Vector3 v = scratch.v3a;
+    v.set(Gdx.input.getX(), Gdx.input.getY(), 0f);
+    cam.unproject(v);
+
+    float wx = v.x;
+    float wy = v.y;
+
+    if (clampToRing) {
+      float r = actionReach(equippedFromHotbar());
+      float dx = wx - px;
+      float dy = wy - py;
+      float d2 = dx*dx + dy*dy;
+      float r2 = r * r;
+      if (d2 > r2 && d2 > 1e-6f) {
+        float invLen = (float)(1.0 / Math.sqrt(d2));
+        wx = px + dx * invLen * r;
+        wy = py + dy * invLen * r;
+
+        // Warp cursor back onto the ring so the player can never "aim" outside.
+        Vector3 p = scratch.v3b;
+        p.set(wx, wy, 0f);
+        cam.project(p);
+        int sx = (int)p.x;
+        int sy = (int)(Gdx.graphics.getHeight() - p.y);
+        Gdx.input.setCursorPosition(sx, sy);
+      }
+    }
+
+    mouseWorldX = wx;
+    mouseWorldY = wy;
+  }

@@ -1,0 +1,17 @@
+﻿entities.alive
+entities.itemAmount
+entities.itemId
+entities.kill
+Entities.MAX
+entities.type
+entities.x
+entities.y
+EntityMetrics.radius
+EntityType.ITEM_DROP
+game.audio
+game.settings
+inv.add
+Math.max
+pickup.wav
+priceBook.getBaseCopper
+wallet.addCopper

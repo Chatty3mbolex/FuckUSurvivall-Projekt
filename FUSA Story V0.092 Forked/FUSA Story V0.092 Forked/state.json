@@ -1,0 +1,383 @@
+{
+  "goal": "Prepare a surgical refactor plan + code scaffolding for voxel-column tiles + 2.5D tilt rendering (no integration yet).",
+  "constraints": [
+    "OFFLINE_ONLY",
+    "NO_COMPILE_UNLESS_TOLD",
+    "NO_RUN_UNLESS_TOLD",
+    "NO_GIT_COMMITS",
+    "NO_FALLBACKS"
+  ],
+  "assumptions": [
+    "Logical grid remains (x,y) with CHUNK_SIZE=64 and TILE_WORLD=16.",
+    "Existing TileLayers.heightLevel[] is the canonical per-tile terraced height channel.",
+    "Phase 1 is voxel-columns only (no caves, no per-z materials)."
+  ],
+  "openQuestions": [
+    "Height value range policy: keep 0..15 (biome mask) vs extend.",
+    "Side-face art/material mapping source.",
+    "Editor wheel binding policy for height editing vs zoom.",
+    "Movement rules regarding height (ignore vs constrain)."
+  ],
+  "steps": [
+    {
+      "id": "S1",
+      "desc": "Write the surgical refactor plan document with explicit dependency/removal points and prepared modules list.",
+      "files": [
+        "DOCS/VOXEL_TILT_REFACTOR_PLAN.md"
+      ],
+      "verify": [
+        "Document references existing code files and current seams (no guessed APIs).",
+        "Includes removal points: where heightLevel is currently zeroed in area loaders."
+      ],
+      "done": true,
+      "notes": "Plan written with references to World, TileLayers, JsonAreaWorldLoader, AreaWorldApplier, ChunkRenderer, EntityRenderer, SaveManager, WorldEditorScreen."
+    },
+    {
+      "id": "S2",
+      "desc": "Prepare new helper code stubs (codec + render mapping + side regions) with TODO and reference anchors, without wiring into runtime.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/area/VoxelHeightCodec.java",
+        "core/src/main/java/com/yourgame/survival/render/VoxelRenderMapping.java",
+        "core/src/main/java/com/yourgame/survival/render/VoxelSideRegions.java"
+      ],
+      "verify": [
+        "Files compile syntactically (static inspection only).",
+        "No call-site integration changes done."
+      ],
+      "done": true,
+      "notes": "Added prepared stubs: VoxelHeightCodec (Base64 heightLevel JSON), VoxelRenderMapping (tilt + lift constants), VoxelSideRegions (side face mapping stub). No call-site integration."
+    },
+    {
+      "id": "S3",
+      "desc": "Prepare editor persistence skeleton methods (persist/load heightLevel) as isolated helpers (not wired), referencing existing tileTrees persistence pattern.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/editor/WorldEditorScreen.java"
+      ],
+      "verify": [
+        "Only adds helper methods or clearly isolated TODO blocks; does not change behavior."
+      ],
+      "done": true,
+      "notes": "Added prepared (unused) helper skeletons in WorldEditorScreen for persisting and applying layers.heightLevel; save hook is present but commented out to avoid behavior change."
+    },
+    {
+      "id": "S4",
+      "desc": "Prepare renderer scaffolding hooks for voxel/tilt (ChunkRenderer + EntityRenderer) as unused helper methods/TODO blocks only (no behavior change).",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/ChunkRenderer.java",
+        "core/src/main/java/com/yourgame/survival/render/EntityRenderer.java"
+      ],
+      "verify": [
+        "Only adds unused helpers/comments; no call paths changed.",
+        "No new dependencies introduced beyond existing imports."
+      ],
+      "done": true,
+      "notes": "Added unused scaffolding methods: ChunkRenderer.drawVoxelColumnsStub(...) and EntityRenderer.sortKeyWithVoxelLiftStub(...). No call paths changed."
+    },
+    {
+      "id": "S5",
+      "desc": "Prepare area loader scaffolding for authored heightLevel (JsonAreaWorldLoader + AreaWorldApplier) as isolated helpers and commented hooks (no behavior change).",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/worldmap/JsonAreaWorldLoader.java",
+        "core/src/main/java/com/yourgame/survival/editor/AreaWorldApplier.java"
+      ],
+      "verify": [
+        "Only adds unused helpers/comments; no runtime behavior changes.",
+        "Explicitly references VoxelHeightCodec for future integration."
+      ],
+      "done": true,
+      "notes": "Added commented call sites + unused helper skeletons applyAuthoredHeightLevelFromJson(...) in both runtime JsonAreaWorldLoader and editor AreaWorldApplier; no behavior change."
+    },
+    {
+      "id": "S6",
+      "desc": "Prepare a dedicated height editing helper (not wired): data extraction from preview world -> byte[] and byte[] -> preview world apply, plus brush math placeholders.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/editor/HeightLevelEditing.java"
+      ],
+      "verify": [
+        "Standalone utility class only; no call sites changed.",
+        "No behavior change in editor/runtime."
+      ],
+      "done": true,
+      "notes": "Added standalone HeightLevelEditing utility with JSON codec wrappers + export/import/brush placeholders; no wiring into editor/runtime."
+    },
+    {
+      "id": "S7",
+      "desc": "Integrate HEIGHT as a terrain layer target in the area editor and allow brush edits to modify TileLayers.heightLevel; persistence already handled by heightLevel save/load wiring.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/editor/WorldEditorScreen.java",
+        "core/src/main/java/com/yourgame/survival/editor/HeightLevelEditing.java"
+      ],
+      "verify": [
+        "HEIGHT appears in terrain layer select box.",
+        "applyToolAt handles LayerTarget.HEIGHT and modifies previewWorld heightLevel with brush.",
+        "save writes layers.heightLevel via VoxelHeightCodec."
+      ],
+      "done": true,
+      "notes": "Added LayerTarget.HEIGHT + terrainLayerBox entry; applyToolAt modifies heightLevel via HeightLevelEditing.applyDeltaAt (clamp 0..15)."
+    },
+    {
+      "id": "S8",
+      "desc": "Make height visible: lift tile rendering by heightLevel and apply simple 2.5D tilt mapping in ChunkRenderer (top faces only).",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/ChunkRenderer.java",
+        "core/src/main/java/com/yourgame/survival/render/VoxelRenderMapping.java"
+      ],
+      "verify": [
+        "ChunkRenderer uses TileLayers.heightLevel to compute lift and adjusts y.",
+        "No side faces yet; this step is top-face visibility only."
+      ],
+      "done": true,
+      "notes": "ChunkRenderer now applies VoxelRenderMapping.liftWorld(heightLevel) + tiltY() per tile before drawing ground/water/overlays."
+    },
+    {
+      "id": "S9",
+      "desc": "Match entities to voxel lift/tilt: EntityRenderer uses World.heightLevelAtWorldPeek for visual lift and includes lift in sortKey; GameScreen provides world ref via setter.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/EntityRenderer.java",
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "EntityRenderer applies VoxelRenderMapping.liftWorld + tiltY to entity y.",
+        "sortKey includes lift so ordering remains consistent.",
+        "GameScreen calls entityRenderer.setWorld(world)."
+      ],
+      "done": true,
+      "notes": "Entities are now visually lifted/tilted to match tiles; sort key includes lift; world ref is injected via setter to keep API narrow."
+    },
+    {
+      "id": "S10",
+      "desc": "Bring tileTrees rendering into the voxel mapping: apply heightLevel lift + tilt in EntityRenderer.drawTileTreesChunk so dense forests sit on raised tiles.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/EntityRenderer.java"
+      ],
+      "verify": [
+        "drawTileTreesChunk adjusts wx/wy by heightLevel using VoxelRenderMapping."
+      ],
+      "done": true,
+      "notes": "TileTrees draw path now applies heightLevel lift + tilt mapping using the chunk-local heightLevel array."
+    },
+    {
+      "id": "S11",
+      "desc": "Fix editor picking under voxel/tilt: introduce a screen->tile mapping that inverts tilt and compensates one-step for height lift; use it across paint/move/zone/tileTree drags.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/editor/WorldEditorScreen.java"
+      ],
+      "verify": [
+        "All viewport.unproject->floor(tx/ty) paths for map interactions route through screenToTile().",
+        "TileTree drag uses screenToTile()."
+      ],
+      "done": true,
+      "notes": "Added screenToTile() inversion helper and wired it into onMapPaint, begin/update zone drag, begin/update move drag, and updateTileTreeDrag. Also set entityRenderer world in editor so visuals match tiles."
+    },
+    {
+      "id": "S12",
+      "desc": "Render voxel cliffs: draw vertical south/west faces based on height differences to neighbors (visual only).",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/ChunkRenderer.java",
+        "core/src/main/java/com/yourgame/survival/render/VoxelRenderMapping.java"
+      ],
+      "verify": [
+        "ChunkRenderer draws downward faces proportional to (h0 - hNeighbor) using the same height step as lift.",
+        "Road tiles skip face drawing to avoid floating-road artifacts."
+      ],
+      "done": true,
+      "notes": "Replaced thin edge shadows with actual vertical faces (south full width + west strip) using tiles.waterFill tinted; height uses HEIGHT_STEP_WORLD*TILT_Y_SCALE."
+    },
+    {
+      "id": "S13",
+      "desc": "Lock Phase 1 behavior: heightLevel is visual-only; movement/collision remains height-agnostic. Document the policy and Phase 2 seam.",
+      "files": [
+        "DOCS/VOXEL_PHASE1_BEHAVIOR_NOTES.md"
+      ],
+      "verify": [
+        "Document explicitly states visual-only policy and references World/AiSystem queries.",
+        "No gameplay code changed in this step."
+      ],
+      "done": true,
+      "notes": "Added DOCS/VOXEL_PHASE1_BEHAVIOR_NOTES.md to prevent accidental half-constraints; confirms AI uses isBlocked/isWater only."
+    },
+    {
+      "id": "S14",
+      "desc": "Align procedural grass jitter rendering with voxel lift/tilt so tufts don't float under elevated tiles.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/ChunkRenderer.java"
+      ],
+      "verify": [
+        "Grass jitter draw uses c.layers.heightLevel[idx2] and applies VoxelRenderMapping lift+tilt before drawing."
+      ],
+      "done": true,
+      "notes": "ChunkRenderer grass jitter now adds liftWorld(heightLevel) and tiltY to py (and shear to px) before drawing tufts."
+    },
+    {
+      "id": "S15",
+      "desc": "Fix gameplay input and UI world-to-screen anchors under voxel/tilt: adjust key cam.project/unproject call sites (mouseWorld, lamp mask, area red-zone arrows, merchant shop anchor).",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "updateMouseWorld undoes tilt + lift before setting mouseWorldX/Y.",
+        "cam.project anchors use lift+tilt adjusted positions for px/py and merchant head."
+      ],
+      "done": true,
+      "notes": "Adjusted updateMouseWorld (unproject inversion) and multiple cam.project anchor points to use VoxelRenderMapping lift+tilt so UI remains aligned with rendered world."
+    },
+    {
+      "id": "S16",
+      "desc": "Align world overlays with voxel render-space: cursor and health bars use lift+tilt mapping so they sit on raised tiles/entities.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "cursorController.renderWorldCursor receives voxel render-space coords.",
+        "drawEntityHealthBarsWorld maps entity/tileTree positions through toVoxelRenderSpace before drawing bars."
+      ],
+      "done": true,
+      "notes": "Added toVoxelRenderSpace helper; cursor and health bar anchors now use render-space positions under tilt/lift."
+    },
+    {
+      "id": "S17",
+      "desc": "Align world-space shape veils with voxel render-space: draw AREA red-zone border as quads in render-space using triangles.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "Red-zone veil uses toVoxelRenderSpace for corners and is drawn with ShapeRenderer.triangle quads."
+      ],
+      "done": true,
+      "notes": "Replaced axis-aligned shape.rect border strips with filled quads mapped through toVoxelRenderSpace so veil aligns under tilt/lift."
+    },
+    {
+      "id": "S18",
+      "desc": "Align Fog of War world overlay with voxel render-space: draw FoW texture as a mapped quad instead of axis-aligned rect.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "renderFogOfWarOverlayWorld draws fowTex using batch.draw(Texture, x1,y1,x2,y2,x3,y3,x4,y4, u/v...) with corners mapped by toVoxelRenderSpace."
+      ],
+      "done": true,
+      "notes": "FoW overlay now respects tilt by mapping the area rectangle corners through toVoxelRenderSpace and drawing as a quad."
+    },
+    {
+      "id": "S19",
+      "desc": "Align projectile visuals with voxel render-space: arrow line draw uses toVoxelRenderSpace so it appears attached to tilted/lifted world.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "drawArrowsWorld maps arrow start position through toVoxelRenderSpace before drawing the line."
+      ],
+      "done": true,
+      "notes": "Arrow visualization now uses render-space coords for start point; tail vector remains in local direction for readability."
+    },
+    {
+      "id": "S20",
+      "desc": "Align action overlay with voxel render-space: map FOV cone vertices and approximate the action ring outline in render space.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "drawActionOverlay uses toVoxelRenderSpace for center and segment endpoints.",
+        "Ring is drawn as line segments between render-space points (not shape.circle at px/py)."
+      ],
+      "done": true,
+      "notes": "Action overlay now follows voxel mapping: FOV sector uses render-space triangles, ring uses polyline in render space."
+    },
+    {
+      "id": "S21",
+      "desc": "Harden dot cursor rendering under voxel/tilt: ensure drawDotCursorWorld maps coords into render-space so all call sites remain correct.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "drawDotCursorWorld applies toVoxelRenderSpace before drawing circles."
+      ],
+      "done": true,
+      "notes": "drawDotCursorWorld now maps incoming coords via toVoxelRenderSpace for consistency across callers."
+    },
+    {
+      "id": "S22",
+      "desc": "Confirm fullscreen overlays remain screen-space: day/night overlay, boot overlay, and dnMask are drawn in UI/screen coords and require no voxel mapping changes.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "Overlays use batch.draw(..., 0,0, screenW, screenH) in UI/screen-space blocks, not cam.combined world-space.",
+        "No code changes required beyond documentation/checklist."
+      ],
+      "done": true,
+      "notes": "Day/night and boot overlays are screen-space by design; left unchanged under voxel/tilt."
+    },
+    {
+      "id": "S23",
+      "desc": "Fix cursor warp-to-ring under voxel/tilt: when clamping aim to action ring, project render-space position before setting OS cursor.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java"
+      ],
+      "verify": [
+        "updateMouseWorld clamp-to-ring calls toVoxelRenderSpace before cam.project(p)."
+      ],
+      "done": true,
+      "notes": "Aim clamp warp now projects render-space coords, preventing cursor drift under tilt/lift."
+    },
+    {
+      "id": "S24",
+      "desc": "Confirm Phase 1 rule: all spawn/movement/streaming operates in logical 2D (px/py), without applying voxel render offsets; document in checklist.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java",
+        "core/src/main/java/com/yourgame/survival/world/WorldNodeSpawner.java",
+        "core/src/main/java/com/yourgame/survival/systems/AiSystem.java"
+      ],
+      "verify": [
+        "No modifications to spawn/movement code paths in this step.",
+        "Rendering-only mapping is centralized via VoxelRenderMapping / toVoxelRenderSpace."
+      ],
+      "done": true,
+      "notes": "Phase 1 keeps gameplay logic in flat 2D; only rendering/picking/projection paths use voxel mapping."
+    },
+    {
+      "id": "S25",
+      "desc": "Unify cliff face sprite selection behind a single mapping point: route cliff face draws through VoxelSideRegions (explicit placeholder until real side art exists).",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/VoxelSideRegions.java",
+        "core/src/main/java/com/yourgame/survival/render/ChunkRenderer.java"
+      ],
+      "verify": [
+        "ChunkRenderer cliff face draws use VoxelSideRegions.sideForGroundId(..., tiles) instead of direct tiles.waterFill()."
+      ],
+      "done": true,
+      "notes": "Cliff faces now pull their region from VoxelSideRegions (currently returns tiles.waterFill as a loud placeholder, tinted by caller)."
+    },
+    {
+      "id": "S26",
+      "desc": "Unify render-space mapping math: replace inline tilt/shear operations with VoxelRenderMapping.mapY/mapX across ChunkRenderer, EntityRenderer, and GameScreen helpers.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/VoxelRenderMapping.java",
+        "core/src/main/java/com/yourgame/survival/render/ChunkRenderer.java",
+        "core/src/main/java/com/yourgame/survival/render/EntityRenderer.java",
+        "core/src/main/java/com/yourgame/survival/screens/GameScreen.java",
+        "CHECKLIST_VOXEL_TILT_REFACTOR.md"
+      ],
+      "verify": [
+        "Search shows no remaining direct uses of tiltY(...) or SHEAR_X_FROM_Y multiplication at call sites.",
+        "All mapping uses VoxelRenderMapping.mapY/mapX or toVoxelRenderSpace helper."
+      ],
+      "done": true,
+      "notes": "Centralized the mapping so later tuning (nonlinear horizon, shear) touches fewer sites and reduces drift bugs."
+    },
+    {
+      "id": "S27",
+      "desc": "Improve cliff face readability without new art: use the tile's ground texture as the side-face base (tinted by caller) instead of waterFill placeholder.",
+      "files": [
+        "core/src/main/java/com/yourgame/survival/render/VoxelSideRegions.java",
+        "core/src/main/java/com/yourgame/survival/render/TilesetRegions.java"
+      ],
+      "verify": [
+        "VoxelSideRegions.sideForGroundId delegates to TilesetRegions.ground(groundId).",
+        "ChunkRenderer continues to tint faces dark for vertical face illusion."
+      ],
+      "done": true,
+      "notes": "Side faces now inherit surface material texture, improving voxel-column look without requiring new atlas art."
+    }
+  ]
+}

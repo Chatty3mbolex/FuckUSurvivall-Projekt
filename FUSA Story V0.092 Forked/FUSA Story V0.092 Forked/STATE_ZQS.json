@@ -1,0 +1,16 @@
+{
+  "plan_name": "WanderQuestGuy_ZQS_WorkflowPlan",
+  "active_phase": "PHASE_08",
+  "active_step": "PHASE_08/FinalCheck",
+  "status": "done",
+  "last_completed_step": "PHASE_08/FinalCheck",
+  "next_step": "N/A",
+  "current_focus_file": "(none)",
+  "allowed_to_compile": false,
+  "allowed_to_commit": false,
+  "max_repeat_same_error": 3,
+  "error_repeat_counter": {
+    "workflow_deviation": 1
+  },
+  "notes": "PHASE_08 FinalCheck bestanden: ZQS A1–A8 gemäß INDEX_ZQS_FINALISIERUNG_6PUNKTE.md umgesetzt. WQG dockt ausschließlich über WanderQuestGuyDock an ZqsRuntime. Reward/Profile/Blueprint/Catalog strikt validiert; kanonische Währung = Kupfer; Zeitbasis ZQS/WQG = Echtzeit (Epoch-Sekunden) mit epochSec bevorzugt und runtimeSec als kompatibles Alias; accepted/completedLocation werden beim Accept/Claim gesetzt." 
+}

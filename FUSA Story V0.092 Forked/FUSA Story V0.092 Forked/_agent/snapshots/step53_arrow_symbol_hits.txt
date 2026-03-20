@@ -1,0 +1,80 @@
+﻿ARROW_MAX|231|for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+ARROW_MAX|459|for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+ARROW_MAX|527|private static final int ARROW_MAX = 64;
+ARROW_MAX|531|private final boolean[] arrowAlive = new boolean[ARROW_MAX];
+ARROW_MAX|532|private final float[] arrowX = new float[ARROW_MAX];
+ARROW_MAX|533|private final float[] arrowY = new float[ARROW_MAX];
+ARROW_MAX|534|private final float[] arrowVx = new float[ARROW_MAX];
+ARROW_MAX|535|private final float[] arrowVy = new float[ARROW_MAX];
+ARROW_MAX|536|private final float[] arrowTravel = new float[ARROW_MAX];
+ARROW_MAX|537|private final float[] arrowRange = new float[ARROW_MAX];
+ARROW_MAX|538|private final float[] arrowDmg = new float[ARROW_MAX];
+ARROW_MAX|3649|for (int i = 0; i < ARROW_MAX; i++) {
+ARROW_MAX|3669|for (int i = 0; i < ARROW_MAX; i++) {
+ARROW_MAX|3782|for (int i = 0; i < ARROW_MAX; i++) {
+arrowAlive|231|for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+arrowAlive|459|for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+arrowAlive|531|private final boolean[] arrowAlive = new boolean[ARROW_MAX];
+arrowAlive|3650|if (!arrowAlive[i]) { slot = i; break; }
+arrowAlive|3654|arrowAlive[slot] = true;
+arrowAlive|3670|if (!arrowAlive[i]) continue;
+arrowAlive|3678|if (spd <= 1e-6f) { arrowAlive[i] = false; continue; }
+arrowAlive|3692|arrowAlive[i] = false;
+arrowAlive|3703|arrowAlive[i] = false;
+arrowAlive|3711|if (!arrowAlive[i]) continue;
+arrowAlive|3783|if (!arrowAlive[i]) continue;
+tickArrows\s*\(|3665|private void tickArrows(float dt) {
+tickArrows\s*\(|4221|tickArrows(dt);
+arrowHitSegment\s*\(|3689|int hitE = arrowHitSegment(x, y, x2, y2, arrowDmg[i]);
+arrowHitSegment\s*\(|3722|private int arrowHitSegment(float x0, float y0, float x1, float y1, float dmg) {
+\bonKill\s*\(|2509|if (k != null) onKill(k);
+\bonKill\s*\(|2522|if (k != null) onKill(k);
+\bonKill\s*\(|2536|if (k != null) onKill(k);
+\bonKill\s*\(|3695|onKill(arrowLastKill);
+\bonKill\s*\(|4667|private void onKill(CombatSystem.Kill k) {
+bowCooldownT|458|bowCooldownT = 0f;
+bowCooldownT|539|private float bowCooldownT = 0f;
+bowCooldownT|2452|if (bowCooldownT <= 0f) {
+bowCooldownT|2477|bowCooldownT = reload;
+bowCooldownT|4220|if (bowCooldownT > 0f) bowCooldownT = Math.max(0f, bowCooldownT - dt);
+sneaking|553|private boolean sneaking = false;
+sneaking|554|private boolean sneakingPrev = false;
+sneaking|2081|// Sneak (hold MMB). On release, sneaking ends immediately.
+sneaking|2083|sneaking = sneakAllowed && Gdx.input.isButtonPressed(Input.Buttons.MIDDLE);
+sneaking|2084|if (sneaking != sneakingPrev) {
+sneaking|2085|toast = sneaking ? "Schleichen: AN" : "Schleichen: AUS";
+sneaking|2087|sneakingPrev = sneaking;
+sneaking|4010|if (sneaking) {
+sneaking|4019|boolean sprinting = (!sneaking && sprintKey && moving && needs.stamina > 0f);
+sneaking|4171|ai.tick(entities, playerE, world, loadedMinCx, loadedMaxCx, loadedMinCy, loadedMaxCy, dt, stealthMul, intimidateChance, sneaking, moving, sprinting);
+Input\.Buttons\.RIGHT|2531|&& Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+arrow|231|for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+arrow|459|for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+arrow|526|// ===== Ranged combat: Bow arrows (projectile) =====
+arrow|527|private static final int ARROW_MAX = 64;
+arrow|529|private static final int ITEM_ARROW = 47;
+arrow|530|private static final float ARROW_HIT_RADIUS = 6.0f; // projectile thickness for reliable hits (tight-ish)
+arrow|531|private final boolean[] arrowAlive = new boolean[ARROW_MAX];
+arrow|532|private final float[] arrowX = new float[ARROW_MAX];
+arrow|533|private final float[] arrowY = new float[ARROW_MAX];
+arrow|534|private final float[] arrowVx = new float[ARROW_MAX];
+arrow|535|private final float[] arrowVy = new float[ARROW_MAX];
+arrow|536|private final float[] arrowTravel = new float[ARROW_MAX];
+arrow|537|private final float[] arrowRange = new float[ARROW_MAX];
+arrow|538|private final float[] arrowDmg = new float[ARROW_MAX];
+arrow|2444|// Requested: NO swing animation for Bow (it shoots an arrow).
+arrow|2450|// Bow (ID 22): uses arrows as ammo.
+arrow|2453|// Bow: do not spend stamina if no arrows.
+arrow|2454|if (inv.countsById[ITEM_ARROW] <= 0) {
+arrow|2457|// Spend one arrow.
+arrow|2458|inv.spend(ITEM_ARROW, 1);
+arrow|2476|if (fireBowArrow(px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), speed, range, dmg, spread)) {
+arrow|2769|drawArrowsWorld();
+arrow|2797|// Direction arrows (only while in red zone; alpha: all sides are exits)
+arrow|3612|private boolean fireBowArrow(
+arrow|3647|// Find free arrow slot
+arrow|3649|for (int i = 0; i < ARROW_MAX; i++) {
+arrow|3650|if (!arrowAlive[i]) { slot = i; break; }
+arrow|3654|arrowAlive[slot] = true;
+arrow|3655|arrowX[slot] = ox;
+arrow|3656|arrowY[slot] = oy;

@@ -1,0 +1,14 @@
+﻿Gdx.input
+Input.Buttons
+Input.Keys
+out.alt
+out.ctrl
+out.delta
+out.lmb
+out.mmb
+out.mwx
+out.mwy
+out.mx
+out.my
+out.rmb
+out.shift

@@ -1,0 +1,3 @@
+﻿game.setCursorCrosshair
+game.setCursorHidden
+pricingEditor.isOpen

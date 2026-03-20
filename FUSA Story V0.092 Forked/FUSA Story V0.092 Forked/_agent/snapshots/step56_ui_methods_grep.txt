@@ -1,0 +1,9 @@
+﻿drawInventory|3407|drawInventoryGrid();
+drawShop|3419|drawShopMenuAtMerchant();
+drawWallet|3415|drawWalletMenu();
+drawWalletMenu|3415|drawWalletMenu();
+drawBuildPanel|3403|drawBuildPanel();
+drawQuestLog|3422|drawQuestLogHubPanel();
+drawQuestLogHub|3422|drawQuestLogHubPanel();
+drawQuestLogOpenQuests|3425|drawQuestLogOpenQuestsPanel();
+drawQuestLogDoneQuests|3428|drawQuestLogDoneQuestsPanel();

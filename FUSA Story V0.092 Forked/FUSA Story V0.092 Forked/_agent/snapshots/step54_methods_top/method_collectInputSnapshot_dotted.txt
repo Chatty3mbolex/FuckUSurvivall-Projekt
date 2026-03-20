@@ -1,0 +1,5 @@
+﻿commandQueue.clear
+Gdx.input
+out.delta
+out.mx
+out.my

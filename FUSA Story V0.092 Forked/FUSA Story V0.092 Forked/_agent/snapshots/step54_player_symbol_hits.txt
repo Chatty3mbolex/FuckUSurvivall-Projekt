@@ -1,0 +1,146 @@
+﻿mouseWorldX|766|private float mouseWorldX = 0f;
+mouseWorldX|2460|float dx = mouseWorldX - px;
+mouseWorldX|2483|float mdx = mouseWorldX - px;
+mouseWorldX|2568|if (!isInsideFov(px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, ACTION_FOV_DEG)) {
+mouseWorldX|2571|placeBuildAtMouse(mouseWorldX, mouseWorldY);
+mouseWorldX|2598|mouseWorldX, mouseWorldY,
+mouseWorldX|2609|mouseWorldX, mouseWorldY,
+mouseWorldX|2621|if (tryMineRockTile(mouseWorldX, mouseWorldY, REACH_HARVEST, selectedTool)) {
+mouseWorldX|2716|if (projCombat.fireBowArrow(px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), speed, range, dmg, spread)) {
+mouseWorldX|2748|var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+mouseWorldX|2761|var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+mouseWorldX|2775|var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+mouseWorldX|3013|drawDotCursorWorld(mouseWorldX, mouseWorldY);
+mouseWorldX|3414|float dx = mouseWorldX - px;
+mouseWorldX|3730|/** Updates mouseWorldX/Y and optionally clamps the OS cursor to the action ring (player-centered). */
+mouseWorldX|3760|mouseWorldX = wx;
+mouseWorldX|4825|if (!pointInSilhouette(i, mouseWorldX, mouseWorldY)) continue;
+mouseWorldX|4837|float mx = entities.x[i] - mouseWorldX;
+mouseWorldX|6147|int tx = (int)Math.floor(mouseWorldX / World.TILE_WORLD);
+mouseWorldX|6154|int e = pickEntityNear(mouseWorldX, mouseWorldY);
+mouseWorldX|6478|placeBuildAtMouse(mouseWorldX, mouseWorldY);
+mouseWorldY|767|private float mouseWorldY = 0f;
+mouseWorldY|2461|float dy = mouseWorldY - py;
+mouseWorldY|2484|float mdy = mouseWorldY - py;
+mouseWorldY|2568|if (!isInsideFov(px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, ACTION_FOV_DEG)) {
+mouseWorldY|2571|placeBuildAtMouse(mouseWorldX, mouseWorldY);
+mouseWorldY|2598|mouseWorldX, mouseWorldY,
+mouseWorldY|2609|mouseWorldX, mouseWorldY,
+mouseWorldY|2621|if (tryMineRockTile(mouseWorldX, mouseWorldY, REACH_HARVEST, selectedTool)) {
+mouseWorldY|2716|if (projCombat.fireBowArrow(px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), speed, range, dmg, spread)) {
+mouseWorldY|2748|var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+mouseWorldY|2761|var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+mouseWorldY|2775|var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+mouseWorldY|3013|drawDotCursorWorld(mouseWorldX, mouseWorldY);
+mouseWorldY|3415|float dy = mouseWorldY - py;
+mouseWorldY|3761|mouseWorldY = wy;
+mouseWorldY|4825|if (!pointInSilhouette(i, mouseWorldX, mouseWorldY)) continue;
+mouseWorldY|4838|float my = entities.y[i] - mouseWorldY;
+mouseWorldY|6148|int ty = (int)Math.floor(mouseWorldY / World.TILE_WORLD);
+mouseWorldY|6154|int e = pickEntityNear(mouseWorldX, mouseWorldY);
+mouseWorldY|6478|placeBuildAtMouse(mouseWorldX, mouseWorldY);
+updateMouseWorld|2445|updateMouseWorld(!shopOpen && !craftOpen && !invOpen && !buildMode && !walletOpen
+updateMouseWorld|3731|private void updateMouseWorld(boolean clampToRing) {
+collectInputSnapshot|2845|collectInputSnapshot(delta, inputState);
+collectInputSnapshot|3567|private void collectInputSnapshot(float delta, InputState out) {
+actionReach\s*\(|2459|float r = actionReach(selectedTool);
+actionReach\s*\(|3588|private float actionReach(int equippedItemId) {
+actionReach\s*\(|3740|float r = actionReach(equippedFromHotbar());
+actionReach\s*\(|3855|float r = actionReach(equippedFromHotbar());
+actionReach\s*\(|4236|float playerReach = actionReach(equippedFromHotbar());
+actionReach\s*\(|4257|float eff = actionReach(equippedFromHotbar()) + EntityMetrics.radius(entities.type[openMerchantE]);
+actionReach\s*\(|4810|float reach = actionReach(equippedFromHotbar());
+actionReach\s*\(|4889|float eff = actionReach(equippedFromHotbar()) + EntityMetrics.radius(entities.type[openQuestGuyE]);
+actionReach\s*\(|4944|float reach = actionReach(equippedFromHotbar());
+actionReach\s*\(|5009|float reach = actionReach(equippedFromHotbar());
+actionReach\s*\(|8235|float actionR = actionReach(equippedFromHotbar());
+actionReach\s*\(|8507|float actionR = actionReach(equippedFromHotbar());
+pickupNearby\s*\(|2812|pickupNearby();
+pickupNearby\s*\(|4727|private void pickupNearby() {
+InputState|805|private final InputState inputState = new InputState();
+InputState|2845|collectInputSnapshot(delta, inputState);
+InputState|3567|private void collectInputSnapshot(float delta, InputState out) {
+InputState|9542|private static final class InputState {
+inputState|805|private final InputState inputState = new InputState();
+inputState|2845|collectInputSnapshot(delta, inputState);
+inputState|3567|private void collectInputSnapshot(float delta, InputState out) {
+inputState|9542|private static final class InputState {
+SK_|409|int lootingLv = (SK_LOOTING >= 0 && SK_LOOTING < progress.skillLv.length) ? progress.skillLv[SK_LOOTING] : 1;
+SK_|416|int huntingLv = (SK_HUNTING >= 0 && SK_HUNTING < progress.skillLv.length) ? progress.skillLv[SK_HUNTING] : 1;
+SK_|737|private static final int SK_MINING = SkillDefs.indexOf("Mining");
+SK_|738|private static final int SK_WOODCUTTING = SkillDefs.indexOf("Woodcutting");
+SK_|739|private static final int SK_HUNTING = SkillDefs.indexOf("Hunting");
+SK_|741|// private static final int SK_FISHING = SkillDefs.indexOf("Fishing");
+SK_|742|// private static final int SK_FORAGING = SkillDefs.indexOf("Foraging");
+SK_|743|private static final int SK_LOOTING = SkillDefs.indexOf("Looting");
+SK_|744|private static final int SK_COMBAT_MELEE = SkillDefs.indexOf("CombatMelee");
+SK_|745|private static final int SK_COMBAT_RANGED = SkillDefs.indexOf("CombatRanged");
+SK_|746|private static final int SK_HEALTH = SkillDefs.indexOf("Health");
+SK_|747|private static final int SK_STAMINA = SkillDefs.indexOf("Stamina");
+SK_|748|private static final int SK_SPRINTING = SkillDefs.indexOf("Sprinting");
+SK_|749|private static final int SK_HUNGER_CTRL = SkillDefs.indexOf("HungerControl");
+SK_|750|private static final int SK_SLEEP_CTRL = SkillDefs.indexOf("SleepControl");
+SK_|751|private static final int SK_BARTER = SkillDefs.indexOf("Barter");
+SK_|752|private static final int SK_NEGOTIATION = SkillDefs.indexOf("Negotiation");
+SK_|753|private static final int SK_TRADING = SkillDefs.indexOf("Trading");
+SK_|754|private static final int SK_STEALTH = SkillDefs.indexOf("Stealth");
+SK_|755|private static final int SK_INTIMIDATION = SkillDefs.indexOf("Intimidation");
+SK_|757|// private static final int SK_CLIMBING = SkillDefs.indexOf("Climbing");
+SK_|758|// private static final int SK_BOATING = SkillDefs.indexOf("Boating");
+SK_|761|private static final int SK_SPEED = SkillDefs.indexOf("Navigation");
+SK_|762|private static final int SK_COLD_RES = SkillDefs.indexOf("ColdResistance");
+SK_|763|private static final int SK_HEAT_RES = SkillDefs.indexOf("HeatResistance");
+SK_|2069|if (SK_SPRINTING >= 0 && SK_SPRINTING < progress.skillLv.length) {
+SK_|2070|progress.skillLv[SK_SPRINTING] = 20;
+SK_|2578|int wcLv = (SK_WOODCUTTING >= 0 && SK_WOODCUTTING < progress.skillLv.length) ? progress.skillLv[SK_WOODCUTTING] : 1;
+SK_|2579|int miningLv = (SK_MINING >= 0 && SK_MINING < progress.skillLv.length) ? progress.skillLv[SK_MINING] : 1;
+SK_|2706|int rangedLv = (SK_COMBAT_RANGED >= 0 && SK_COMBAT_RANGED < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_RANGED] : 1;
+SK_|2741|int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+SK_|2756|int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+SK_|3594|int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+SK_|3612|int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+SK_|3938|int healthLv = (SK_HEALTH >= 0 && SK_HEALTH < progress.skillLv.length) ? progress.skillLv[SK_HEALTH] : 1;
+SK_|3939|int staminaLv = (SK_STAMINA >= 0 && SK_STAMINA < progress.skillLv.length) ? progress.skillLv[SK_STAMINA] : 1;
+SK_|3940|int hungerCtrlLv = (SK_HUNGER_CTRL >= 0 && SK_HUNGER_CTRL < progress.skillLv.length) ? progress.skillLv[SK_HUNGER_CTRL] : 1;
+SK_|3941|int sleepCtrlLv = (SK_SLEEP_CTRL >= 0 && SK_SLEEP_CTRL < progress.skillLv.length) ? progress.skillLv[SK_SLEEP_CTRL] : 1;
+SK_|4031|int coldLv = (SK_COLD_RES >= 0 && SK_COLD_RES < progress.skillLv.length) ? progress.skillLv[SK_COLD_RES] : 1;
+SK_|4036|int heatLv = (SK_HEAT_RES >= 0 && SK_HEAT_RES < progress.skillLv.length) ? progress.skillLv[SK_HEAT_RES] : 1;
+REACH_|117|import com.yourgame.survival.tuning.TuningGameplay.REACH_BED;
+REACH_|118|import com.yourgame.survival.tuning.TuningGameplay.REACH_BUILD_REMOVE;
+REACH_|119|import com.yourgame.survival.tuning.TuningGameplay.REACH_COMBAT;
+REACH_|120|import com.yourgame.survival.tuning.TuningGameplay.REACH_HARVEST;
+REACH_|121|import com.yourgame.survival.tuning.TuningGameplay.REACH_PICKUP;
+REACH_|122|import com.yourgame.survival.tuning.TuningGameplay.REACH_SHOP;
+REACH_|1315|private static final float REACH_HARVEST = REACH_HARVEST;
+REACH_|1316|private static final float REACH_COMBAT = REACH_COMBAT;
+REACH_|1317|private static final float REACH_PICKUP = REACH_PICKUP;
+REACH_|1318|// Nicht fertiges Feature:   private static final float REACH_BUILD_REMOVE = REACH_BUILD_REMOVE;
+REACH_|1319|// Nicht fertiges Feature:   private static final float REACH_SHOP = REACH_SHOP;
+REACH_|1320|// Nicht fertiges Feature:   private static final float REACH_BED = REACH_BED;
+REACH_|2601|REACH_HARVEST,
+REACH_|2612|REACH_HARVEST,
+REACH_|2621|if (tryMineRockTile(mouseWorldX, mouseWorldY, REACH_HARVEST, selectedTool)) {
+REACH_|2736|case 21 -> REACH_COMBAT * 1.25f; // Spear longer
+REACH_|2737|case 23 -> REACH_COMBAT * 0.85f; // Dagger shorter
+REACH_|2738|default -> REACH_COMBAT;
+REACH_|2759|float range = REACH_COMBAT * meleeMul;
+REACH_|2774|float range = REACH_COMBAT * 0.75f;
+REACH_|4728|float eff = REACH_PICKUP + EntityMetrics.radius(EntityType.ITEM_DROP);
+equippedFromHotbar|1230|// Nicht fertiges Feature: unused (logic uses equippedFromHotbar() + method param instead)
+equippedFromHotbar|2091|int selectedTool = equippedFromHotbar();
+equippedFromHotbar|2409|int selectedTool = equippedFromHotbar();
+equippedFromHotbar|3621|private int equippedFromHotbar() {
+equippedFromHotbar|3740|float r = actionReach(equippedFromHotbar());
+equippedFromHotbar|3855|float r = actionReach(equippedFromHotbar());
+equippedFromHotbar|4236|float playerReach = actionReach(equippedFromHotbar());
+equippedFromHotbar|4257|float eff = actionReach(equippedFromHotbar()) + EntityMetrics.radius(entities.type[openMerchantE]);
+equippedFromHotbar|4810|float reach = actionReach(equippedFromHotbar());
+equippedFromHotbar|4889|float eff = actionReach(equippedFromHotbar()) + EntityMetrics.radius(entities.type[openQuestGuyE]);
+equippedFromHotbar|4944|float reach = actionReach(equippedFromHotbar());
+equippedFromHotbar|5009|float reach = actionReach(equippedFromHotbar());
+equippedFromHotbar|8235|float actionR = actionReach(equippedFromHotbar());
+equippedFromHotbar|8507|float actionR = actionReach(equippedFromHotbar());
+tryInteractAtMouse|2520|if (tryInteractAtMouse(fovFx, fovFy)) {
+tryInteractAtMouse|4790|private boolean tryInteractAtMouse(float fovFx, float fovFy) {
+tryHarvestTileTreeFov|2596|ht = tryHarvestTileTreeFov(
+tryHarvestTileTreeFov|4296|private HarvestTick tryHarvestTileTreeFov(

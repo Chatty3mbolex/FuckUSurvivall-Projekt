@@ -1,0 +1,13 @@
+﻿  private void collectInputSnapshot(float delta, InputState out) {
+    // Block 8 scaffolding: a single place to sample inputs and (later) produce commands.
+    // Keep it minimal for now (behavior stays as-is).
+
+    // Nicht fertiges Feature: sampled input values are currently never read
+    // out.delta = delta;
+    // out.mx = Gdx.input.getX();
+    // out.my = Gdx.input.getY();
+
+    // Command queue is currently unused (gameplay still executes immediately), but we clear it
+    // so it can be safely filled later without leaking old data.
+    commandQueue.clear();
+  }

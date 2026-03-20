@@ -1,0 +1,17 @@
+﻿  private void rebuildDnMaskFbo(int w, int h) {
+    try { if (dnMaskFbo != null) dnMaskFbo.dispose(); } catch (Throwable ignored) {}
+    dnMaskFbo = null;
+    dnMaskRegion = null;
+
+    if (w <= 0 || h <= 0) return;
+
+    try {
+      dnMaskFbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
+      Texture t = dnMaskFbo.getColorBufferTexture();
+      dnMaskRegion = new TextureRegion(t);
+      dnMaskRegion.flip(false, true); // FBO texture is Y-flipped
+    } catch (Throwable ignored) {
+      dnMaskFbo = null;
+      dnMaskRegion = null;
+    }
+  }

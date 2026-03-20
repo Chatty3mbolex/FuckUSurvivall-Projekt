@@ -1,0 +1,178 @@
+﻿  private void drawQuestLogDoneQuestsPanel() {
+    // Left window: Abgeschlossene Quests
+    float uiScale = 0.85f;
+    float[] invMax = scratchInvMax;
+    calcInventoryMaxPanelWH(uiScale, invMax);
+    float panelW = invMax[0];
+    float panelH = invMax[1];
+
+    float x0Default = 0f;
+    float y0Default = 0f;
+    if (Float.isNaN(questDoneAnchorX) || Float.isNaN(questDoneAnchorY)) {
+      questDoneAnchorX = x0Default;
+      questDoneAnchorY = y0Default;
+    }
+
+    // Drag (head zone)
+    boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+    if (allowPanelDrag) {
+      float mx = Gdx.input.getX();
+      float my = uiMouseYUp();
+      float headH = 64f * uiScale;
+      if (Gdx.input.justTouched()) {
+        float headY = questDoneAnchorY + panelH - headH;
+        if (hitRect(mx, my, questDoneAnchorX, headY, panelW, headH)) {
+          questDoneDrag = true;
+          questDoneDragDx = mx - questDoneAnchorX;
+          questDoneDragDy = my - questDoneAnchorY;
+        }
+      }
+      if (questDoneDrag) {
+        if (Gdx.input.isTouched()) {
+          questDoneAnchorX = mx - questDoneDragDx;
+          questDoneAnchorY = my - questDoneDragDy;
+        } else {
+          questDoneDrag = false;
+        }
+      }
+    } else {
+      questDoneDrag = false;
+    }
+
+    questDoneAnchorX = MathUtils.clamp(questDoneAnchorX, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
+    questDoneAnchorY = MathUtils.clamp(questDoneAnchorY, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
+
+    float x0 = questDoneAnchorX;
+    float y0 = questDoneAnchorY;
+
+    // expose bounds for scroll wheel hit tests
+    questLogDonePanelX = x0;
+    questLogDonePanelY = y0;
+    questLogDonePanelW = panelW;
+    questLogDonePanelH = panelH;
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.20f * UI_FONT_SCALE);
+    uiLayout.setText(font, "ABGESCHLOSSENE QUESTS");
+    // Title distance from top must be increased by +100% (computed from head zone height, no hardcoded pad).
+    float headZoneH = 64f * uiScale;
+    float titleY = (y0 + panelH) - headZoneH;
+    font.draw(batch, "ABGESCHLOSSENE QUESTS", x0 + (panelW - uiLayout.width) * 0.5f, titleY);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    // Zones inside window: HEAD (title) + BODY (scrolling list)
+    float padWindow = 28f * uiScale;
+    float headH = 78f * uiScale;
+    float listX = x0 + padWindow;
+    float listY = y0 + padWindow;
+    float listW = panelW - padWindow * 2f;
+    float listH = panelH - (padWindow * 2f + headH);
+
+    Rectangle listClip = scratch.r0;
+    listClip.set(listX, listY, listW, listH);
+    Rectangle listSc = scratch.r1;
+    ScissorStack.calculateScissors(uiCam, batch.getTransformMatrix(), listClip, listSc);
+    batch.flush();
+    boolean listPushed = ScissorStack.pushScissors(listSc);
+
+    float cardW = listW;
+    float gap = 12f * uiScale;
+
+    float padX = 14f * uiScale;
+    float padTop = 14f * uiScale;
+    float padBottom = 12f * uiScale;
+    float gapHB = 8f * uiScale;
+
+    // Content height = sum of dynamic card heights (head+body + status line).
+    float contentH = 0f;
+    for (Entry e : questLog.entries) {
+      if (e == null || e.def == null) continue;
+      if (!(e.status == COMPLETED
+          || e.status == FAILED
+          || e.status == EXPIRED)) continue;
+
+      String head = (e.def.title != null) ? e.def.title : "";
+      String body = (e.def.desc != null) ? e.def.desc : "";
+
+      font.getData().setScale(1.00f * UI_FONT_SCALE);
+      uiLayout.setText(font, head, Color.BLACK, cardW - padX * 2f, Align.left, true);
+      float headHh = uiLayout.height;
+
+      float bodyHh = 0f;
+      if (body != null && !body.isEmpty()) {
+        font.getData().setScale(0.90f * UI_FONT_SCALE);
+        uiLayout.setText(font, body, Color.BLACK, cardW - padX * 2f, Align.left, true);
+        bodyHh = uiLayout.height;
+      }
+
+      float statusH = 22f * uiScale;
+      float cardHdyn = padTop + headHh + (bodyHh > 0f ? (gapHB + bodyHh) : 0f) + (10f * uiScale) + statusH + padBottom;
+      contentH += cardHdyn + gap;
+    }
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    float maxScroll = Math.max(0f, contentH - listH);
+    questLogDoneScrollPx = MathUtils.clamp(questLogDoneScrollPx, 0f, maxScroll);
+
+    float curTopY = (y0 + panelH - padWindow - headH) + questLogDoneScrollPx;
+    for (Entry e : questLog.entries) {
+      if (e == null || e.def == null) continue;
+      if (!(e.status == COMPLETED
+          || e.status == FAILED
+          || e.status == EXPIRED)) {
+        continue;
+      }
+
+      String head = (e.def.title != null) ? e.def.title : "";
+      String body = (e.def.desc != null) ? e.def.desc : "";
+
+      font.getData().setScale(1.00f * UI_FONT_SCALE);
+      uiLayout.setText(font, head, Color.BLACK, cardW - padX * 2f, Align.left, true);
+      float headHh = uiLayout.height;
+
+      float bodyHh = 0f;
+      if (body != null && !body.isEmpty()) {
+        font.getData().setScale(0.90f * UI_FONT_SCALE);
+        uiLayout.setText(font, body, Color.BLACK, cardW - padX * 2f, Align.left, true);
+        bodyHh = uiLayout.height;
+      }
+
+      float statusH = 22f * uiScale;
+      float cardHdyn = padTop + headHh + (bodyHh > 0f ? (gapHB + bodyHh) : 0f) + (10f * uiScale) + statusH + padBottom;
+      float y0c = curTopY - cardHdyn;
+
+      if (curTopY < listY - 200f) break;
+      if (y0c > listY + listH + 200f) { curTopY -= (cardHdyn + gap); continue; }
+
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.panelSlots, listX, y0c, cardW, cardHdyn);
+
+      float textX = listX + padX;
+      float textW = cardW - padX * 2f;
+      float headTopY = curTopY - padTop;
+      font.setColor(0f, 0f, 0f, 1f);
+      font.getData().setScale(1.00f * UI_FONT_SCALE);
+      font.draw(batch, head, textX, headTopY, textW, Align.left, true);
+
+      float bodyTopY = headTopY - headHh - gapHB;
+      if (bodyHh > 0f) {
+        font.getData().setScale(0.90f * UI_FONT_SCALE);
+        font.draw(batch, body, textX, bodyTopY, textW, Align.left, true);
+      }
+
+      font.getData().setScale(0.86f * UI_FONT_SCALE);
+      String info = (e.finalStatus != null && !e.finalStatus.isEmpty()) ? ("Status: " + e.finalStatus) : "Status: erledigt";
+      font.draw(batch, info, textX, y0c + padBottom + 18f * uiScale);
+
+      curTopY -= (cardHdyn + gap);
+    }
+
+    batch.flush();
+    if (listPushed) ScissorStack.popScissors();
+
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+  }

@@ -1,0 +1,60 @@
+﻿  private void areaEnemyZonesTick(float dt) {
+    if (enemyZones.size == 0) return;
+
+    final float tw = World.TILE_WORLD;
+
+    for (int zi = 0; zi < enemyZones.size; zi++) {
+      EnemyZone z = enemyZones.get(zi);
+      if (z == null) continue;
+
+      // Count orks currently inside (loose: within radius+2 tiles)
+      float cx = (z.cxTile + 0.5f) * tw;
+      float cy = (z.cyTile + 0.5f) * tw;
+      float rr = (z.rTiles + 2.0f) * tw;
+      float rr2 = rr * rr;
+
+      int count = 0;
+      for (int e = 0; e < Entities.MAX; e++) {
+        if (!entities.alive[e]) continue;
+        if (entities.type[e] != EntityType.ORK_GRUNT) continue;
+        float dx = entities.x[e] - cx;
+        float dy = entities.y[e] - cy;
+        if (dx * dx + dy * dy <= rr2) count++;
+      }
+
+      if (dayIndex < z.nextRespawnDayIndex) {
+        // Also keep orks pulled inside the zone boundary.
+        clampOrksTowardZone(cx, cy, z.rTiles * tw);
+        continue;
+      }
+
+      int want = Math.max(0, z.targetCount - count);
+      if (want <= 0) {
+        clampOrksTowardZone(cx, cy, z.rTiles * tw);
+        continue;
+      }
+
+      java.util.Random r = new java.util.Random(z.seed ^ (long) dayIndex * 0xD1B54A32D192ED03L);
+
+      // Spawn missing orks.
+      for (int k = 0; k < want; k++) {
+        // random point in circle
+        float ang = (float) (r.nextFloat() * Math.PI * 2.0);
+        float rad = (float) Math.sqrt(r.nextFloat()) * (z.rTiles * tw * 0.88f);
+        float wx = cx + (float) Math.cos(ang) * rad;
+        float wy = cy + (float) Math.sin(ang) * rad;
+
+        // Skip if blocked/water.
+        if (world.isWaterAtWorldPeek(wx, wy, true)) continue;
+        if (world.isBlockedAtWorldPeek(wx, wy, true)) continue;
+
+        entities.spawn(EntityType.ORK_GRUNT, wx, wy);
+      }
+
+      // Schedule next respawn window: 1..2 days (random)
+      int daysSpan = z.respawnDaysMin + (z.respawnDaysMax > z.respawnDaysMin ? r.nextInt(z.respawnDaysMax - z.respawnDaysMin + 1) : 0);
+      z.nextRespawnDayIndex = dayIndex + Math.max(1, daysSpan);
+
+      clampOrksTowardZone(cx, cy, z.rTiles * tw);
+    }
+  }

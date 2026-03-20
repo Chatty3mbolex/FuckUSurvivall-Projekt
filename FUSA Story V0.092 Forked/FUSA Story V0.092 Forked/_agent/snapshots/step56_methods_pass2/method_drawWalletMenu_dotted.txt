@@ -1,0 +1,12 @@
+﻿batch.draw
+batch.setColor
+font.draw
+font.getData
+font.setColor
+Gdx.graphics
+Math.min
+String.format
+uiRegions.button
+uiRegions.panelSlots
+uiRegions.slot
+wallet.copper

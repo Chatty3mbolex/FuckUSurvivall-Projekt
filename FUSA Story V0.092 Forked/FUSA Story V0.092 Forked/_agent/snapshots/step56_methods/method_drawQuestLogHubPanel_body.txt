@@ -1,0 +1,99 @@
+﻿  private void drawQuestLogHubPanel() {
+    // Center window: Questlogbuch hub. Buttons toggle the two sub-windows.
+    // Hub sizing: same width as inventory-max, but only 25% of its height.
+    float uiScale = 0.85f;
+    float[] invMax = scratchInvMax;
+    calcInventoryMaxPanelWH(uiScale, invMax);
+    float panelW = invMax[0];
+    float panelH = invMax[1] * 0.25f;
+
+    float x0Default = (Gdx.graphics.getWidth() - panelW) * 0.5f;
+    float y0Default = (Gdx.graphics.getHeight() - panelH) * 0.5f;
+
+    if (Float.isNaN(questHubAnchorX) || Float.isNaN(questHubAnchorY)) {
+      questHubAnchorX = x0Default;
+      questHubAnchorY = y0Default;
+    }
+
+    // Drag handling (head zone)
+    boolean allowPanelDrag = !pricingEditor.isOpen() && !walletOpen && !buyPopup && !sellPopup && !dragArmed && !dragActive;
+    if (allowPanelDrag) {
+      float mx = Gdx.input.getX();
+      float my = uiMouseYUp();
+      float headH = 64f * uiScale;
+      if (Gdx.input.justTouched()) {
+        float headY = questHubAnchorY + panelH - headH;
+        if (hitRect(mx, my, questHubAnchorX, headY, panelW, headH)) {
+          questHubDrag = true;
+          questHubDragDx = mx - questHubAnchorX;
+          questHubDragDy = my - questHubAnchorY;
+        }
+      }
+      if (questHubDrag) {
+        if (Gdx.input.isTouched()) {
+          questHubAnchorX = mx - questHubDragDx;
+          questHubAnchorY = my - questHubDragDy;
+        } else {
+          questHubDrag = false;
+        }
+      }
+    } else {
+      questHubDrag = false;
+    }
+
+    // clamp
+    questHubAnchorX = MathUtils.clamp(questHubAnchorX, 0f, Math.max(0f, Gdx.graphics.getWidth() - panelW));
+    questHubAnchorY = MathUtils.clamp(questHubAnchorY, 0f, Math.max(0f, Gdx.graphics.getHeight() - panelH));
+
+    float x0 = questHubAnchorX;
+    float y0 = questHubAnchorY;
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.25f * UI_FONT_SCALE);
+    uiLayout.setText(font, "QUESTLOGBUCH");
+    font.draw(batch, "QUESTLOGBUCH", x0 + (panelW - uiLayout.width) * 0.5f, y0 + panelH - 30f);
+
+    // (hint removed)
+
+    float mx = Gdx.input.getX();
+    float my = uiMouseYUp();
+    boolean click = Gdx.input.justTouched();
+
+    float bw = panelW - 40f;
+    float bh = 62f;
+    float bx = x0 + 20f;
+    float by1 = y0 + panelH * 0.58f;
+    float by2 = y0 + panelH * 0.38f;
+
+    // Button: Offene Quests
+    batch.setColor(1f, 1f, 1f, questLogOpenQuestsOpen ? 0.92f : 1f);
+    batch.draw(uiRegions.button, bx, by1, bw, bh);
+    font.getData().setScale(1.00f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+    font.draw(batch, "OFFENE QUESTS", bx + 16f, by1 + 40f);
+
+    // Button: Abgeschlossene Quests
+    batch.setColor(1f, 1f, 1f, questLogDoneQuestsOpen ? 0.92f : 1f);
+    batch.draw(uiRegions.button, bx, by2, bw, bh);
+    font.draw(batch, "ABGESCHLOSSENE QUESTS", bx + 16f, by2 + 40f);
+
+    batch.setColor(1f, 1f, 1f, 1f);
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+
+    if (click) {
+      if (hitRect(mx, my, bx, by1, bw, bh)) {
+        questLogOpenQuestsOpen = !questLogOpenQuestsOpen;
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+      }
+      if (hitRect(mx, my, bx, by2, bw, bh)) {
+        questLogDoneQuestsOpen = !questLogDoneQuestsOpen;
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+      }
+    }
+
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.setColor(0f, 0f, 0f, 1f);
+  }

@@ -1,0 +1,188 @@
+﻿  public void doLoad(int slot) {
+    try {
+      // HARD RULE: loading a save must not keep any runtime cache/state from prior runs.
+      // If we don't wipe entities/world caches first, old entities can survive and you can "see a copy" of yourself.
+      clearAllStateForLoad();
+
+      long[] seed = new long[1];
+      float[] pxpy = new float[2];
+      float[] dt = new float[1];
+      int[] dIdx = new int[1];
+      int[] hb = new int[8];
+      int[] hbSel = new int[1];
+      boolean[] boat = new boolean[1];
+      boolean[] climb = new boolean[1];
+      float[] uiPos = new float[8];
+
+      boolean ok = SaveManager.loadSlot(
+          slot,
+          seed,
+          pxpy,
+          inv,
+          wallet,
+          progress,
+          needs,
+          dt,
+          dIdx,
+          hb,
+          hbSel,
+          boat,
+          climb,
+          uiPos,
+          entities,
+          chestStore,
+          worldNodes,
+          null,
+          null,
+          questLog,
+          zqsSave,
+          worldMap
+      );
+      if (!ok) {
+        toast = "No save in slot" + slot;
+        toastT = 2.5f;
+        return;
+      }
+
+      // Inventory slot layout may be loaded (v2). As a fallback for older saves, rebuild from totals.
+      // (If slots were imported, rebuildSlotsFromCounts() would destroy organization.)
+      // Heuristic: if normal slots are still minimal and empty but counts exist, rebuild.
+      boolean anyCounts = false;
+      for (int i = 0; i < inv.countsById.length; i++) { if (inv.countsById[i] > 0) { anyCounts = true; break; } }
+      boolean anySlot = false;
+      for (int i = 0; i < inv.normalSlotCount(); i++) { if (inv.getNormalItemId(i) >= 0 && inv.getNormalCount(i) > 0) { anySlot = true; break; } }
+      for (int i = 0; i < inv.toolSlotCount() && !anySlot; i++) { if (inv.getToolItemId(i) >= 0 && inv.getToolCount(i) > 0) { anySlot = true; break; } }
+      if (anyCounts && !anySlot) inv.rebuildSlotsFromCounts();
+
+      // restore scalar state
+      px = pxpy[0];
+      py = pxpy[1];
+      // Loading a save should preserve saved HP (do not force full HP like on new game).
+      forceFullHpOnce = false;
+      dayNight.t = dt[0];
+      prevDayT = dayNight.t;
+
+      hasBoat = boat[0];
+      hasClimb = climb[0];
+
+      // UI layout positions (optional)
+      if (uiPos != null && uiPos.length >= 8) {
+        if (!Float.isNaN(uiPos[0]) && !Float.isNaN(uiPos[1])) { invAnchorX = uiPos[0]; invAnchorY = uiPos[1]; }
+        if (!Float.isNaN(uiPos[2]) && !Float.isNaN(uiPos[3])) { questHubAnchorX = uiPos[2]; questHubAnchorY = uiPos[3]; }
+        if (!Float.isNaN(uiPos[4]) && !Float.isNaN(uiPos[5])) { questOpenAnchorX = uiPos[4]; questOpenAnchorY = uiPos[5]; }
+        if (!Float.isNaN(uiPos[6]) && !Float.isNaN(uiPos[7])) { questDoneAnchorX = uiPos[6]; questDoneAnchorY = uiPos[7]; }
+      }
+
+      // Destroy active world and rebuild from save seed.
+      resetWorld(seed[0]);
+
+      // Areas-only mode: reload the current area tilemap into the new world.
+      if (AREA_MODE) {
+        try {
+          new JsonAreaWorldLoader().loadInto(this, worldMap.curTemplateId, null);
+        } catch (Throwable ignored) {}
+      }
+
+      // Re-apply mined ROCK tiles (rock->grass) from save.
+      applyMinedRockTilesFromSave();
+
+      merchants = new MerchantSystem(seed[0]);
+      merchants.importFromSave(SaveManager.readMerchantSys(slot), entities);
+
+      questGuy = new WanderQuestGuySystem(seed[0]);
+      // Old questSys save block removed; WanderQuestGuySystem has no persisted offer/timer state.
+
+      // Recreate + bind ZQS runtime facade and dock.
+      zqsRt = new ZqsRuntime(seed[0]);
+      zqsWqgDock = new WanderQuestGuyDock(zqsRt);
+      questGuy.bindZqsDock(zqsWqgDock);
+
+      questGuy.bindZqsContextProvider(() -> {
+        var c = new ZqsConversationContext();
+        // ZQS runtimeSec must be stable across save/load; use real epoch seconds.
+        long nowSec = System.currentTimeMillis() / 1000L;
+        c.epochSec = nowSec;
+        c.runtimeSec = nowSec;
+        c.debugHqMode = "EXCLUDE_HQ";
+        float t = dayNight.t;
+        if (t < 0.23f) c.timeOfDay = "morning";
+        else if (t < 0.55f) c.timeOfDay = "day";
+        else if (t < 0.78f) c.timeOfDay = "evening";
+        else c.timeOfDay = "night";
+
+        c.openQuestsCount = (questLog != null) ? questLog.size() : 0;
+        c.completedQuestsCount = 0;
+        if (questLog != null) {
+          for (int i = 0; i < questLog.entries.size; i++) {
+            var e = questLog.entries.get(i);
+            if (e != null && e.status == COMPLETED) c.completedQuestsCount++;
+          }
+        }
+
+        int oq = c.openQuestsCount;
+        if (oq <= 2) c.worldstressZone = "ruhig";
+        else if (oq <= 5) c.worldstressZone = "belebt";
+        else c.worldstressZone = "hektisch";
+
+        return c;
+      });
+
+      zqsRt.bind(data, progress, zqsSave);
+      zqsRt.bindWorldMap(worldMap);
+      zqsRt.bindEntities(entities);
+      encounterSpawner.resetTimers();
+
+      // restore scalar state
+      dayIndex = dIdx[0];
+      System.arraycopy(hb, 0, hotbar, 0, Math.min(hotbar.length, hb.length));
+      hotbarSel = (hbSel[0] >= 0 && hbSel[0] < hotbar.length) ? hbSel[0] : 0;
+
+      // Entities were restored from save snapshot; find the player entity.
+      playerE = -1;
+      for (int e = 0; e < Entities.MAX; e++) {
+        if (!entities.alive[e]) continue;
+        if (entities.type[e] == EntityType.PLAYER) { playerE = e; break; }
+      }
+      if (playerE >= 0) {
+        entities.setAlwaysActive(playerE, true);
+        px = entities.x[playerE];
+        py = entities.y[playerE];
+      } else {
+        // fallback
+        playerE = entities.spawn(EntityType.PLAYER, px, py);
+        entities.setAlwaysActive(playerE, true);
+      }
+
+      // BLOCK D: procedural nodes (ensure around, but do NOT overwrite existing restored entities)
+      // Use warmup-limited radius to avoid a generation burst right after loading.
+      int r0 = (streamWarmupFrames > 0) ? 0 : streamRadiusChunks;
+      // Node visibility/removal: do not spawn local procedural nodes here.
+      if (true) {
+        nodeSpawner.ensureAround(entities, worldNodes, px, py, r0);
+      }
+
+      shopOpen = false;
+      invOpen = false;
+      craftOpen = false;
+      buildMode = false;
+      openChestE = -1;
+
+      // Clear transient caches/state (projectiles, UI drags/popups, cooldowns) before continuing.
+      buyPopup = false;
+      buyBuffer = "";
+      dragArmed = false;
+      dragActive = false;
+// Nicht fertiges Feature:       hackSfxT = 0f;
+      bowCooldownT = 0f;
+      for (int i = 0; i < ARROW_MAX; i++) arrowAlive[i] = false;
+      commandQueue.clear();
+
+      regenShopOffers();
+
+      toast = "Loaded: slot" + slot;
+      toastT = 2.5f;
+    } catch (Throwable t) {
+      toast = "Load failed";
+      toastT = 3.5f;
+    }
+  }

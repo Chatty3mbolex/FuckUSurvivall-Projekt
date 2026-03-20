@@ -1,0 +1,36 @@
+﻿  private void drawHotbarHud() {
+    // Bottom anchored HUD: slot icons + selection frame.
+    float slot = 144f;
+    float pad = 18f;
+
+    float barW = hotbar.length * slot + (hotbar.length - 1) * pad;
+
+    float x0 = (Gdx.graphics.getWidth() - barW) * 0.5f;
+    float y0 = 0f; // bottom edge flush with screen bottom
+
+    // cache for hit-tests
+    hotbarX0 = x0;
+    hotbarY0 = y0;
+    hotbarSlotPx = slot;
+    hotbarPadPx = pad;
+// Nicht fertiges Feature:     hotbarLayoutValid = true;
+
+    for (int i=0;i<hotbar.length;i++) {
+      float sx = x0 + i * (slot + pad);
+      float sy = y0;
+
+      boolean selected = (i == hotbarSel);
+      batch.draw(selected ? uiRegions.slotPressed : uiRegions.slot, sx, sy, slot, slot);
+
+      int id = hotbar[i];
+      if (id >= 0) {
+        TextureRegion icon = entityRegions.itemIcon(id);
+        float iw = slot * 0.72f;
+        float ih = slot * 0.72f;
+        boolean owned = inv.hasItem(id);
+        if (!owned) batch.setColor(1f, 1f, 1f, 0.35f);
+        if (icon != null) batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f, iw, ih);
+        if (!owned) batch.setColor(1f, 1f, 1f, 1f);
+      }
+    }
+  }

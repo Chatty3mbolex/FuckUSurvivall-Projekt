@@ -1,0 +1,31 @@
+﻿  private float actionReach(int equippedItemId) {
+    // NOTE: keep values centralized so we can individualize tools/weapons later.
+
+    float base = ACTION_RADIUS_DEFAULT;
+    if (equippedItemId < 0) {
+      // Unarmed: affected by CombatMelee range.
+      int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+      float mul = SkillEffects.mul5(meleeLv);
+      return base * mul;
+    }
+
+    // For now: everything is clamped to the same ring radius, but per-item (not a global toggle).
+    float r = switch (equippedItemId) {
+      // Tools
+      case 14, 15, 16, 17, 18, 19, 36 -> base;
+
+      // Weapons
+      case 20, 21, 22, 23, 24, 25, 26, 27 -> base;
+
+      default -> base;
+    };
+
+    // Requested: CombatMelee increases action zone / reach especially for fist + knife.
+    if (equippedItemId == 23) { // dagger as "messer"
+      int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+      float mul = SkillEffects.mul5(meleeLv);
+      r *= mul;
+    }
+
+    return r;
+  }

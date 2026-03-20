@@ -1,0 +1,4 @@
+﻿                if (fireBowArrow(px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), speed, range, dmg, spread)) {
+                  bowCooldownT = reload;
+                  game.audio.sfx("audio/sfx/attack_ranged.wav", game.audio.sfxVolume(game.settings));
+                }

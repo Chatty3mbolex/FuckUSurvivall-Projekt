@@ -1,0 +1,72 @@
+﻿WorldMapState|146|import com.yourgame.survival.worldmap.WorldMapState;
+WorldMapState|147|import com.yourgame.survival.worldmap.WorldMapState.AreaExits;
+WorldMapState|148|import com.yourgame.survival.worldmap.WorldMapState.AreaState;
+WorldMapState|149|import com.yourgame.survival.worldmap.WorldMapState.Edge;
+WorldMapState|1081|private final WorldMapState worldMap = new WorldMapState();
+WorldMapState|7958|*   procedural world. It only mutates {@link WorldMapState}.
+WorldMapState|8758|/** @return persistent WorldMapState (per-save) used for one-time POIs and authored node removals. */
+WorldMapState|8759|public WorldMapState areaWorldMapState() {
+WorldMapTravelController|150|import com.yourgame.survival.worldmap.WorldMapTravelController;
+WorldMapTravelController|1095|private final WorldMapTravelController worldMapTravel =
+WorldMapTravelController|1096|new WorldMapTravelController(
+AreaWorldLoader|142|import com.yourgame.survival.worldmap.JsonAreaWorldLoader;
+AreaWorldLoader|733|new JsonAreaWorldLoader().loadInto(GameScreen.this, worldMap.curTemplateId, null);
+AreaWorldLoader|1098|new JsonAreaWorldLoader());
+AreaWorldLoader|1812|// Area content is loaded explicitly via JsonAreaWorldLoader (ground layer applied into fixed area chunks).
+AreaWorldLoader|2142|new JsonAreaWorldLoader().loadInto(this, worldMap.curTemplateId, null);
+AreaWorldLoader|7957|* - The loader currently used is {@code NoopAreaWorldLoader}, so this does NOT modify the current
+JsonAreaWorldLoader|142|import com.yourgame.survival.worldmap.JsonAreaWorldLoader;
+JsonAreaWorldLoader|733|new JsonAreaWorldLoader().loadInto(GameScreen.this, worldMap.curTemplateId, null);
+JsonAreaWorldLoader|1098|new JsonAreaWorldLoader());
+JsonAreaWorldLoader|1812|// Area content is loaded explicitly via JsonAreaWorldLoader (ground layer applied into fixed area chunks).
+JsonAreaWorldLoader|2142|new JsonAreaWorldLoader().loadInto(this, worldMap.curTemplateId, null);
+NoopAreaWorldLoader|7957|* - The loader currently used is {@code NoopAreaWorldLoader}, so this does NOT modify the current
+areaEnemyZonesTick|4332|areaEnemyZonesTick(dt);
+areaEnemyZonesTick|4426|private void areaEnemyZonesTick(float dt) {
+areaClearEnemyZones|8845|public void areaClearEnemyZones() {
+areaAddEnemyZone|8849|public void areaAddEnemyZone(int cxTile, int cyTile, int rTiles, int min, int max, int respawnDaysMin, int respawnDaysMax) {
+EnemyZone|4332|areaEnemyZonesTick(dt);
+EnemyZone|4426|private void areaEnemyZonesTick(float dt) {
+EnemyZone|4427|if (enemyZones.size == 0) return;
+EnemyZone|4431|for (int zi = 0; zi < enemyZones.size; zi++) {
+EnemyZone|4432|EnemyZone z = enemyZones.get(zi);
+EnemyZone|8772|private static final class EnemyZone {
+EnemyZone|8787|private final com.badlogic.gdx.utils.Array<EnemyZone> enemyZones = new com.badlogic.gdx.utils.Array<>(8);
+EnemyZone|8845|public void areaClearEnemyZones() {
+EnemyZone|8846|enemyZones.clear();
+EnemyZone|8849|public void areaAddEnemyZone(int cxTile, int cyTile, int rTiles, int min, int max, int respawnDaysMin, int respawnDaysMax) {
+EnemyZone|8850|EnemyZone z = new EnemyZone();
+EnemyZone|8870|enemyZones.add(z);
+enemyZones|4332|areaEnemyZonesTick(dt);
+enemyZones|4426|private void areaEnemyZonesTick(float dt) {
+enemyZones|4427|if (enemyZones.size == 0) return;
+enemyZones|4431|for (int zi = 0; zi < enemyZones.size; zi++) {
+enemyZones|4432|EnemyZone z = enemyZones.get(zi);
+enemyZones|8787|private final com.badlogic.gdx.utils.Array<EnemyZone> enemyZones = new com.badlogic.gdx.utils.Array<>(8);
+enemyZones|8845|public void areaClearEnemyZones() {
+enemyZones|8846|enemyZones.clear();
+enemyZones|8870|enemyZones.add(z);
+worldMapTravel|150|import com.yourgame.survival.worldmap.WorldMapTravelController;
+worldMapTravel|1095|private final WorldMapTravelController worldMapTravel =
+worldMapTravel|1096|new WorldMapTravelController(
+worldMapTravel|7857|public void debugTravelNorth() { debugWorldMapTravel(N); }
+worldMapTravel|7858|public void debugTravelEast()  { debugWorldMapTravel(E); }
+worldMapTravel|7859|public void debugTravelSouth() { debugWorldMapTravel(S); }
+worldMapTravel|7860|public void debugTravelWest()  { debugWorldMapTravel(W); }
+worldMapTravel|7964|private void debugWorldMapTravel(Dir4 dir) {
+worldMapTravel|7974|AreaTravelResult r = worldMapTravel.travel(this, worldMap, dir, seed);
+worldMapTravel|8360|AreaTravelResult r = worldMapTravel.travel(this, worldMap, dir, seed);
+travel\\(|150|import com.yourgame.survival.worldmap.WorldMapTravelController;
+travel\\(|1095|private final WorldMapTravelController worldMapTravel =
+travel\\(|1096|new WorldMapTravelController(
+travel\\(|7857|public void debugTravelNorth() { debugWorldMapTravel(N); }
+travel\\(|7858|public void debugTravelEast()  { debugWorldMapTravel(E); }
+travel\\(|7859|public void debugTravelSouth() { debugWorldMapTravel(S); }
+travel\\(|7860|public void debugTravelWest()  { debugWorldMapTravel(W); }
+travel\\(|7964|private void debugWorldMapTravel(Dir4 dir) {
+travel\\(|7974|AreaTravelResult r = worldMapTravel.travel(this, worldMap, dir, seed);
+travel\\(|8360|AreaTravelResult r = worldMapTravel.travel(this, worldMap, dir, seed);
+debugTravelNorth|7857|public void debugTravelNorth() { debugWorldMapTravel(N); }
+debugTravelEast|7858|public void debugTravelEast()  { debugWorldMapTravel(E); }
+debugTravelSouth|7859|public void debugTravelSouth() { debugWorldMapTravel(S); }
+debugTravelWest|7860|public void debugTravelWest()  { debugWorldMapTravel(W); }

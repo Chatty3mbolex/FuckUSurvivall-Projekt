@@ -1,0 +1,121 @@
+﻿        if (k != null) onKill(k);
+        if (playerE >= 0) entities.aiF0[playerE] = HAND_SWING_DUR;
+
+        game.audio.sfx("audio/sfx/attack_melee.wav", game.audio.sfxVolume(game.settings));
+      }
+      } else {
+        // Unarmed melee (uses the same CombatMelee scaling).
+        int meleeLv = (SK_COMBAT_MELEE >= 0 && SK_COMBAT_MELEE < progress.skillLv.length) ? progress.skillLv[SK_COMBAT_MELEE] : 1;
+        float meleeMul = SkillEffects.mul5(meleeLv);
+        float dmg = 10f * meleeMul;
+        float range = REACH_COMBAT * meleeMul;
+
+        var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+        if (k != null) onKill(k);
+        if (playerE >= 0) entities.aiF0[playerE] = HAND_SWING_DUR;
+
+        game.audio.sfx("audio/sfx/attack_melee.wav", game.audio.sfxVolume(game.settings));
+      }
+    }
+
+    // Bow special: allow a melee shove/smack on RIGHT CLICK while holding the bow.
+    if (!shopOpen && !craftOpen && !invOpen && !buildMode && openChestE < 0 && selectedTool == 22
+        && Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+      // small melee hit
+      float dmg = 6f;
+      float range = REACH_COMBAT * 0.75f;
+      var k = combat.meleeFov(entities, px, py, mouseWorldX, mouseWorldY, fovFx, fovFy, actionFovDeg(), range, dmg);
+      if (k != null) onKill(k);
+      game.audio.sfx("audio/sfx/attack_melee.wav", game.audio.sfxVolume(game.settings));
+      if (playerE >= 0) entities.aiF0[playerE] = HAND_SWING_DUR;
+    }
+
+    // Debug toggles are handled centrally via DebugCommands.
+
+    // Quest logbook hub (Shift+Q)
+    if (shiftHeld && Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+      questLogHubOpen = !questLogHubOpen;
+      if (questLogHubOpen) {
+        // Close other modals.
+        shopOpen = false;
+        craftOpen = false;
+        invOpen = false;
+        buildMode = false;
+        walletOpen = false;
+        pricingEditor.close();
+        openChestE = -1;
+        // WQG popup is independent; keep it as-is.
+        game.audio.sfx("audio/sfx/ui_click.wav", game.audio.sfxVolume(game.settings));
+      } else {
+        // Closing hub also closes both sub-windows.
+        questLogOpenQuestsOpen = false;
+        questLogDoneQuestsOpen = false;
+        game.audio.sfx("audio/sfx/ui_back.wav", game.audio.sfxVolume(game.settings));
+      }
+    }
+
+    // Interact / pickup (E)
+    if (!pricingEditor.isOpen() && !walletOpen && Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+      if (tryToggleShop()) {
+        // handled
+      } else if (tryToggleQuestGuy()) {
+        // handled
+      } else {
+        pickupNearby();
+      }
+    }
+
+    if (zqsRt != null) {
+      long nowSec = System.currentTimeMillis() / 1000L;
+      zqsRt.refreshQuestLifecycle(buildZqsProgressSnapshot(nowSec), nowSec);
+    }
+
+    // WQG dialog: offer accept/decline/turn-in is handled via explicit UI buttons (no debug keybinds).
+
+    // UI interactions: shop buy/sell + drag-to-buy + tool->hotbar drag + hotbar reordering + buy popup
+    float uiMx = Gdx.input.getX();
+    float uiMy = uiMouseYUp();
+    boolean hoverHotbar = (hotbarHit(uiMx, uiMy) >= 0);
+    if (shopOpen || invOpen || buildMode || buyPopup || sellPopup || dragArmed || dragActive || hoverHotbar) {
+      uiHandleDragDropAndPopup();
+    }
+
+    // Craft shortcut: craft workbench (key 1) / axe (2) / pickaxe (3)
+    if (craftOpen) {
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) craftByOutput(40);
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) craftByOutput(14);
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) craftByOutput(15);
+    }
+
+    // Chest transfer shortcuts
+    if (openChestE >= 0) {
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) chestStoreFromPlayer(0, 5);
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) chestStoreFromPlayer(1, 5);
+      if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) chestStoreFromPlayer(31, 5);
+      if (Gdx.input.isKeyJustPressed(Input.Keys.F)) chestTakeAll();
+    }
+    collectInputSnapshot(delta, inputState);
+    applyCommands(commandQueue);
+
+    /* ===== SIMULATION TICK ===== */
+    // Simulation must keep running during the boot overlay to hide initial load spikes.
+    updateScheduler(delta);
+
+    // Smoothing must run in the normal gameplay path as well (not only during boot overlay).
+    
+
+    // Debug: one compact line/sec for MP position + camera + entity coupling.
+    
+
+    /* ===== WORLD DRAW ===== */
+    renderWorld(delta, selectedTool);
+
+    // Day/Night visuals target + smoothing (never instant, even via debug)
+    {
+      float rawLight;
+      float rawWarm;
+      switch (dnDebugMode) {
+        case 1 -> {
+          rawLight = 1f;
+          rawWarm = 0f;
+        }

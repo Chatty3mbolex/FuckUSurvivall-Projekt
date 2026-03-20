@@ -1,0 +1,20 @@
+﻿=== renderWorld ===
+newTokens=0
+newDotted=0
+
+=== renderUI ===
+newTokens=0
+newDotted=0
+
+=== updateDnMask ===
+newTokens=0
+newDotted=0
+
+=== rebuildDnMaskFbo ===
+newTokens=0
+newDotted=0
+
+=== updateDayNightMusic ===
+newTokens=0
+newDotted=0
+

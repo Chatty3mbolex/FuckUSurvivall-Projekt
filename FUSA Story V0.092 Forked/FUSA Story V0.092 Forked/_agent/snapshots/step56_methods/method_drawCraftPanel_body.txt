@@ -1,0 +1,246 @@
+﻿  private void drawCraftPanel() {
+    // Craft panel
+    float panelW = 1230f;
+    float panelH = 540f;
+    float headerH = 70f;
+
+    ensurePanelAnchor(panelW, panelH, false, true, false);
+
+    float[] axay = new float[]{craftAnchorX, craftAnchorY};
+    boolean[] d = new boolean[]{craftDrag};
+    float[] dd = new float[]{craftDragDx, craftDragDy};
+    handlePanelDrag(true, axay, d, dd, panelW, panelH, headerH);
+    craftAnchorX = axay[0]; craftAnchorY = axay[1];
+    craftDrag = d[0]; craftDragDx = dd[0]; craftDragDy = dd[1];
+
+    float x0 = craftAnchorX;
+    float y0 = craftAnchorY;
+
+    // base panel
+    batch.setColor(1f, 1f, 1f, 1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    // title
+    font.setColor(0f, 0f, 0f, 1f);
+    font.getData().setScale(1.55f * UI_FONT_SCALE);
+    font.draw(batch, "CRAFT", x0 + 28f, y0 + panelH - 24f);
+
+    font.getData().setScale(1.05f * UI_FONT_SCALE);
+    font.draw(batch, "Scroll wheel = list | Click qty box to type | Click 'Jetzt craften'", x0 + 28f, y0 + panelH - 56f);
+
+    // recipe grid
+    float slot = 108f;
+    float pad = 22f;
+    int cols = 5;
+
+    float listX0 = x0 + 28f;
+    float listTopY = y0 + panelH - 110f; // top baseline
+
+    float mx = Gdx.input.getX();
+    float my = uiMouseYUp();
+
+    // Only handle interaction when cursor is inside the craft panel.
+    boolean click = Gdx.input.justTouched() && hitRect(mx, my, x0, y0, panelW, panelH);
+
+    // Clip drawing + interaction to list area so background and interactive area match.
+    float clipX = x0 + 18f;
+    float clipY = y0 + 18f;
+    float clipW = panelW - 36f;
+    float clipH = panelH - (headerH + 28f);
+    Rectangle clip = scratch.r0;
+    clip.set(clipX, clipY, clipW, clipH);
+    Rectangle scissors = scratch.r1;
+    ScissorStack.calculateScissors(uiCam, batch.getTransformMatrix(), clip, scissors);
+    batch.flush();
+    ScissorStack.pushScissors(scissors);
+
+    craftHoverIdx = -1;
+
+    int n = data.recipes.size();
+    if (craftQtyByRecipe == null || craftQtyByRecipe.length != n) {
+      craftQtyByRecipe = new int[n];
+      for (int i = 0; i < n; i++) craftQtyByRecipe[i] = 1;
+      craftQtyFocusIdx = -1;
+      craftQtyBuffer = "1";
+    }
+
+    float rowH = slot + 56f + pad; // slot + qty/button row + pad
+
+    // clamp scroll
+    int rows = (int) Math.ceil(n / (double) cols);
+    float visibleH = panelH - 150f;
+    float contentH = rows * rowH;
+    float maxScroll = Math.max(0f, contentH - visibleH);
+    craftScroll = MathUtils.clamp(craftScroll, 0f, maxScroll);
+
+    // draw items
+    int idx = 0;
+    for (int r = 0; r < rows; r++) {
+      float baseY = listTopY - r * rowH + craftScroll;
+
+      // skip rows far outside
+      if (baseY < y0 - 220f) { idx += cols; continue; }
+      if (baseY > y0 + panelH + 220f) { idx += cols; continue; }
+
+      for (int c = 0; c < cols && idx < n; c++, idx++) {
+        var rec = data.recipes.get(idx);
+        int outId = rec.outItemId;
+
+        float sx = listX0 + c * (slot + pad);
+        float sy = baseY - slot;
+
+        boolean can1 = craft.canCraft(inv, rec);
+
+        // slot bg
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(uiRegions.slot, sx, sy, slot, slot);
+
+        // output icon (dark if cannot craft)
+        TextureRegion icon = entityRegions.itemIcon(outId);
+        if (!can1) batch.setColor(1f, 1f, 1f, 0.30f);
+        if (icon != null) {
+          float iw = slot * 0.78f;
+          float ih = slot * 0.78f;
+          batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f, iw, ih);
+        }
+        batch.setColor(1f, 1f, 1f, 1f);
+
+        // hover detection
+        boolean overIcon = hitRect(mx, my, sx, sy, slot, slot);
+        if (overIcon) craftHoverIdx = idx;
+
+        // qty box under icon
+        float qx = sx;
+        float qy = sy - 44f;
+        float qw = slot * 0.58f;
+        float qh = 40f;
+        batch.draw((craftQtyFocusIdx == idx) ? uiRegions.slotPressed : uiRegions.slot, qx, qy, qw, qh);
+
+        // qty text
+        int qv = (idx >= 0 && idx < craftQtyByRecipe.length) ? craftQtyByRecipe[idx] : 1;
+        font.setColor(0f, 0f, 0f, 1f);
+        font.getData().setScale(0.95f * UI_FONT_SCALE);
+        font.draw(batch, String.valueOf(qv), qx + 12f, qy + 28f);
+
+        // craft button
+        float bx = qx + qw + 10f;
+        float by = qy;
+        float bw = slot - (qw + 10f);
+        float bh = qh;
+
+        boolean canSome = can1; // gate button visibility
+        if (!canSome) batch.setColor(1f, 1f, 1f, 0.35f);
+        batch.draw(uiRegions.button, bx, by, bw, bh);
+        batch.setColor(1f, 1f, 1f, 1f);
+
+        font.setColor(0f, 0f, 0f, 1f);
+        font.getData().setScale(0.85f * UI_FONT_SCALE);
+        font.draw(batch, "Jetzt", bx + 10f, by + 26f);
+
+        // click interactions (only when inside list clip)
+        boolean inList = hitRect(mx, my, clipX, clipY, clipW, clipH);
+        if (click && inList) {
+          if (hitRect(mx, my, qx, qy, qw, qh)) {
+            craftQtyFocusIdx = idx;
+            craftQtyBuffer = String.valueOf(Math.max(0, qv));
+            // IMPORTANT: never early-return while a scissor is pushed (would freeze the viewport/clip).
+            // Consume click so it can't also trigger crafting in the same frame.
+            click = false;
+            continue;
+          }
+
+          if (hitRect(mx, my, bx, by, bw, bh)) {
+            int want = (idx >= 0 && idx < craftQtyByRecipe.length) ? craftQtyByRecipe[idx] : 1;
+            want = MathUtils.clamp(want, 1, 99999);
+            int made = 0;
+            for (int k = 0; k < want; k++) {
+              if (!craft.craft(inv, rec)) break;
+              int craftedOutId = rec.outItemId;
+              int outAmount = Math.max(1, rec.outAmount);
+              zqsCraftedOutputCounts.put(craftedOutId, zqsCraftedOutputCounts.get(craftedOutId, 0) + outAmount);
+              made++;
+            }
+            if (made > 0) game.audio.sfx("audio/sfx/craft.wav", game.audio.sfxVolume(game.settings));
+            else game.audio.sfx("audio/sfx/ui_error.wav", game.audio.sfxVolume(game.settings));
+          }
+        }
+      }
+    }
+
+    batch.flush();
+    ScissorStack.popScissors();
+
+    // Hover requirements panel (icons only) + tooltips
+    if (craftHoverIdx >= 0 && craftHoverIdx < data.recipes.size()) {
+      var rec = data.recipes.get(craftHoverIdx);
+      float reqW = 520f;
+      float reqH = 150f;
+      float rx0 = MathUtils.clamp(x0 + 24f, 0f, Math.max(0f, Gdx.graphics.getWidth() - reqW));
+      float ry0 = MathUtils.clamp(y0 + panelH + 10f, 0f, Math.max(0f, Gdx.graphics.getHeight() - reqH));
+
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(uiRegions.panelSlots, rx0, ry0, reqW, reqH);
+
+      float is = 72f;
+      float ip = 14f;
+      float ix0 = rx0 + 22f;
+      float iy0 = ry0 + reqH - 22f - is;
+
+      // Track tooltip
+      int tipItemId = -1;
+
+      // output icon
+      int outIdUi = rec.outItemId;
+      batch.draw(uiRegions.slotPressed, ix0, iy0, is, is);
+      TextureRegion outIcon = entityRegions.itemIcon(outIdUi);
+      if (outIcon != null) {
+        float iw = is * 0.78f;
+        float ih = is * 0.78f;
+        batch.draw(outIcon, ix0 + (is - iw) * 0.5f, iy0 + (is - ih) * 0.5f, iw, ih);
+      }
+      if (hitRect(mx, my, ix0, iy0, is, is)) tipItemId = outIdUi;
+
+      // arrow-ish separator
+      font.setColor(0f, 0f, 0f, 1f);
+      font.getData().setScale(1.2f * UI_FONT_SCALE);
+      font.draw(batch, "=>", ix0 + is + 14f, iy0 + 50f);
+
+      float inX = ix0 + is + 60f;
+      for (int k = 0; k < rec.inItemId.length; k++) {
+        int inId = rec.inItemId[k];
+        int need = rec.inAmount[k];
+        float sx = inX + k * (is + ip);
+        float sy = iy0;
+
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(uiRegions.slot, sx, sy, is, is);
+        TextureRegion ic = entityRegions.itemIcon(inId);
+        if (ic != null) {
+          float iw = is * 0.78f;
+          float ih = is * 0.78f;
+          batch.draw(ic, sx + (is - iw) * 0.5f, sy + (is - ih) * 0.5f, iw, ih);
+        }
+
+        // count overlay (number only)
+        font.setColor(0f, 0f, 0f, 1f);
+        font.getData().setScale(0.95f * UI_FONT_SCALE);
+        font.draw(batch, String.valueOf(need), sx + 8f, sy + 22f);
+
+        if (hitRect(mx, my, sx, sy, is, is)) tipItemId = inId;
+      }
+
+      // Tooltip for item name (screen name)
+      if (tipItemId >= 0 && tipItemId < data.items.length && data.items[tipItemId] != null) {
+        String nm = data.items[tipItemId].name;
+        float tw = 380f;
+        float th = 56f;
+        float tx = MathUtils.clamp(mx + 18f, 0f, Math.max(0f, Gdx.graphics.getWidth() - tw));
+        float ty = MathUtils.clamp(my + 18f, 0f, Math.max(0f, Gdx.graphics.getHeight() - th));
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(uiRegions.panel, tx, ty, tw, th);
+        font.setColor(0f, 0f, 0f, 1f);
+        font.getData().setScale(1.0f * UI_FONT_SCALE);
+        font.draw(batch, nm, tx + 16f, ty + 36f);
+      }
+    }
+  }

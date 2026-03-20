@@ -1,0 +1,8 @@
+﻿batch.draw
+batch.setColor
+entityRegions.itemIcon
+Gdx.graphics
+hotbar.length
+inv.hasItem
+uiRegions.slot
+uiRegions.slotPressed

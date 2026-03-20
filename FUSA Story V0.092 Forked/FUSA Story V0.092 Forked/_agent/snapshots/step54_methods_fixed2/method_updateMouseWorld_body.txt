@@ -1,0 +1,27 @@
+﻿    private void updateMouseWorld(boolean clampToRing) {
+      // clamp to action ring (optional)
+      float uiX = Gdx.input.getX();
+      float uiY = uiMouseYUp();
+      float wx = cam.unproject(new Vector3(uiX, uiY, 0f)).x;
+      float wy = cam.unproject(new Vector3(uiX, uiY, 0f)).y;
+
+      if (clampToRing) {
+        float r = actionReach(equippedFromHotbar());
+        float dx = wx - px;
+        float dy = wy - py;
+        float d2 = dx * dx + dy * dy;
+        if (d2 > r * r) {
+          float inv = 1.0f / (float)Math.sqrt(Math.max(1e-6f, d2));
+          wx = px + dx * inv * r;
+          wy = py + dy * inv * r;
+          // also clamp OS cursor
+          Vector3 ui = cam.project(new Vector3(wx, wy, 0f));
+          Gdx.input.setCursorPosition((int)ui.x, (int)(Gdx.graphics.getHeight() - ui.y));
+        }
+      }
+
+      mouseWorldX = wx;
+      mouseWorldY = wy;
+
+      // Cursor hide logic is kept in GameScreen (fields), so this method only updates coords.
+    }

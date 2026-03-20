@@ -1,0 +1,7 @@
+﻿        float r = actionReach(selectedTool);
+        float dx = mouseWorldX - px;
+        float dy = mouseWorldY - py;
+        if (dx * dx + dy * dy <= r * r + 0.001f) {
+          wantHidden = true;
+          if (selectedTool < 0) drawUnarmedDotCursor = true;
+        }

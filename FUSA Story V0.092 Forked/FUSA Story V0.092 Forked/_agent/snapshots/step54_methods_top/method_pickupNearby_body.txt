@@ -1,0 +1,26 @@
+﻿  private void pickupNearby() {
+    float eff = REACH_PICKUP + EntityMetrics.radius(EntityType.ITEM_DROP);
+    float r2 = eff * eff;
+    for (int i=0;i<Entities.MAX;i++) {
+      if (!entities.alive[i]) continue;
+      if (entities.type[i] != EntityType.ITEM_DROP) continue;
+      float dx = entities.x[i] - px;
+      float dy = entities.y[i] - py;
+      if (dx*dx + dy*dy <= r2) {
+        int id = entities.itemId[i];
+        int amt = entities.itemAmount[i];
+
+        // currency items go to wallet, not inventory
+        if (id >= 31 && id <= 33) {
+          int each = Math.max(0, priceBook.getBaseCopper(id));
+          wallet.addCopper((long) each * Math.max(0, amt));
+        } else {
+          inv.add(id, amt);
+        }
+
+        entities.kill(i);
+        game.audio.sfx("audio/sfx/pickup.wav", game.audio.sfxVolume(game.settings));
+        return;
+      }
+    }
+  }

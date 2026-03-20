@@ -1,0 +1,77 @@
+﻿  private void drawBuildPanel() {
+    float panelW = 560f;
+    float panelH = 360f;
+    float headerH = 70f;
+
+    ensurePanelAnchor(panelW, panelH, true, false, false);
+
+    float[] axay = new float[]{buildAnchorX, buildAnchorY};
+    boolean[] d = new boolean[]{buildDrag};
+    float[] dd = new float[]{buildDragDx, buildDragDy};
+    handlePanelDrag(true, axay, d, dd, panelW, panelH, headerH);
+    buildAnchorX = axay[0]; buildAnchorY = axay[1];
+    buildDrag = d[0]; buildDragDx = dd[0]; buildDragDy = dd[1];
+
+    float x0 = buildAnchorX;
+    float y0 = buildAnchorY;
+
+    batch.setColor(1f,1f,1f,1f);
+    batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+
+    font.setColor(0f,0f,0f,1f);
+    font.getData().setScale(1.45f * UI_FONT_SCALE);
+    font.draw(batch, "BUILD MODE", x0 + 28f, y0 + panelH - 24f);
+
+    font.getData().setScale(1.05f * UI_FONT_SCALE);
+    font.draw(batch, "B toggle | Drag icon to world = build | Q/E rotate | Shift+RMB remove", x0 + 28f, y0 + panelH - 56f);
+
+    // Icon row (draggable)
+    float slot = 92f;
+    float pad = 16f;
+    float sx0 = x0 + 28f;
+    float sy0 = y0 + panelH - 170f;
+
+    // cache for drag hit-tests
+    buildLayoutValid = true;
+    buildPanelX0 = x0;
+    buildPanelY0 = y0;
+    buildPanelW = panelW;
+    buildPanelH = panelH;
+    buildSlotsX0 = sx0;
+    buildSlotsY0 = sy0;
+    buildSlotPx = slot;
+    buildPadPx = pad;
+
+    EntityType[] buildTypes = {
+        EntityType.BUILD_WORKBENCH,
+        EntityType.BUILD_BED,
+        EntityType.BUILD_CAMPFIRE,
+        EntityType.BUILD_LAMP
+    };
+
+    // NOTE: selection is via drag (no click-to-select)
+
+    buildSlotsCount = buildTypes.length;
+
+    for (int i = 0; i < buildTypes.length; i++) {
+      float sx = sx0 + i * (slot + pad);
+      float sy = sy0;
+      boolean selected = (i == buildSel);
+      batch.setColor(1f, 1f, 1f, 1f);
+      batch.draw(selected ? uiRegions.slotPressed : uiRegions.slot, sx, sy, slot, slot);
+
+    TextureRegion icon = entityRegions.forEntity(buildTypes[i], 0f, -1, 0f, 0f, (byte)2, 0f);
+      if (icon != null) {
+        float iw = slot * 0.74f;
+        float ih = slot * 0.74f;
+        batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f, iw, ih);
+      }
+
+      // Drag-only selection (handled in uiHandleDragDropAndPopup)
+    }
+
+    // Rotation + rule (still text, but now inside panel and large/black)
+    font.getData().setScale(1.0f * UI_FONT_SCALE);
+    font.draw(batch, "Rotation: " + (int) buildRot + "°", x0 + 28f, y0 + 120f);
+    font.draw(batch, "Rule: cannot place on water.", x0 + 28f, y0 + 92f);
+  }

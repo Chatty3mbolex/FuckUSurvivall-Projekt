@@ -1,0 +1,13 @@
+﻿    private void collectInputSnapshot(float delta, InputState out) {
+      out.delta = delta;
+      out.mx = Gdx.input.getX();
+      out.my = uiMouseYUp();
+      out.mwx = mouseWorldX;
+      out.mwy = mouseWorldY;
+      out.lmb = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
+      out.rmb = Gdx.input.isButtonPressed(Input.Buttons.RIGHT);
+      out.mmb = Gdx.input.isButtonPressed(Input.Buttons.MIDDLE);
+      out.shift = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT);
+      out.ctrl = Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT);
+      out.alt = Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.ALT_RIGHT);
+    }

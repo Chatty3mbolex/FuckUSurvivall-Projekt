@@ -1,0 +1,3 @@
+﻿  public WorldMapState areaWorldMapState() {
+    return worldMap;
+  }

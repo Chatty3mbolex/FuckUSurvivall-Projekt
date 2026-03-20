@@ -1,0 +1,409 @@
+﻿renderWorld\s*\(|2460|renderWorld(delta, selectedTool);
+renderWorld\s*\(|3219|renderWorld(delta, selectedTool);
+renderWorld\s*\(|3269|void renderWorld(float delta, int selectedTool) {
+renderWorld\s*\(|4465|// Keep in sync with renderWorld() chunk draw radius (+margin), plus one extra chunk
+renderUI\s*\(|2503|renderUI();
+renderUI\s*\(|3259|renderUI();
+renderUI\s*\(|3376|void renderUI() {
+dayNight|83|import com.yourgame.survival.systems.DayNightSystem;
+dayNight|865|dayNight.t,
+dayNight|957|dayNight.t = dt[0];
+dayNight|958|prevDayT = dayNight.t;
+dayNight|1002|float t = dayNight.t;
+dayNight|1244|private final DayNightSystem dayNight = new DayNightSystem();
+dayNight|1247|private Texture dayNight1x1;
+dayNight|1727|dayNight.t = 0.25f;
+dayNight|1747|float t = dayNight.t;
+dayNight|2079|dayNight1x1 = new Texture(pm);
+dayNight|2082|dayNight1x1 = null;
+dayNight|2320|prevDayT = dayNight.t;
+dayNight|2480|rawLight = dayNight.daylightPhased();
+dayNight|2481|rawWarm = dayNight.warmTwilight();
+dayNight|2493|updateDayNightMusic(delta);
+dayNight|3235|rawLight = dayNight.daylightPhased();
+dayNight|3236|rawWarm = dayNight.warmTwilight();
+dayNight|3248|updateDayNightMusic(delta);
+dayNight|3528|if (dayNight1x1 != null) {
+dayNight|3553|batch.draw(dayNight1x1, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+dayNight|3561|if (bootOverlayActive && dayNight1x1 != null) {
+dayNight|3567|batch.draw(dayNight1x1, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+dayNight|3577|batch.draw(dayNight1x1, x - 3f, y - 3f, w + 6f, h + 6f);
+dayNight|3579|batch.draw(dayNight1x1, x, y, w, h);
+dayNight|3585|batch.draw(dayNight1x1, x, y, fillW, h);
+dayNight|3664|private void updateDayNightMusic(float delta) {
+dayNight|4228|dayNight.tick(dt);
+dayNight|4307|if (dayNight.t < prevDayT) {
+dayNight|4311|prevDayT = dayNight.t;
+dayNight|8062|public void debugCycleDayNightMode() {
+dayNight|8186|st.leftDayT = dayNight.t;
+dayNight|9074|if (dayNight1x1 != null) {
+dayNight|9075|dayNight1x1.dispose();
+dayNight|9076|dayNight1x1 = null;
+mask|1136|// Debug: make road tiles blocking so we can detect invisible roadMask areas.
+mask|1249|private FrameBuffer dnMaskFbo;
+mask|1250|private TextureRegion dnMaskRegion;
+mask|2109|// Recreate Day/Night mask framebuffer
+mask|2110|rebuildDnMaskFbo(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+mask|2495|// Day/Night mask for debug lamp (must run outside UI batch)
+mask|2496|updateDnMask();
+mask|3250|// Day/Night mask for debug lamp (must run outside UI batch)
+mask|3251|updateDnMask();
+mask|3306|// FUSA Story: dense forests are drawn from tile bitmasks (NOT as Entities).
+mask|3549|// If debug lamp is on, draw darkness with an alpha-mask (so area becomes truly brighter)
+mask|3550|if ((dnLightOn || dnLightXLOn) && dnMaskRegion != null && dnLampScreenValid) {
+mask|3551|batch.draw(dnMaskRegion, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+mask|3757|private void updateDnMask() {
+mask|3760|// Only build mask when lamp is on and it's not full day.
+mask|3765|if (dnMaskFbo == null || dnMaskRegion == null) {
+mask|3766|rebuildDnMaskFbo(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+mask|3767|if (dnMaskFbo == null || dnMaskRegion == null) return;
+mask|3787|// Render mask into FBO: start with alpha=1 everywhere, then reduce alpha around lamp.
+mask|3788|dnMaskFbo.begin();
+mask|3827|dnMaskFbo.end();
+mask|3830|private void rebuildDnMaskFbo(int w, int h) {
+mask|3831|try { if (dnMaskFbo != null) dnMaskFbo.dispose(); } catch (Throwable ignored) {}
+mask|3832|dnMaskFbo = null;
+mask|3833|dnMaskRegion = null;
+mask|3838|dnMaskFbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
+mask|3839|Texture t = dnMaskFbo.getColorBufferTexture();
+mask|3840|dnMaskRegion = new TextureRegion(t);
+mask|3841|dnMaskRegion.flip(false, true); // FBO texture is Y-flipped
+mask|3843|dnMaskFbo = null;
+mask|3844|dnMaskRegion = null;
+mask|4010|c.layers.collisionMask[idx] = 0;
+mask|4047|c.layers.collisionMask[idx] = 0;
+mask|4406|// DEBUG: optionally treat roadMask as blocking to visualize (in movement) where roads exist.
+mask|4416|if (c.layers.roadMask[idx] != 0) coll = true;
+mask|4709|* - Rendering uses EntityRenderer.drawTileTrees() directly from bitmasks.
+mask|4741|// Update collision mask for visible tiles.
+mask|4764|if (c.layers.roadMask[idx] != 0) {
+mask|4765|c.layers.collisionMask[idx] = 0;
+mask|4769|if (c.layers.waterMask[idx] != 0) {
+mask|4770|c.layers.collisionMask[idx] = 0;
+mask|4778|c.layers.collisionMask[idx] = 0;
+mask|4862|if (c.layers.roadMask[idx] != 0) continue;
+mask|4863|if (c.layers.waterMask[idx] != 0) continue;
+mask|4955|// Recreate Day/Night mask framebuffer on resize
+mask|4956|rebuildDnMaskFbo(width, height);
+mask|8375|int mask = 1 << bit;
+mask|8376|boolean explored = (raw[bi] & mask) != 0;
+mask|8575|int mask = 1 << bit;
+mask|8576|return (fog[bi] & mask) != 0;
+mask|8587|byte mask = (byte) (1 << bit);
+mask|8588|if ((fog[bi] & mask) != 0) return false;
+mask|8589|fog[bi] |= mask;
+mask|8618|int mask = 1 << bit;
+mask|8619|boolean explored = bi >= 0 && bi < raw.length && ((raw[bi] & mask) != 0);
+mask|8916|// Presence mask: 1 bit per tile (384*384 bits => 18432 bytes). Generated deterministically on area load.
+mask|8918|// Cut mask: 1 bit per tile. Persisted per-area state (so trees don't come back after save/load).
+mask|9082|if (dnMaskFbo != null) {
+mask|9083|try { dnMaskFbo.dispose(); } catch (Throwable ignored) {}
+mask|9084|dnMaskFbo = null;
+ShapeRenderer|19|import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+ShapeRenderer|724|shape.begin(ShapeRenderer.ShapeType.Line);
+ShapeRenderer|1091|private ShapeRenderer shape;
+ShapeRenderer|2072|shape = new ShapeRenderer();
+ShapeRenderer|3348|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|4064|shape.begin(ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|4161|shape.begin(ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|4178|shape.begin(ShapeRenderer.ShapeType.Line);
+ShapeRenderer|4196|shape.begin(ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|8249|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|8259|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|8319|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+ShapeRenderer|8412|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+SpriteBatch|16|import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+SpriteBatch|1089|private SpriteBatch batch;
+SpriteBatch|2068|batch = new SpriteBatch();
+cam\.|427|cam.unproject(v);
+cam\.|446|cam.project(p);
+cam\.|717|shape.setProjectionMatrix(cam.combined);
+cam\.|1919|// Reason: in AREA_MODE the camera is clamped near edges, so cam.center != player.
+cam\.|1928|float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+cam\.|1929|float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+cam\.|2059|cam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+cam\.|2062|uiCam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+cam\.|2063|uiCam.update();
+cam\.|2066|cam.zoom = ZOOM_MAX;
+cam\.|2545|cam.zoom = MathUtils.clamp(cam.zoom + pendingScrollY * ZOOM_STEP_WHEEL, ZOOM_MIN, ZOOM_MAX);
+cam\.|2549|cam.zoom = MathUtils.clamp(cam.zoom - ZOOM_STEP_KEYS, ZOOM_MIN, ZOOM_MAX);
+cam\.|2552|cam.zoom = MathUtils.clamp(cam.zoom + ZOOM_STEP_KEYS, ZOOM_MIN, ZOOM_MAX);
+cam\.|3279|float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+cam\.|3280|float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+cam\.|3284|cam.position.set(cx, cy, 0f);
+cam\.|3286|cam.position.set(px, py, 0f);
+cam\.|3288|cam.update();
+cam\.|3290|batch.setProjectionMatrix(cam.combined);
+cam\.|3297|float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+cam\.|3298|float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+cam\.|3303|chunkRenderer.draw(batch, world, cam.position.x, cam.position.y, r);
+cam\.|3312|cam.position.x, cam.position.y, r,
+cam\.|3325|cam.position.x, cam.position.y, r,
+cam\.|3347|shape.setProjectionMatrix(cam.combined);
+cam\.|3378|batch.setProjectionMatrix(uiCam.combined);
+cam\.|3401|cam.project(v);
+cam\.|3772|cam.project(sp);
+cam\.|3793|batch.setProjectionMatrix(uiCam.combined);
+cam\.|4058|shape.setProjectionMatrix(cam.combined);
+cam\.|4160|shape.setProjectionMatrix(cam.combined);
+cam\.|4187|shape.setProjectionMatrix(cam.combined);
+cam\.|4463|float halfW = (cam.viewportWidth * cam.zoom) * 0.5f;
+cam\.|4464|float halfH = (cam.viewportHeight * cam.zoom) * 0.5f;
+cam\.|4946|float z = (cam != null) ? cam.zoom : ZOOM_DEFAULT;
+cam\.|4947|cam.setToOrtho(false, width, height);
+cam\.|4948|cam.zoom = MathUtils.clamp(z, ZOOM_MIN, ZOOM_MAX);
+cam\.|4951|uiCam.setToOrtho(false, width, height);
+cam\.|4952|uiCam.update();
+cam\.|5621|cam.project(sp);
+cam\.|5626|cam.project(spHead);
+cam\.|8248|shape.setProjectionMatrix(uiCam.combined);
+cam\.|8318|shape.setProjectionMatrix(uiCam.combined);
+cam\.|8717|batch.setProjectionMatrix(cam.combined);
+uiCam\.|2062|uiCam.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+uiCam\.|2063|uiCam.update();
+uiCam\.|3378|batch.setProjectionMatrix(uiCam.combined);
+uiCam\.|3793|batch.setProjectionMatrix(uiCam.combined);
+uiCam\.|4951|uiCam.setToOrtho(false, width, height);
+uiCam\.|4952|uiCam.update();
+uiCam\.|8248|shape.setProjectionMatrix(uiCam.combined);
+uiCam\.|8318|shape.setProjectionMatrix(uiCam.combined);
+Gdx\.gl|718|Gdx.gl.glEnable(GL20.GL_BLEND);
+Gdx\.gl|719|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+Gdx\.gl|739|Gdx.gl.glDisable(GL20.GL_BLEND);
+Gdx\.gl|3270|Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+Gdx\.gl|3271|Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+Gdx\.gl|3562|Gdx.gl.glEnable(GL20.GL_BLEND);
+Gdx\.gl|3563|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+Gdx\.gl|3589|Gdx.gl.glDisable(GL20.GL_BLEND);
+Gdx\.gl|3789|Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
+Gdx\.gl|3790|Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+Gdx\.gl|4060|Gdx.gl.glEnable(GL20.GL_BLEND);
+Gdx\.gl|4061|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+Gdx\.gl|4142|Gdx.gl.glDisable(GL20.GL_BLEND);
+Gdx\.gl|4157|Gdx.gl.glEnable(GL20.GL_BLEND);
+Gdx\.gl|4158|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+Gdx\.gl|4183|Gdx.gl.glDisable(GL20.GL_BLEND);
+Gdx\.gl|4189|Gdx.gl.glEnable(GL20.GL_BLEND);
+Gdx\.gl|4190|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+Gdx\.gl|4203|Gdx.gl.glDisable(GL20.GL_BLEND);
+GL20|11|import com.badlogic.gdx.graphics.GL20;
+GL20|718|Gdx.gl.glEnable(GL20.GL_BLEND);
+GL20|719|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|739|Gdx.gl.glDisable(GL20.GL_BLEND);
+GL20|3271|Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+GL20|3562|Gdx.gl.glEnable(GL20.GL_BLEND);
+GL20|3563|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|3589|Gdx.gl.glDisable(GL20.GL_BLEND);
+GL20|3790|Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+GL20|3798|batch.setBlendFunctionSeparate(GL20.GL_ZERO, GL20.GL_ONE, GL20.GL_ZERO, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|3821|batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|4060|Gdx.gl.glEnable(GL20.GL_BLEND);
+GL20|4061|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|4142|Gdx.gl.glDisable(GL20.GL_BLEND);
+GL20|4157|Gdx.gl.glEnable(GL20.GL_BLEND);
+GL20|4158|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|4183|Gdx.gl.glDisable(GL20.GL_BLEND);
+GL20|4189|Gdx.gl.glEnable(GL20.GL_BLEND);
+GL20|4190|Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+GL20|4203|Gdx.gl.glDisable(GL20.GL_BLEND);
+begin\(|724|shape.begin(ShapeRenderer.ShapeType.Line);
+begin\(|3291|batch.begin();
+begin\(|3348|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+begin\(|3379|batch.begin();
+begin\(|3788|dnMaskFbo.begin();
+begin\(|3794|batch.begin();
+begin\(|4064|shape.begin(ShapeRenderer.ShapeType.Filled);
+begin\(|4161|shape.begin(ShapeRenderer.ShapeType.Filled);
+begin\(|4178|shape.begin(ShapeRenderer.ShapeType.Line);
+begin\(|4196|shape.begin(ShapeRenderer.ShapeType.Filled);
+begin\(|8249|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+begin\(|8259|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+begin\(|8319|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+begin\(|8412|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+begin\(|8718|batch.begin();
+end\(|737|shape.end();
+end\(|2778|if (inv.spend(28, 1)) {
+end\(|3058|inv.spend(projCombat.itemArrowId(), 1);
+end\(|3329|batch.end();
+end\(|3361|shape.end();
+end\(|3363|try { shape.end(); } catch (Throwable ignored2) {}
+end\(|3595|batch.end();
+end\(|3824|batch.end();
+end\(|3827|dnMaskFbo.end();
+end\(|4137|shape.end();
+end\(|4175|shape.end();
+end\(|4181|shape.end();
+end\(|4201|shape.end();
+end\(|5396|if (sb.length() > 0) sb.append("\n\n");
+end\(|5398|sb.append("Angebot ").append(i + 1).append(":\n");
+end\(|5399|sb.append(q.title);
+end\(|5582|if (!inv.spend(itemId, 1)) break;
+end\(|6370|sb.append("tile[").append(tx).append(',').append(ty).append("] biome=").append(biome);
+end\(|6371|if (water) sb.append(" water");
+end\(|6372|if (blocked) sb.append(" blocked");
+end\(|6376|sb.append(" | tid=").append(worldMap != null ? worldMap.curTemplateId : "");
+end\(|6378|sb.append(" | tileTrees=OFF");
+end\(|6383|if (presentT) sb.append(cutT ? " | tree=STUMP" : " | tree=TREE");
+end\(|6384|else sb.append(" | tree=none");
+end\(|6386|sb.append(" | tree=oob");
+end\(|6391|sb.append("  |  e=").append(e).append(" ").append(entities.type[e]);
+end\(|6393|sb.append(" item=").append(entities.itemId[e]).append(" x").append(entities.itemAmount[e]);
+end\(|6395|sb.append(" data0=").append(entities.data0[e]);
+end\(|7223|if (k>0) req.append(", ");
+end\(|7224|req.append(inName).append("x").append(r.inAmount[k]);
+end\(|7802|if (a > 0 && inv.spend(itemId, a)) {
+end\(|7813|if (a > 0 && chest.spend(itemId, a)) {
+end\(|8017|if (!inv.spend(itemId, a)) return;
+end\(|8031|chest.spend(id, c);
+end\(|8252|shape.end();
+end\(|8299|shape.end();
+end\(|8309|try { shape.end(); } catch (Throwable ignored2) {}
+end\(|8322|shape.end();
+end\(|8477|shape.end();
+end\(|8492|try { shape.end(); } catch (Throwable ignored2) {}
+end\(|8722|batch.end();
+end\(|8724|try { batch.end(); } catch (Throwable ignored2) {}
+batch\.|3290|batch.setProjectionMatrix(cam.combined);
+batch\.|3291|batch.begin();
+batch\.|3293|batch.enableBlending();
+batch\.|3294|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|3329|batch.end();
+batch\.|3378|batch.setProjectionMatrix(uiCam.combined);
+batch\.|3379|batch.begin();
+batch\.|3380|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|3547|batch.setColor(r, g, b, aBase);
+batch\.|3551|batch.draw(dnMaskRegion, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+batch\.|3553|batch.draw(dayNight1x1, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+batch\.|3556|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|3566|batch.setColor(0f, 0f, 0f, bootOverlayA);
+batch\.|3567|batch.draw(dayNight1x1, 0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+batch\.|3576|batch.setColor(0f, 0f, 0f, Math.min(1f, bootOverlayA + 0.25f));
+batch\.|3577|batch.draw(dayNight1x1, x - 3f, y - 3f, w + 6f, h + 6f);
+batch\.|3578|batch.setColor(1f, 1f, 1f, Math.min(1f, bootOverlayA));
+batch\.|3579|batch.draw(dayNight1x1, x, y, w, h);
+batch\.|3584|batch.setColor(0.15f, 0.85f, 0.25f, Math.min(1f, bootOverlayA));
+batch\.|3585|batch.draw(dayNight1x1, x, y, fillW, h);
+batch\.|3588|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|3595|batch.end();
+batch\.|3793|batch.setProjectionMatrix(uiCam.combined);
+batch\.|3794|batch.begin();
+batch\.|3797|batch.flush();
+batch\.|3798|batch.setBlendFunctionSeparate(GL20.GL_ZERO, GL20.GL_ONE, GL20.GL_ZERO, GL20.GL_ONE_MINUS_SRC_ALPHA);
+batch\.|3808|batch.setColor(1f, 1f, 1f, strength);
+batch\.|3809|batch.draw(dnLightTex, dnLampScreenX - radiusPx, dnLampScreenY - radiusPx, size, size);
+batch\.|3816|batch.setColor(1f, 1f, 1f, strength);
+batch\.|3817|batch.draw(dnLightTex, dnLampScreenX - radiusPx, dnLampScreenY - radiusPx, size, size);
+batch\.|3820|batch.flush();
+batch\.|3821|batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+batch\.|3822|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|3824|batch.end();
+batch\.|5650|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|5651|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+batch\.|5678|batch.draw(uiRegions.slot, sx, sy, slot, slot);
+batch\.|5687|batch.draw(icon, sx + (slot - iw) * 0.5f, sy + (slot - ih) * 0.5f + 10f, iw, ih);
+batch\.|5711|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|5757|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|5758|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+batch\.|5786|ScissorStack.calculateScissors(uiCam, batch.getTransformMatrix(), clip, scissors);
+batch\.|5787|batch.flush();
+batch\.|5808|batch.flush();
+batch\.|5821|batch.setColor(1f, 1f, 1f, hasOffer ? 1f : 0.35f);
+batch\.|5822|batch.draw(uiRegions.button, btnAcceptX, btnY, btnW, btnH);
+batch\.|5823|batch.setColor(1f, 1f, 1f, hasOffer ? 1f : 0.35f);
+batch\.|5824|batch.draw(uiRegions.button, btnDeclineX, btnY, btnW, btnH);
+batch\.|5825|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|5826|batch.draw(uiRegions.button, btnGoX, btnY, btnW, btnH);
+batch\.|5928|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|5929|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+batch\.|5949|batch.setColor(1f, 1f, 1f, questLogOpenQuestsOpen ? 0.92f : 1f);
+batch\.|5950|batch.draw(uiRegions.button, bx, by1, bw, bh);
+batch\.|5956|batch.setColor(1f, 1f, 1f, questLogDoneQuestsOpen ? 0.92f : 1f);
+batch\.|5957|batch.draw(uiRegions.button, bx, by2, bw, bh);
+batch\.|5960|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|6031|batch.setColor(1f, 1f, 1f, 1f);
+batch\.|6032|batch.draw(uiRegions.panelSlots, x0, y0, panelW, panelH);
+batch\.|6054|ScissorStack.calculateScissors(uiCam, batch.getTransformMatrix(), listClip, listSc);
+shape\.|717|shape.setProjectionMatrix(cam.combined);
+shape\.|724|shape.begin(ShapeRenderer.ShapeType.Line);
+shape\.|725|shape.setColor(0.95f, 0.95f, 0.95f, 0.95f);
+shape\.|735|shape.line(x, y, x - nx * tail, y - ny * tail);
+shape\.|737|shape.end();
+shape\.|3347|shape.setProjectionMatrix(cam.combined);
+shape\.|3348|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+shape\.|3349|shape.setColor(1f, 0f, 0f, 0.22f);
+shape\.|3356|shape.rect(0f, 0f, rz, h);
+shape\.|3357|shape.rect(w - rz, 0f, rz, h);
+shape\.|3358|shape.rect(0f, 0f, w, rz);
+shape\.|3359|shape.rect(0f, h - rz, w, rz);
+shape\.|3361|shape.end();
+shape\.|3363|try { shape.end(); } catch (Throwable ignored2) {}
+shape\.|4058|shape.setProjectionMatrix(cam.combined);
+shape\.|4064|shape.begin(ShapeRenderer.ShapeType.Filled);
+shape\.|4082|shape.setColor(0f, 0f, 0f, 0.65f);
+shape\.|4083|shape.rect(bx - 1f, by - 1f, barW + 2f, barH + 2f);
+shape\.|4087|shape.setColor(rr, gg, 0.1f, 0.90f);
+shape\.|4088|shape.rect(bx, by, barW * p, barH);
+shape\.|4128|shape.setColor(0f, 0f, 0f, 0.65f);
+shape\.|4129|shape.rect(bx - 1f, by - 1f, barW + 2f, barH + 2f);
+shape\.|4134|shape.setColor(r, g, 0.1f, 0.90f);
+shape\.|4135|shape.rect(bx, by, barW * p, barH);
+shape\.|4137|shape.end();
+shape\.|4160|shape.setProjectionMatrix(cam.combined);
+shape\.|4161|shape.begin(ShapeRenderer.ShapeType.Filled);
+shape\.|4162|shape.setColor(new Color(0.10f, 0.55f, 1.0f, 0.35f));
+shape\.|4173|shape.triangle(px, py, x0, y0, x1, y1);
+shape\.|4175|shape.end();
+shape\.|4178|shape.begin(ShapeRenderer.ShapeType.Line);
+shape\.|4179|shape.setColor(new Color(1f, 0.15f, 0.15f, 0.95f));
+shape\.|4180|shape.circle(px, py, r, 64);
+shape\.|4181|shape.end();
+shape\.|4187|shape.setProjectionMatrix(cam.combined);
+shape\.|4196|shape.begin(ShapeRenderer.ShapeType.Filled);
+shape\.|4197|shape.setColor(0f, 0f, 0f, 0.85f);
+shape\.|4198|shape.circle(x, y, rOuter, 18);
+shape\.|4199|shape.setColor(1f, 1f, 1f, 0.95f);
+shape\.|4200|shape.circle(x, y, rInner, 18);
+shape\.|4201|shape.end();
+shape\.|8248|shape.setProjectionMatrix(uiCam.combined);
+shape\.|8249|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+shape\.|8250|shape.setColor(0f, 0f, 0f, 0.85f * alpha);
+shape\.|8251|shape.rect(0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+shape\.|8252|shape.end();
+shape\.|8259|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+shape\.|8281|shape.setColor(r, g, b, a);
+shape\.|8282|shape.rect(bx - cell * 0.45f, by - cell * 0.45f, cell * 0.90f, cell * 0.90f);
+shape\.|8286|shape.setColor(current ? 1f : 1f, current ? 1f : 1f, current ? 1f : 0.2f, 1f * alpha);
+shape\.|8293|shape.rect(x, y, bw, t);
+shape\.|8294|shape.rect(x, y + bh - t, bw, t);
+shape\.|8295|shape.rect(x, y, t, bh);
+shape\.|8296|shape.rect(x + bw - t, y, t, bh);
+shape\.|8299|shape.end();
+shape\.|8309|try { shape.end(); } catch (Throwable ignored2) {}
+shape\.|8318|shape.setProjectionMatrix(uiCam.combined);
+shape\.|8319|shape.begin(com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType.Filled);
+shape\.|8320|shape.setColor(0f, 0f, 0f, 0.92f * alpha);
+shape\.|8321|shape.rect(0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+frameBuffer|18|import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+frameBuffer|1249|private FrameBuffer dnMaskFbo;
+frameBuffer|2109|// Recreate Day/Night mask framebuffer
+frameBuffer|3838|dnMaskFbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
+frameBuffer|4955|// Recreate Day/Night mask framebuffer on resize
+fbo|1249|private FrameBuffer dnMaskFbo;
+fbo|2110|rebuildDnMaskFbo(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+fbo|3765|if (dnMaskFbo == null || dnMaskRegion == null) {
+fbo|3766|rebuildDnMaskFbo(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+fbo|3767|if (dnMaskFbo == null || dnMaskRegion == null) return;
+fbo|3787|// Render mask into FBO: start with alpha=1 everywhere, then reduce alpha around lamp.
+fbo|3788|dnMaskFbo.begin();
+fbo|3827|dnMaskFbo.end();
+fbo|3830|private void rebuildDnMaskFbo(int w, int h) {
+fbo|3831|try { if (dnMaskFbo != null) dnMaskFbo.dispose(); } catch (Throwable ignored) {}
+fbo|3832|dnMaskFbo = null;
+fbo|3838|dnMaskFbo = new FrameBuffer(Pixmap.Format.RGBA8888, w, h, false);
+fbo|3839|Texture t = dnMaskFbo.getColorBufferTexture();
+fbo|3841|dnMaskRegion.flip(false, true); // FBO texture is Y-flipped
+fbo|3843|dnMaskFbo = null;
+fbo|4956|rebuildDnMaskFbo(width, height);
+fbo|9082|if (dnMaskFbo != null) {
+fbo|9083|try { dnMaskFbo.dispose(); } catch (Throwable ignored) {}
+fbo|9084|dnMaskFbo = null;

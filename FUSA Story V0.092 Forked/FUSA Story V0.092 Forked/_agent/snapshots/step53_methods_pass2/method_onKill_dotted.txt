@@ -1,0 +1,16 @@
+﻿attack_melee.wav
+combat.meleeFov
+entities.aiF0
+game.audio
+game.settings
+Gdx.input
+Input.Buttons
+Input.Keys
+pricingEditor.close
+pricingEditor.isOpen
+progress.skillLv
+SkillEffects.mul5
+System.currentTimeMillis
+ui_back.wav
+ui_click.wav
+zqsRt.refreshQuestLifecycle

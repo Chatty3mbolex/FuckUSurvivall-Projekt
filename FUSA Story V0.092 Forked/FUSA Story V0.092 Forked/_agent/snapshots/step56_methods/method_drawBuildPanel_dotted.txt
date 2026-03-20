@@ -1,0 +1,14 @@
+﻿batch.draw
+batch.setColor
+buildTypes.length
+entityRegions.forEntity
+EntityType.BUILD_BED
+EntityType.BUILD_CAMPFIRE
+EntityType.BUILD_LAMP
+EntityType.BUILD_WORKBENCH
+font.draw
+font.getData
+font.setColor
+uiRegions.panelSlots
+uiRegions.slot
+uiRegions.slotPressed

@@ -1,0 +1,3 @@
+﻿drawHotbarHud|7839|private void drawHotbarHud() {
+drawCraftPanel|7381|private void drawCraftPanel() {
+drawSkillMenu|9359|private void drawSkillMenu() {

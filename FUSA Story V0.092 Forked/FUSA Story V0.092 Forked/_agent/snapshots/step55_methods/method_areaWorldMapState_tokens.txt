@@ -1,0 +1,5 @@
+﻿areaWorldMapState
+public
+return
+worldMap
+WorldMapState

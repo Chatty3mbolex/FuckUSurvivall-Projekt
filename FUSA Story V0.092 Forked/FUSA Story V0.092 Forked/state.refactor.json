@@ -1,0 +1,66 @@
+﻿{
+    "constraints":  [
+                        "OFFLINE_ONLY",
+                        "NO_COMPILE",
+                        "NO_RUN",
+                        "NO_GIT",
+                        "NO_MULTIPLAYER_CLIENT_NETWORK",
+                        "SLEEP_6S_BETWEEN_BURSTS",
+                        "NO_USER_CHECKPOINT_MESSAGES"
+                    ],
+    "projectRoot":  "C:\\Users\\kuehn\\Desktop\\Chatty Projekt\\FuckUSurvivall Projekt\\FUSA Story V0.092 Forked\\FUSA Story V0.092 Forked",
+    "steps":  [
+                  {
+                      "notes":  "Ran scripts/normalize_lf_java.ps1; scanned 210 java files; changed 4.",
+                      "done":  true,
+                      "id":  "P1.1",
+                      "desc":  "Normalize line endings (LF) for all .java files"
+                  },
+                  {
+                      "notes":  "Verified no CR characters remain in any src/main/java *.java (hits=0).",
+                      "done":  true,
+                      "id":  "P1.2",
+                      "desc":  "Verify all files saved correctly (post-normalization sanity checks)"
+                  },
+                  {
+                      "notes":  "Created DOCS/FEATURE_BACKLOG.md with required headers and archive sections.",
+                      "done":  true,
+                      "id":  "P2.1",
+                      "desc":  "Create DOCS/FEATURE_BACKLOG.md header"
+                  },
+                  {
+                      "notes":  "Ran scripts/extract_nicht_fertig.ps1; removed 92 blocks; post-grep Nicht fertiges Feature = 0.",
+                      "done":  true,
+                      "id":  "P2.2",
+                      "desc":  "Extract all \"Nicht fertiges Feature\" blocks to FEATURE_BACKLOG and remove from code"
+                  },
+                  {
+                      "notes":  "Script corrected (/* and */ patterns). Removed 22 commented-out code blocks; GameScreen placeholder inner classes removed as part of this.",
+                      "done":  true,
+                      "id":  "P2.3",
+                      "desc":  "Extract commented-out code blocks (\u003e3 lines) to FEATURE_BACKLOG and remove"
+                  },
+                  {
+                      "notes":  "Satisfied by Phase 2.3: UiState/CommandBuffer placeholder classes were archived to FEATURE_BACKLOG and removed from GameScreen.",
+                      "done":  true,
+                      "id":  "P2.4",
+                      "desc":  "Remove empty inner classes (UiState, CommandBuffer) from GameScreen after archiving"
+                  }
+              ],
+    "goal":  "Execute refactor workflow as defined in FuckUSurvivall Projekt/REFACTOR_LOG.md (phases 1-7)",
+    "updated":  "2026-03-20T11:12:43.7051795+01:00",
+    "phase3":  {
+                   "done":  true,
+                   "notes":  "QuestLogScreen Input import removed; GameScreen FQN replaced; imports added; post-check inline FQN matches=0."
+               },
+    "phase4":  {
+                   "done":  true,
+                   "notes":  "Created AreaHost/DebugTarget; GameScreen implements both; rewired worldmap loaders and DebugCommands; remaining GameScreen imports=0."
+               },
+    "phase5":  {
+                   "step50":  {
+                                  "done":  true,
+                                  "notes":  "Deleted thin wrapper controllers; inlined calls in GameScreen."
+                              }
+               }
+}

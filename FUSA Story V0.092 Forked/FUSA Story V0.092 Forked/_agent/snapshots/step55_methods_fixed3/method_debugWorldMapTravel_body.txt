@@ -1,0 +1,48 @@
+﻿  private void debugWorldMapTravel(Dir4 dir) {
+    try {
+      // Seed choice:
+      // - We use worldSeed because it's already per-save and stored in saves.
+      // - Later we may introduce a dedicated mapSeed, but worldSeed is fine for alpha.
+      long seed = worldSeed;
+
+      // Store "war stand" for the area we are leaving.
+      areaOnLeaveCurrent();
+
+      AreaTravelResult r = worldMapTravel.travel(this, worldMap, dir, seed);
+      if (r == null) {
+        toast = "WorldMap travel: ???";
+        toastT = 2.0f;
+        return;
+      }
+
+      // Human-readable debug feedback.
+      // We keep it short because it may be used frequently.
+      switch (r.code) {
+        case OK -> {
+          // Alpha exits: all sides are exits for now.
+          AreaCoord c1 = new AreaCoord(worldMap.curAx, worldMap.curAy);
+          if (!worldMap.exitsByArea.containsKey(c1)) {
+            worldMap.exitsByArea.put(c1, new AreaExits(true, true, true, true));
+          }
+// Nicht fertiges Feature:           worldMapDirty = true;
+          toast = "WorldMap: entered " + r.templateId + " @(" + worldMap.curAx + "," + worldMap.curAy + ")";
+          toastT = 2.2f;
+        }
+        case NO_EXIT -> {
+          toast = "WorldMap: no exit";
+          toastT = 2.0f;
+        }
+        case INVALID_PLACEMENT -> {
+          toast = "WorldMap: invalid placement";
+          toastT = 2.2f;
+        }
+        case LOAD_FAILED -> {
+          toast = "WorldMap: load failed: " + r.templateId;
+          toastT = 2.6f;
+        }
+      }
+    } catch (Throwable t) {
+      toast = "WorldMap travel error";
+      toastT = 2.6f;
+    }
+  }

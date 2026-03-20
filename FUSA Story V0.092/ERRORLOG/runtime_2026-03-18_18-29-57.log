@@ -1,0 +1,22 @@
+=== Runtime log started: 2026-03-18_18-29-57 ===
+cwd=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.092\assets
+logDir=C:\Users\kuehn\Desktop\Chatty Projekt\FuckUSurvivall Projekt\FUSA Story V0.092\ERRORLOG
+
+=== UNCAUGHT EXCEPTION ===
+Thread: main
+java.lang.IllegalStateException: Missing living atlas region sequence: animal_chicken_pick_N
+	at com.yourgame.survival.render.EntityRegions.reqSeqLiving(EntityRegions.java:106)
+	at com.yourgame.survival.render.EntityRegions.animFrame(EntityRegions.java:280)
+	at com.yourgame.survival.render.EntityRegions.forEntity(EntityRegions.java:174)
+	at com.yourgame.survival.render.EntityRenderer.draw(EntityRenderer.java:77)
+	at com.yourgame.survival.screens.GameScreen.renderWorld(GameScreen.java:2329)
+	at com.yourgame.survival.screens.WorldView.renderWorld(WorldView.java:11)
+	at com.yourgame.survival.screens.GameScreen.render(GameScreen.java:1474)
+	at com.badlogic.gdx.Game.render(Game.java:48)
+	at com.yourgame.survival.SurvivalGame.render(SurvivalGame.java:118)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Window.update(Lwjgl3Window.java:435)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.loop(Lwjgl3Application.java:181)
+	at com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application.<init>(Lwjgl3Application.java:153)
+	at com.yourgame.survival.desktop.DesktopLauncher.main(DesktopLauncher.java:36)
+=== END UNCAUGHT EXCEPTION ===
+

@@ -1,0 +1,23 @@
+﻿  public void areaAddEnemyZone(int cxTile, int cyTile, int rTiles, int min, int max, int respawnDaysMin, int respawnDaysMax) {
+    EnemyZone z = new EnemyZone();
+    z.cxTile = cxTile;
+    z.cyTile = cyTile;
+    z.rTiles = Math.max(1, rTiles);
+    z.targetMin = Math.max(0, min);
+    z.targetMax = Math.max(z.targetMin, max);
+    z.respawnDaysMin = Math.max(1, respawnDaysMin);
+    z.respawnDaysMax = Math.max(z.respawnDaysMin, respawnDaysMax);
+
+    // Deterministic per-zone seed
+    long s = worldSeed;
+    s ^= (long) cxTile * 0x9E3779B97F4A7C15L;
+    s ^= (long) cyTile * 0xC2B2AE3D27D4EB4FL;
+    s ^= (long) z.rTiles * 0x165667B19E3779F9L;
+    z.seed = s;
+
+    java.util.Random r = new java.util.Random(z.seed ^ 0xA11CE55EL);
+    z.targetCount = z.targetMin + (z.targetMax > z.targetMin ? r.nextInt(z.targetMax - z.targetMin + 1) : 0);
+    z.nextRespawnDayIndex = dayIndex; // allow spawn immediately
+
+    enemyZones.add(z);
+  }

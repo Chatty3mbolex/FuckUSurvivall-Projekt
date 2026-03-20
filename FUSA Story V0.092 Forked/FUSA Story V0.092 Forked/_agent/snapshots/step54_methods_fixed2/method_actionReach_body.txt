@@ -1,0 +1,4 @@
+﻿    private float actionReach(int equippedItemId) {
+      // keep original semantics by delegating to GameScreen method body (moved below)
+      return GameScreen.this.actionReach(equippedItemId);
+    }
